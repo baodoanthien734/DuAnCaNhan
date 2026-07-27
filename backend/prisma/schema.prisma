@@ -1,0 +1,98 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------
+// 1. BẢNG USER & AUTHENTICATION
+// ------------------------------------------------------
+model User {
+  id                 Int      @id @default(autoincrement())
+  email              String   @unique
+  name               String?
+  password           String?  // Nullable để sẵn sàng cho Google OAuth
+  hashedRefreshToken String?  // Security: Thu hồi Token / Logout
+  isActive           Boolean  @default(true)
+  
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Quan hệ (Relations)
+  roles     Role[]     // Một User có thể có nhiều Role
+  accounts  Account[]  // Dành cho đăng nhập Google/Facebook
+  logs      AuditLog[] // Nhật ký thao tác
+}
+
+// Bảng lưu OTP xác thực Đăng ký / Quên mật khẩu
+model Otp {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  code      String   // Mã OTP (VD: 123456)
+  expiresAt DateTime // Thời gian hết hạn
+  createdAt DateTime @default(now())
+}
+
+// ------------------------------------------------------
+// 2. BẢNG RBAC KẾ THỪA (DATABASE HIERARCHY)
+// ------------------------------------------------------
+model Role {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // VD: 'ADMIN', 'MANAGER', 'CUSTOMER'
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  users       User[]       // N-N với User
+  permissions Permission[] // N-N với Permission
+}
+
+model Permission {
+  id          Int      @id @default(autoincrement())
+  name        String   @unique // VD: 'users:read', 'orders:create', 'system:manage'
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  roles       Role[]
+}
+
+// ------------------------------------------------------
+// 3. TÍCH HỢP GOOGLE & AUDIT LOG
+// ------------------------------------------------------
+model Account {
+  id                Int      @id @default(autoincrement())
+  userId            Int
+  provider          String   
+  providerAccountId String
+  access_token      String?  @db.Text
+  refresh_token     String?  @db.Text
+  expires_at        Int?
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+  userId      Int?
+  action      String   // VD: 'REGISTER_SUCCESS', 'ROLE_ASSIGNED', 'GRANT_PERMISSION'
+  resource    String?
+  details     Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
