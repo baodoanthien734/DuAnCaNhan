@@ -1,0 +1,103 @@
+'use client';
+
+import Link from 'next/link';
+import { useState } from 'react';
+
+type SidebarProps = {
+  user: { name?: string };
+};
+
+const navItems = [
+  { label: 'Dashboard', href: '/admin' },
+  { label: 'Danh mục', href: '/admin/categories' },
+  { label: 'Sản phẩm', href: '/admin/products' },
+  { label: 'Bài viết', href: '/admin/posts' },
+  { label: 'Đơn hàng', href: '/admin/orders' },
+  { label: 'Đánh giá', href: '/admin/reviews' },
+  { label: 'Khách hàng', href: '/admin/customers' },
+];
+
+export default function Sidebar({ user }: SidebarProps) {
+  const [collapsed, setCollapsed] = useState(false);
+
+  return (
+    <aside
+      style={{
+        width: collapsed ? '76px' : '254px',
+        minWidth: collapsed ? '76px' : '254px',
+        height: '100vh',
+        position: 'sticky',
+        top: 0,
+        left: 0,
+        backgroundColor: '#ffffff',
+        borderRight: '1px solid #e2e8f0',
+        zIndex: 30,
+        flexShrink: 0,
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box',
+        padding: '24px 18px',
+        overflow: 'hidden',
+        transition: 'width 0.3s ease',
+        borderRadius: 0,
+      }}
+    >
+      <div style={{ display: 'flex', justifyContent: collapsed ? 'center' : 'space-between', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
+        <div style={{ display: 'grid', gap: '6px', alignItems: 'center', width: '100%', opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s ease' }}>
+          <p style={{ margin: 0, color: '#0c4a6e', fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase' }}>TinyHandMade</p>
+          <h2 style={{ margin: 0, fontSize: '24px', color: '#0f172a', lineHeight: 1.1 }}>Admin</h2>
+          <p style={{ margin: '10px 0 0', color: '#475569', fontSize: '13px' }}>
+            Xin chào, <strong>{user.name ?? 'Admin'}</strong>
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setCollapsed(!collapsed)}
+          style={{
+            width: '42px',
+            height: '42px',
+            borderRadius: '12px',
+            border: '1px solid #cbd5e1',
+            backgroundColor: '#eff6ff',
+            color: '#0c4a6e',
+            cursor: 'pointer',
+            fontSize: '18px',
+            padding: 0,
+          }}
+        >
+          {collapsed ? '→' : '←'}
+        </button>
+      </div>
+
+      <nav style={{ display: 'grid', gap: '10px' }}>
+        {navItems.map((item) => {
+          const hasActive = item.href === '/admin';
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '12px',
+                padding: '14px 16px',
+                borderRadius: '16px',
+                textDecoration: 'none',
+                color: hasActive ? '#0f172a' : '#334155',
+                backgroundColor: hasActive ? '#e0f2fe' : 'transparent',
+                fontWeight: hasActive ? '700' : '600',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }}
+            >
+              <span style={{ width: '10px', height: '10px', borderRadius: '9999px', backgroundColor: hasActive ? '#0284c7' : '#94a3b8', flexShrink: 0 }} />
+              <span>{collapsed ? item.label.charAt(0) : item.label}</span>
+            </Link>
+          );
+        })}
+      </nav>
+    </aside>
+  );
+}
