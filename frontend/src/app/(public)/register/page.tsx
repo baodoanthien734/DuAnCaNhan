@@ -30,17 +30,8 @@ export default function RegisterPage() {
     const savedOtp = localStorage.getItem('reg_otp'); // 💾 Lưu tạm OTP đã verify
 
     if (localStorage.getItem('user_info')) {
-      // If user_info exists (possibly stale), verify session with backend before redirecting
-      (async () => {
-        try {
-          await apiClient.get('/auth/me');
-          clearRegisterStorage();
-          router.push('/home');
-        } catch (e) {
-          // token invalid or expired — clear stale localStorage and stay on register
-          localStorage.removeItem('user_info');
-        }
-      })();
+      clearRegisterStorage();
+      router.push('/home');
       return;
     }
 

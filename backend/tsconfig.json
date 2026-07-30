@@ -16,7 +16,7 @@
     "paths": {
       "@/*": ["./src/*"] // Chuẩn hóa alias path @/ cho thư mục src
     },
-    "types": ["jest", "node", "multer"],
+    "types": ["jest", "node"],
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,

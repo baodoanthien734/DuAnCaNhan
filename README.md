@@ -1,6 +1,6 @@
 # My App - Fullstack Application
 
-Một ứng dụng fullstack sử dụng **NestJS** (Backend) và **Next.js** (Frontend) với xác thực JWT và quản lý email SMTP.
+Một ứng dụng fullstack hiện đại sử dụng **NestJS** (Backend) và **Next.js** (Frontend) với xác thực JWT và quản lý email SMTP.
 
 ## 📋 Mục đích
 
@@ -64,6 +64,10 @@ npx prisma migrate dev
 # Development mode (với auto-reload)
 npm run start:dev
 
+# Production mode
+npm run build
+npm run start:prod
+```
 
 Server sẽ chạy trên `http://localhost:3001`
 
@@ -91,6 +95,11 @@ npm run dev
 
 Frontend sẽ chạy trên `http://localhost:3000`
 
+4. **Build cho production**
+```bash
+npm run build
+npm start
+```
 
 ## 📦 Biến Môi Trường
 

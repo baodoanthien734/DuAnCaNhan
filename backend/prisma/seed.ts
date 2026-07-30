@@ -17,27 +17,9 @@ async function main() {
       create: role,
     });
   }
-  console.log('✅ Seeding roles completed!');
 
-  console.log('🌱 Seeding sample categories...');
-
-  const categories = [
-    { name: 'Trang trí', slug: 'trang-tri', description: 'Đồ trang trí nhà cửa, quà tặng nhỏ' },
-    { name: 'Quà tặng', slug: 'qua-tang', description: 'Các món quà thủ công phù hợp tặng bạn bè' },
-    { name: 'Thủ công mỹ nghệ', slug: 'thu-cong-my-nghe', description: 'Sản phẩm thủ công độc đáo' },
-  ];
-
-  for (const cat of categories) {
-    await (prisma as any).category.upsert({
-      where: { slug: cat.slug },
-      update: {},
-      create: { ...cat, position: 0, isActive: true },
-    });
-  }
-
-  console.log('✅ Categories seeded');
+  console.log('✅ Seeding completed!');
 }
-
 
 main()
   .catch((e) => {
