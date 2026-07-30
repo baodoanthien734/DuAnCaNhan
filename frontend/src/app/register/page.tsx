@@ -29,21 +29,6 @@ export default function RegisterPage() {
     const savedExpiresAt = localStorage.getItem('reg_expiresAt');
     const savedOtp = localStorage.getItem('reg_otp'); // 💾 Lưu tạm OTP đã verify
 
-    if (localStorage.getItem('user_info')) {
-      // If user_info exists (possibly stale), verify session with backend before redirecting
-      (async () => {
-        try {
-          await apiClient.get('/auth/me');
-          clearRegisterStorage();
-          router.push('/home');
-        } catch (e) {
-          // token invalid or expired — clear stale localStorage and stay on register
-          localStorage.removeItem('user_info');
-        }
-      })();
-      return;
-    }
-
     if (savedStep && savedEmail && savedExpiresAt) {
       const expireTime = parseInt(savedExpiresAt, 10);
       if (expireTime > Date.now()) {
@@ -82,40 +67,6 @@ export default function RegisterPage() {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
-
-  // 1.a. Nếu login ở tab khác, chuyển sang /home ngay
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const handleAuthRedirect = () => {
-      if (localStorage.getItem('user_info')) {
-        clearRegisterStorage();
-        router.push('/home');
-      }
-    };
-
-    const handleAuthChange = (e: StorageEvent) => {
-      if (e.key === 'user_info' && e.newValue) {
-        handleAuthRedirect();
-      }
-    };
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        handleAuthRedirect();
-      }
-    };
-
-    window.addEventListener('storage', handleAuthChange);
-    window.addEventListener('focus', handleAuthRedirect);
-    document.addEventListener('visibilitychange', handleVisibility);
-
-    return () => {
-      window.removeEventListener('storage', handleAuthChange);
-      window.removeEventListener('focus', handleAuthRedirect);
-      document.removeEventListener('visibilitychange', handleVisibility);
-    };
-  }, [router]);
 
   // Hàm hỗ trợ dọn dẹp gọn gàng
   const clearRegisterStorage = () => {

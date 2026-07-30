@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 import { apiClient } from '@/lib/api-client';
-import { setLoginData } from '@/lib/auth';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -21,13 +21,18 @@ export default function LoginPage() {
     try {
       const response = await apiClient.post('/auth/login', { email, password });
       const { accessToken, refreshToken, user } = response.data;
-      setLoginData({ accessToken, refreshToken, user });
-      const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
-      if (roles.includes('ADMIN')) {
-        router.push('/admin');
-      } else {
-        router.push('/home');
+
+      // 💾 1. Lưu Token vào Cookies
+      Cookies.set('accessToken', accessToken, { expires: 1 / 96 }); // 15 phút
+      if (refreshToken) {
+        Cookies.set('refreshToken', refreshToken, { expires: 7 }); // 7 ngày
       }
+
+      // 💾 2. Lưu thông tin user vào localStorage để dùng hiển thị ở trang Home
+      localStorage.setItem('user_info', JSON.stringify(user));
+
+      // 🚀 3. Chuyển hướng ngay lập tức (không dùng alert để tránh block UI)
+      router.push('/home');
     } catch (err: any) {
       const resData = err.response?.data;
 
