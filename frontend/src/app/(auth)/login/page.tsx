@@ -22,7 +22,12 @@ export default function LoginPage() {
       const response = await apiClient.post('/auth/login', { email, password });
       const { accessToken, refreshToken, user } = response.data;
       setLoginData({ accessToken, refreshToken, user });
-      router.push('/home');
+      const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
+      if (roles.includes('ADMIN')) {
+        router.push('/admin');
+      } else {
+        router.push('/home');
+      }
     } catch (err: any) {
       const resData = err.response?.data;
 
