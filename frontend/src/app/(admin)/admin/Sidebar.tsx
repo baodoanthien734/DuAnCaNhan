@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 type SidebarProps = {
@@ -19,6 +20,7 @@ const navItems = [
 
 export default function Sidebar({ user }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
+  const pathname = usePathname(); // Lấy URL hiện tại để active chuẩn xác
 
   return (
     <aside
@@ -30,7 +32,7 @@ export default function Sidebar({ user }: SidebarProps) {
         top: 0,
         left: 0,
         backgroundColor: '#ffffff',
-        borderRight: '1px solid #e2e8f0',
+        borderRight: '1px solid #e2e8f0', // Trả lại màu viền gốc
         zIndex: 30,
         flexShrink: 0,
         display: 'flex',
@@ -59,7 +61,7 @@ export default function Sidebar({ user }: SidebarProps) {
             height: '42px',
             borderRadius: '12px',
             border: '1px solid #cbd5e1',
-            backgroundColor: '#eff6ff',
+            backgroundColor: '#eff6ff', // Trả lại màu nút gốc
             color: '#0c4a6e',
             cursor: 'pointer',
             fontSize: '18px',
@@ -72,7 +74,12 @@ export default function Sidebar({ user }: SidebarProps) {
 
       <nav style={{ display: 'grid', gap: '10px' }}>
         {navItems.map((item) => {
-          const hasActive = item.href === '/admin';
+          // Logic active đã được sửa chuẩn xác bằng usePathname()
+          const isActive = 
+            item.href === '/admin' 
+              ? pathname === '/admin' 
+              : pathname.startsWith(item.href);
+
           return (
             <Link
               key={item.href}
@@ -84,15 +91,24 @@ export default function Sidebar({ user }: SidebarProps) {
                 padding: '14px 16px',
                 borderRadius: '16px',
                 textDecoration: 'none',
-                color: hasActive ? '#0f172a' : '#334155',
-                backgroundColor: hasActive ? '#e0f2fe' : 'transparent',
-                fontWeight: hasActive ? '700' : '600',
+                // Trả lại màu sắc và background gốc của admin
+                color: isActive ? '#0f172a' : '#334155',
+                backgroundColor: isActive ? '#e0f2fe' : 'transparent',
+                fontWeight: isActive ? '700' : '600',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
               }}
             >
-              <span style={{ width: '10px', height: '10px', borderRadius: '9999px', backgroundColor: hasActive ? '#0284c7' : '#94a3b8', flexShrink: 0 }} />
+              <span 
+                style={{ 
+                  width: '10px', 
+                  height: '10px', 
+                  borderRadius: '9999px', 
+                  backgroundColor: isActive ? '#0284c7' : '#94a3b8', 
+                  flexShrink: 0 
+                }} 
+              />
               <span>{collapsed ? item.label.charAt(0) : item.label}</span>
             </Link>
           );

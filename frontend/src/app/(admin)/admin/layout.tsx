@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import AdminShell from './AdminShell';
+import "../../globals.css";
 
 async function getProfile(token: string) {
   try {

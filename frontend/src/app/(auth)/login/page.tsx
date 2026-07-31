@@ -47,29 +47,52 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5', fontFamily: 'sans-serif' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)', // Gradient pastel mộng mơ
+      fontFamily: '"Nunito", "Segoe UI", sans-serif' // Font mềm mại hơn
+    }}>
       {/* Main Container */}
-      <div style={{ width: '100%', maxWidth: '450px', padding: '40px', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 10px 40px rgba(102, 126, 234, 0.15)' }}>
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '420px', 
+        padding: '45px 40px', 
+        backgroundColor: 'rgba(255, 255, 255, 0.95)', // Hơi trong suốt nhẹ
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px', // Bo góc tròn trịa hơn
+        boxShadow: '0 15px 35px rgba(166, 193, 238, 0.4)' 
+      }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{ fontSize: '32px', margin: '0 0 10px 0', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            📚 LightNovel Hub
+        <div style={{ textAlign: 'center', marginBottom: '35px' }}>
+          <h1 style={{ 
+            fontSize: '28px', 
+            margin: '0 0 8px 0', 
+            color: '#845ec2', // Màu tím mộng mơ
+            fontWeight: '700'
+          }}>
+            🧶 Trạm Thủ Công
           </h1>
-          <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>Đăng nhập tài khoản của bạn</p>
+          <p style={{ margin: 0, color: '#9b89b3', fontSize: '14px' }}>Mở cửa thế giới sáng tạo của bạn ✨</p>
         </div>
 
         {/* Error Message */}
         {errorMsg && (
           <div style={{
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            color: '#c33',
+            backgroundColor: '#fff0f3',
+            border: '1px solid #ffc8dd',
+            color: '#ff4d6d',
             padding: '12px 15px',
-            borderRadius: '8px',
+            borderRadius: '12px',
             marginBottom: '20px',
-            fontSize: '14px'
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }}>
-            ❌ {errorMsg}
+            🥀 {errorMsg}
           </div>
         )}
 
@@ -77,34 +100,42 @@ export default function LoginPage() {
         <form onSubmit={handleLogin} noValidate>
           {/* Email Field */}
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
-              📧 Email
+            <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
+              💌 Địa chỉ Email
             </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="example@gmail.com"
+              placeholder="nhadothucong@gmail.com"
               style={{
                 width: '100%',
-                padding: '12px 15px',
+                padding: '14px 16px',
                 fontSize: '14px',
-                border: '2px solid #e0e0e0',
-                borderRadius: '8px',
+                border: '2px solid #f3e8ff',
+                backgroundColor: '#fbf8ff',
+                borderRadius: '14px',
                 boxSizing: 'border-box',
-                transition: 'border-color 0.3s',
-                outline: 'none'
+                transition: 'all 0.3s',
+                outline: 'none',
+                color: '#4a3b52'
               }}
-              onFocus={(e) => e.target.style.borderColor = '#667eea'}
-              onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#d65db1';
+                e.target.style.backgroundColor = '#fff';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#f3e8ff';
+                e.target.style.backgroundColor = '#fbf8ff';
+              }}
             />
           </div>
 
           {/* Password Field with Toggle */}
-          <div style={{ marginBottom: '25px' }}>
-            <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
-              🔐 Mật khẩu
+          <div style={{ marginBottom: '30px' }}>
+            <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
+              🗝️ Chìa khóa (Mật khẩu)
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -112,20 +143,28 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Nhập mật khẩu của bạn"
+                placeholder="Nhập mật khẩu của bạn..."
                 style={{
                   width: '100%',
-                  padding: '12px 15px',
+                  padding: '14px 16px',
                   paddingRight: '45px',
                   fontSize: '14px',
-                  border: '2px solid #e0e0e0',
-                  borderRadius: '8px',
+                  border: '2px solid #f3e8ff',
+                  backgroundColor: '#fbf8ff',
+                  borderRadius: '14px',
                   boxSizing: 'border-box',
-                  transition: 'border-color 0.3s',
-                  outline: 'none'
+                  transition: 'all 0.3s',
+                  outline: 'none',
+                  color: '#4a3b52'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#d65db1';
+                  e.target.style.backgroundColor = '#fff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#f3e8ff';
+                  e.target.style.backgroundColor = '#fbf8ff';
+                }}
               />
               <button
                 type="button"
@@ -138,12 +177,13 @@ export default function LoginPage() {
                   background: 'none',
                   border: 'none',
                   cursor: 'pointer',
-                  fontSize: '18px',
-                  padding: '5px'
+                  fontSize: '16px',
+                  padding: '5px',
+                  color: '#9b89b3'
                 }}
                 title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
-                {showPassword ? '👁️' : '👁️‍🗨️'}
+                {showPassword ? '🌸' : '💮'}
               </button>
             </div>
           </div>
@@ -154,45 +194,46 @@ export default function LoginPage() {
             disabled={loading}
             style={{
               width: '100%',
-              padding: '12px',
-              fontSize: '16px',
-              fontWeight: '600',
-              background: loading ? '#999' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              padding: '14px',
+              fontSize: '15px',
+              fontWeight: 'bold',
+              background: loading ? '#d5c4e3' : 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
               color: '#fff',
               border: 'none',
-              borderRadius: '8px',
+              borderRadius: '14px',
               cursor: loading ? 'not-allowed' : 'pointer',
-              transition: 'transform 0.2s',
+              transition: 'all 0.3s',
+              boxShadow: loading ? 'none' : '0 4px 15px rgba(251, 194, 235, 0.4)',
               opacity: loading ? 0.8 : 1
             }}
             onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+            onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
           >
-            {loading ? '⏳ Đang xác thực...' : '🚀 Đăng Nhập'}
+            {loading ? '🧶 Đang đan len...' : '✨ Bước Vào Tiệm'}
           </button>
         </form>
 
         {/* Divider */}
-        <div style={{ margin: '25px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ flex: 1, height: '1px', backgroundColor: '#e0e0e0' }}></div>
-          <span style={{ color: '#999', fontSize: '12px' }}>HOẶC</span>
-          <div style={{ flex: 1, height: '1px', backgroundColor: '#e0e0e0' }}></div>
+        <div style={{ margin: '25px 0', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#f3e8ff' }}></div>
+          <span style={{ color: '#d5c4e3', fontSize: '11px', letterSpacing: '1px' }}>HOẶC</span>
+          <div style={{ flex: 1, height: '1px', backgroundColor: '#f3e8ff' }}></div>
         </div>
 
         {/* Register Link */}
         <div style={{ textAlign: 'center' }}>
-          <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: '14px' }}>
-            Chưa có tài khoản?
+          <p style={{ margin: '0 0 12px 0', color: '#9b89b3', fontSize: '13px' }}>
+            Bạn là người mới?
           </p>
           <a
             href="/register"
             style={{
               display: 'inline-block',
-              padding: '10px 24px',
-              backgroundColor: '#f0f0f0',
-              color: '#667eea',
-              border: '2px solid #667eea',
-              borderRadius: '8px',
+              padding: '12px 24px',
+              backgroundColor: '#fff',
+              color: '#d65db1',
+              border: '2px dashed #fbc2eb',
+              borderRadius: '14px',
               textDecoration: 'none',
               fontSize: '14px',
               fontWeight: '600',
@@ -200,32 +241,33 @@ export default function LoginPage() {
               cursor: 'pointer'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#667eea';
-              e.currentTarget.style.color = '#fff';
+              e.currentTarget.style.backgroundColor = '#fdf3f8';
+              e.currentTarget.style.borderColor = '#d65db1';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#f0f0f0';
-              e.currentTarget.style.color = '#667eea';
+              e.currentTarget.style.backgroundColor = '#fff';
+              e.currentTarget.style.borderColor = '#fbc2eb';
             }}
           >
-            📝 Đăng Ký Ngay
+            🎀 Đăng Ký Ngay
           </a>
         </div>
 
         {/* Back to Home */}
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <div style={{ marginTop: '25px', textAlign: 'center' }}>
           <a
             href="/"
             style={{
-              color: '#999',
+              color: '#c2a9db',
               textDecoration: 'none',
-              fontSize: '12px',
-              transition: 'color 0.2s'
+              fontSize: '13px',
+              transition: 'color 0.2s',
+              fontWeight: '500'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#667eea'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#999'}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#845ec2'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#c2a9db'}
           >
-            ← Quay lại trang chủ
+            ← Về lại trang chủ
           </a>
         </div>
       </div>

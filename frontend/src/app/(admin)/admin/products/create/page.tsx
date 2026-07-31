@@ -1,23 +1,34 @@
-export default function AdminProductCreatePage() {
-  return (
-    <div style={{ display: 'grid', gap: '22px' }}>
-      <div>
-        <p style={{ margin: 0, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '12px', fontWeight: 700 }}>
-          Tạo sản phẩm
-        </p>
-        <h1 style={{ margin: '12px 0 0', fontSize: '32px', color: '#111827' }}>
-          Thêm sản phẩm handmade mới
-        </h1>
-        <p style={{ margin: '14px 0 0', color: '#475569', fontSize: '16px', maxWidth: '680px' }}>
-          Điền tên sản phẩm, mô tả, giá và hình ảnh để đăng lên shop.
-        </p>
-      </div>
+"use client";
 
-      <div style={{ padding: '24px', borderRadius: '24px', backgroundColor: '#ffffff', boxShadow: '0 18px 45px rgba(15, 23, 42, 0.08)' }}>
-        <p style={{ margin: 0, color: '#475569' }}>
-          Mẫu trang này chưa có form dữ liệu, nhưng đã sẵn sàng để mở rộng thành bộ công cụ quản lý sản phẩm hoàn chỉnh.
-        </p>
-      </div>
-    </div>
-  );
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createProduct } from "@/lib/products-api";
+import ProductForm, { ProductFormValues } from "../components/ProductForm";
+
+export default function CreateProductPage() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleCreate = async (data: ProductFormValues) => {
+    setIsLoading(true);
+    try {
+      await createProduct(data);
+      alert("Tạo sản phẩm thành công!");
+      router.push('/admin/products');
+    } catch (error: any) {
+      console.error("Lỗi kết nối:", error);
+      const resData = error.response?.data;
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        alert("Phiên đăng nhập đã hết hạn hoặc bạn không đủ quyền!");
+      } else if (resData?.message) {
+        alert("Lỗi validate:\n" + JSON.stringify(resData.message, null, 2));
+      } else {
+        alert("Có lỗi xảy ra, vui lòng thử lại sau!");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return <ProductForm onSubmitData={handleCreate} isLoading={isLoading} />;
 }

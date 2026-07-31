@@ -157,6 +157,7 @@ model Product {
   variants         ProductVariant[]
   reviews          Review[]
   cartItems        CartItem[]
+  customizations   ProductCustomization[]
 }
 
 model ProductVariant {
@@ -175,6 +176,39 @@ model ProductVariant {
   cartItems CartItem[]
 }
 
+// Enum để phân loại tùy chọn
+enum CustomizationType {
+  SELECT // Khách chọn 1 trong danh sách (Ví dụ: Loại vải, Charm)
+  TEXT   // Khách tự nhập chữ (Ví dụ: Tên muốn thêu)
+}
+
+// Bảng lưu Cấu hình Cá nhân hóa của một sản phẩm
+model ProductCustomization {
+  id          Int               @id @default(autoincrement())
+  productId   Int
+  name        String            // Tên tùy chọn (VD: "Tên muốn thêu", "Chọn Charm")
+  type        CustomizationType // Phân loại
+  isRequired  Boolean           @default(false) // Bắt buộc phải chọn/nhập không?
+  
+  // Dành riêng cho type = TEXT
+  maxLength   Int?              // Giới hạn số lượng ký tự
+
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  product     Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  choices     CustomizationChoice[]
+}
+
+// Bảng lưu Các lựa chọn con (nếu type = SELECT)
+model CustomizationChoice {
+  id                 Int      @id @default(autoincrement())
+  customizationId    Int
+  label              String   // VD: "Thỏ bông", "Gấu bông"
+  extraPrice         Decimal  @default(0) @db.Decimal(12, 2) // Tiền cộng thêm nếu chọn
+
+  customization      ProductCustomization @relation(fields: [customizationId], references: [id], onDelete: Cascade)
+}
 // ======================================================
 // 5. GIỎ HÀNG (CART)
 // ======================================================
@@ -194,6 +228,10 @@ model CartItem {
   productId Int
   variantId Int?
   quantity  Int             @default(1)
+
+  // MỚI: Lưu trữ lựa chọn cá nhân hóa của user dưới dạng JSON
+  // Cấu trúc dự kiến: [{"name": "Tên thêu", "value": "Anya", "price": 0}, {"name": "Charm", "value": "Thỏ bông", "price": 10000}]
+  customizations Json?
 
   createdAt DateTime        @default(now())
   updatedAt DateTime        @updatedAt
@@ -273,6 +311,9 @@ model OrderItem {
   variantName String?
   price       Decimal  @db.Decimal(12, 2)
   quantity    Int
+
+  // MỚI: Lưu cứng lại các lựa chọn cá nhân hóa tại thời điểm đặt hàng
+  customizations Json?
 
   createdAt   DateTime @default(now())
 

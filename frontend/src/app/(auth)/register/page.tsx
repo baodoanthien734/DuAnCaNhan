@@ -221,15 +221,37 @@ export default function RegisterPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f5f5f5', fontFamily: 'sans-serif', paddingTop: '20px', paddingBottom: '20px' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      display: 'flex', 
+      alignItems: 'center', 
+      justifyContent: 'center', 
+      background: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
+      fontFamily: '"Nunito", "Segoe UI", sans-serif',
+      paddingTop: '20px', 
+      paddingBottom: '20px' 
+    }}>
       {/* Main Container */}
-      <div style={{ width: '100%', maxWidth: '450px', padding: '40px', backgroundColor: '#fff', borderRadius: '12px', boxShadow: '0 10px 40px rgba(102, 126, 234, 0.15)' }}>
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '450px', 
+        padding: '45px 40px', 
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(10px)',
+        borderRadius: '24px', 
+        boxShadow: '0 15px 35px rgba(166, 193, 238, 0.4)' 
+      }}>
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-          <h1 style={{ fontSize: '32px', margin: '0 0 10px 0', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', backgroundClip: 'text', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            📚 LightNovel Hub
+        <div style={{ textAlign: 'center', marginBottom: '35px' }}>
+          <h1 style={{ 
+            fontSize: '28px', 
+            margin: '0 0 8px 0', 
+            color: '#845ec2', 
+            fontWeight: '700'
+          }}>
+            🧶 Trạm Thủ Công
           </h1>
-          <p style={{ margin: '0 0 15px 0', color: '#666', fontSize: '14px' }}>Tạo tài khoản của bạn</p>
+          <p style={{ margin: '0 0 15px 0', color: '#9b89b3', fontSize: '14px' }}>Tạo không gian sáng tạo của bạn ✨</p>
 
           {/* Progress Bar */}
           <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
@@ -238,29 +260,32 @@ export default function RegisterPage() {
                 key={s}
                 style={{
                   flex: 1,
-                  height: '4px',
-                  backgroundColor: s <= step ? '#667eea' : '#e0e0e0',
-                  borderRadius: '2px',
-                  transition: 'background-color 0.3s'
+                  height: '6px',
+                  backgroundColor: s <= step ? '#a18cd1' : '#f3e8ff',
+                  borderRadius: '3px',
+                  transition: 'background-color 0.4s ease'
                 }}
               />
             ))}
           </div>
-          <p style={{ margin: '10px 0 0 0', color: '#999', fontSize: '12px' }}>Bước {step}/3</p>
+          <p style={{ margin: '10px 0 0 0', color: '#c2a9db', fontSize: '12px', fontWeight: '600' }}>Bước {step}/3</p>
         </div>
 
         {/* Error Message */}
         {errorMsg && (
           <div style={{
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            color: '#c33',
+            backgroundColor: '#fff0f3',
+            border: '1px solid #ffc8dd',
+            color: '#ff4d6d',
             padding: '12px 15px',
-            borderRadius: '8px',
+            borderRadius: '12px',
             marginBottom: '20px',
-            fontSize: '14px'
+            fontSize: '13px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px'
           }}>
-            ❌ {errorMsg}
+            🥀 {errorMsg}
           </div>
         )}
 
@@ -268,30 +293,38 @@ export default function RegisterPage() {
         {step === 1 && (
           <form onSubmit={handleSendOtp}>
             <div style={{ marginBottom: '25px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
-                📧 Địa chỉ Email
+              <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
+                💌 Địa chỉ Email
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="example@gmail.com"
+                placeholder="nhadothucong@gmail.com"
                 style={{
                   width: '100%',
-                  padding: '12px 15px',
+                  padding: '14px 16px',
                   fontSize: '14px',
-                  border: '2px solid #e0e0e0',
-                  borderRadius: '8px',
+                  border: '2px solid #f3e8ff',
+                  backgroundColor: '#fbf8ff',
+                  borderRadius: '14px',
                   boxSizing: 'border-box',
-                  transition: 'border-color 0.3s',
-                  outline: 'none'
+                  transition: 'all 0.3s',
+                  outline: 'none',
+                  color: '#4a3b52'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#d65db1';
+                  e.target.style.backgroundColor = '#fff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#f3e8ff';
+                  e.target.style.backgroundColor = '#fbf8ff';
+                }}
               />
-              <p style={{ fontSize: '12px', color: '#999', margin: '8px 0 0 0' }}>
-                Chúng tôi sẽ gửi mã xác thực OTP đến email này
+              <p style={{ fontSize: '12px', color: '#c2a9db', margin: '8px 0 0 0' }}>
+                Chúng tôi sẽ gửi một bức thư chứa mã xác nhận đến đây.
               </p>
             </div>
 
@@ -300,21 +333,22 @@ export default function RegisterPage() {
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                background: loading ? '#999' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '14px',
+                fontSize: '15px',
+                fontWeight: 'bold',
+                background: loading ? '#d5c4e3' : 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '14px',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'transform 0.2s',
+                transition: 'all 0.3s',
+                boxShadow: loading ? 'none' : '0 4px 15px rgba(251, 194, 235, 0.4)',
                 opacity: loading ? 0.8 : 1
               }}
               onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
-              onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
+              onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
             >
-              {loading ? '⏳ Đang gửi...' : '📬 Gửi mã OTP'}
+              {loading ? '🧶 Đang gửi thư...' : '📬 Gửi mã xác nhận'}
             </button>
           </form>
         )}
@@ -322,32 +356,33 @@ export default function RegisterPage() {
         {/* BƯỚC 2: Nhập OTP */}
         {step === 2 && (
           <form onSubmit={handleVerifyOtp}>
-            <div style={{ backgroundColor: '#f9f3ff', padding: '12px 15px', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
-              <p style={{ margin: '0 0 8px 0', color: '#333' }}>
-                ✉️ Mã OTP đã được gửi đến:
+            <div style={{ backgroundColor: '#fdf8ff', border: '1px solid #f3e8ff', padding: '15px', borderRadius: '14px', marginBottom: '25px', fontSize: '13px', textAlign: 'center' }}>
+              <p style={{ margin: '0 0 8px 0', color: '#9b89b3' }}>
+                ✉️ Thư đã được gửi đến:
               </p>
-              <p style={{ margin: '0', fontWeight: '600', color: '#667eea' }}>{email}</p>
+              <p style={{ margin: '0', fontWeight: 'bold', color: '#845ec2', fontSize: '14px' }}>{email}</p>
               <button
                 type="button"
                 onClick={handleResetToStep1}
                 style={{
-                  marginTop: '8px',
+                  marginTop: '10px',
                   background: 'none',
                   border: 'none',
-                  color: '#764ba2',
+                  color: '#d65db1',
                   cursor: 'pointer',
                   textDecoration: 'underline',
                   fontSize: '12px',
-                  padding: 0
+                  padding: 0,
+                  fontWeight: '600'
                 }}
               >
-                ← Đổi email
+                ← Nhập nhầm hòm thư? Đổi lại
               </button>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
-                🔐 Mã OTP (6 chữ số)
+              <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px', textAlign: 'center' }}>
+                🎫 Mã xác nhận (6 chữ số)
               </label>
               <input
                 type="text"
@@ -355,32 +390,41 @@ export default function RegisterPage() {
                 maxLength={6}
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="000000"
+                placeholder="••••••"
                 style={{
                   width: '100%',
-                  padding: '12px 15px',
-                  fontSize: '24px',
-                  border: '2px solid #e0e0e0',
-                  borderRadius: '8px',
+                  padding: '14px 16px',
+                  fontSize: '28px',
+                  border: '2px solid #f3e8ff',
+                  backgroundColor: '#fbf8ff',
+                  borderRadius: '14px',
                   boxSizing: 'border-box',
                   textAlign: 'center',
-                  letterSpacing: '8px',
-                  transition: 'border-color 0.3s',
-                  outline: 'none'
+                  letterSpacing: '12px',
+                  color: '#845ec2',
+                  transition: 'all 0.3s',
+                  outline: 'none',
+                  fontWeight: 'bold'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#d65db1';
+                  e.target.style.backgroundColor = '#fff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#f3e8ff';
+                  e.target.style.backgroundColor = '#fbf8ff';
+                }}
               />
             </div>
 
-            <div style={{ marginBottom: '20px', textAlign: 'center', padding: '12px 15px', backgroundColor: '#f5f5f5', borderRadius: '8px' }}>
+            <div style={{ marginBottom: '25px', textAlign: 'center', padding: '12px 15px', borderRadius: '12px' }}>
               {countdown > 0 ? (
-                <p style={{ fontSize: '14px', color: '#666', margin: 0 }}>
-                  ⏱️ Mã OTP hết hạn sau: <b style={{ color: '#667eea' }}>{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</b>
+                <p style={{ fontSize: '13px', color: '#9b89b3', margin: 0 }}>
+                  ⏱️ Mã sẽ mờ dần sau: <b style={{ color: '#d65db1' }}>{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</b>
                 </p>
               ) : (
                 <div>
-                  <p style={{ fontSize: '14px', color: '#c33', margin: '0 0 8px 0' }}>⚠️ Mã OTP đã hết hạn!</p>
+                  <p style={{ fontSize: '13px', color: '#ff4d6d', margin: '0 0 8px 0', fontWeight: '500' }}>🥀 Mã xác nhận đã tan biến!</p>
                   <button
                     type="button"
                     onClick={() => handleSendOtp()}
@@ -388,15 +432,16 @@ export default function RegisterPage() {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#667eea',
+                      color: '#a18cd1',
                       cursor: loading ? 'not-allowed' : 'pointer',
                       textDecoration: 'underline',
                       fontSize: '13px',
                       padding: 0,
+                      fontWeight: '600',
                       opacity: loading ? 0.6 : 1
                     }}
                   >
-                    {loading ? '⏳ Đang gửi lại...' : '🔄 Gửi lại mã OTP'}
+                    {loading ? '🧶 Đang xin mã mới...' : '✨ Xin cấp mã mới'}
                   </button>
                 </div>
               )}
@@ -407,21 +452,22 @@ export default function RegisterPage() {
               disabled={loading || countdown === 0}
               style={{
                 width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                background: loading || countdown === 0 ? '#999' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '14px',
+                fontSize: '15px',
+                fontWeight: 'bold',
+                background: loading || countdown === 0 ? '#d5c4e3' : 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '14px',
                 cursor: loading || countdown === 0 ? 'not-allowed' : 'pointer',
-                transition: 'transform 0.2s',
+                transition: 'all 0.3s',
+                boxShadow: loading || countdown === 0 ? 'none' : '0 4px 15px rgba(251, 194, 235, 0.4)',
                 opacity: loading || countdown === 0 ? 0.8 : 1
               }}
               onMouseEnter={(e) => !(loading || countdown === 0) && (e.currentTarget.style.transform = 'translateY(-2px)')}
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
             >
-              {loading ? '⏳ Đang xác thực...' : '✅ Xác thực OTP'}
+              {loading ? '🧶 Đang kiểm tra...' : '🌸 Mở khóa hòm thư'}
             </button>
           </form>
         )}
@@ -430,33 +476,41 @@ export default function RegisterPage() {
         {step === 3 && (
           <form onSubmit={handleRegister}>
             <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
-                👤 Họ và Tên
+              <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
+                👤 Tên gọi thân thương
               </label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Nhập họ tên của bạn"
+                placeholder="Bạn muốn chúng mình gọi là gì?"
                 style={{
                   width: '100%',
-                  padding: '12px 15px',
+                  padding: '14px 16px',
                   fontSize: '14px',
-                  border: '2px solid #e0e0e0',
-                  borderRadius: '8px',
+                  border: '2px solid #f3e8ff',
+                  backgroundColor: '#fbf8ff',
+                  borderRadius: '14px',
                   boxSizing: 'border-box',
-                  transition: 'border-color 0.3s',
-                  outline: 'none'
+                  transition: 'all 0.3s',
+                  outline: 'none',
+                  color: '#4a3b52'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#d65db1';
+                  e.target.style.backgroundColor = '#fff';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#f3e8ff';
+                  e.target.style.backgroundColor = '#fbf8ff';
+                }}
               />
             </div>
 
-            <div style={{ marginBottom: '25px' }}>
-              <label style={{ display: 'block', marginBottom: '8px', color: '#333', fontWeight: '500', fontSize: '14px' }}>
-                🔐 Mật khẩu
+            <div style={{ marginBottom: '30px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
+                🗝️ Chìa khóa bảo vệ (Mật khẩu)
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -464,20 +518,28 @@ export default function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Nhập mật khẩu mạnh"
+                  placeholder="Sáng tạo một mật khẩu thật vững chắc..."
                   style={{
                     width: '100%',
-                    padding: '12px 15px',
+                    padding: '14px 16px',
                     paddingRight: '45px',
                     fontSize: '14px',
-                    border: '2px solid #e0e0e0',
-                    borderRadius: '8px',
+                    border: '2px solid #f3e8ff',
+                    backgroundColor: '#fbf8ff',
+                    borderRadius: '14px',
                     boxSizing: 'border-box',
-                    transition: 'border-color 0.3s',
-                    outline: 'none'
+                    transition: 'all 0.3s',
+                    outline: 'none',
+                    color: '#4a3b52'
                   }}
-                  onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                  onBlur={(e) => e.target.style.borderColor = '#e0e0e0'}
+                  onFocus={(e) => {
+                    e.target.style.borderColor = '#d65db1';
+                    e.target.style.backgroundColor = '#fff';
+                  }}
+                  onBlur={(e) => {
+                    e.target.style.borderColor = '#f3e8ff';
+                    e.target.style.backgroundColor = '#fbf8ff';
+                  }}
                 />
                 <button
                   type="button"
@@ -490,16 +552,17 @@ export default function RegisterPage() {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    fontSize: '18px',
-                    padding: '5px'
+                    fontSize: '16px',
+                    padding: '5px',
+                    color: '#9b89b3'
                   }}
                   title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
                 >
-                  {showPassword ? '👁️' : '👁️‍🗨️'}
+                  {showPassword ? '🌸' : '💮'}
                 </button>
               </div>
-              <p style={{ fontSize: '12px', color: '#999', margin: '8px 0 0 0' }}>
-                Yêu cầu: Chữ hoa, chữ thường, số hoặc ký tự đặc biệt
+              <p style={{ fontSize: '11px', color: '#c2a9db', margin: '8px 0 0 0', lineHeight: '1.4' }}>
+                Đan xen chữ hoa, chữ thường, số hoặc ký tự đặc biệt để mũi len được chắc chắn nhất nhé.
               </p>
             </div>
 
@@ -508,40 +571,41 @@ export default function RegisterPage() {
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                fontWeight: '600',
-                background: loading ? '#999' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '14px',
+                fontSize: '15px',
+                fontWeight: 'bold',
+                background: loading ? '#d5c4e3' : 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)',
                 color: '#fff',
                 border: 'none',
-                borderRadius: '8px',
+                borderRadius: '14px',
                 cursor: loading ? 'not-allowed' : 'pointer',
-                transition: 'transform 0.2s',
+                transition: 'all 0.3s',
+                boxShadow: loading ? 'none' : '0 4px 15px rgba(251, 194, 235, 0.4)',
                 opacity: loading ? 0.8 : 1
               }}
               onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
             >
-              {loading ? '⏳ Đang xử lý...' : '🎉 Hoàn tất Đăng ký'}
+              {loading ? '🧶 Đang hoàn thiện...' : '✨ Hoàn tất & Bước vào tiệm'}
             </button>
           </form>
         )}
 
         {/* Footer Links */}
         {step === 1 && (
-          <div style={{ marginTop: '25px', textAlign: 'center' }}>
-            <p style={{ margin: '0 0 12px 0', color: '#666', fontSize: '14px' }}>
-              Đã có tài khoản?
+          <div style={{ marginTop: '30px', textAlign: 'center' }}>
+            <p style={{ margin: '0 0 12px 0', color: '#9b89b3', fontSize: '13px' }}>
+              Bạn đã có chìa khóa vào tiệm?
             </p>
             <a
               href="/login"
               style={{
                 display: 'inline-block',
-                padding: '10px 24px',
-                backgroundColor: '#f0f0f0',
-                color: '#667eea',
-                border: '2px solid #667eea',
-                borderRadius: '8px',
+                padding: '12px 24px',
+                backgroundColor: '#fff',
+                color: '#d65db1',
+                border: '2px dashed #fbc2eb',
+                borderRadius: '14px',
                 textDecoration: 'none',
                 fontSize: '14px',
                 fontWeight: '600',
@@ -549,33 +613,34 @@ export default function RegisterPage() {
                 cursor: 'pointer'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#667eea';
-                e.currentTarget.style.color = '#fff';
+                e.currentTarget.style.backgroundColor = '#fdf3f8';
+                e.currentTarget.style.borderColor = '#d65db1';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#f0f0f0';
-                e.currentTarget.style.color = '#667eea';
+                e.currentTarget.style.backgroundColor = '#fff';
+                e.currentTarget.style.borderColor = '#fbc2eb';
               }}
             >
-              🔓 Đăng Nhập
+              🎀 Đăng Nhập
             </a>
           </div>
         )}
 
         {/* Back to Home */}
-        <div style={{ marginTop: '20px', textAlign: 'center' }}>
+        <div style={{ marginTop: '25px', textAlign: 'center' }}>
           <a
             href="/"
             style={{
-              color: '#999',
+              color: '#c2a9db',
               textDecoration: 'none',
-              fontSize: '12px',
-              transition: 'color 0.2s'
+              fontSize: '13px',
+              transition: 'color 0.2s',
+              fontWeight: '500'
             }}
-            onMouseEnter={(e) => e.currentTarget.style.color = '#667eea'}
-            onMouseLeave={(e) => e.currentTarget.style.color = '#999'}
+            onMouseEnter={(e) => e.currentTarget.style.color = '#845ec2'}
+            onMouseLeave={(e) => e.currentTarget.style.color = '#c2a9db'}
           >
-            ← Quay lại trang chủ
+            ← Về lại trang chủ
           </a>
         </div>
       </div>
