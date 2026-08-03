@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { BadRequestException, UnauthorizedException } from '@nestjs/common';
+import { I18nService } from 'nestjs-i18n';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -40,6 +41,24 @@ describe('AuthService', () => {
     signAsync: jest.fn().mockResolvedValue('mocked_token'),
   };
 
+  const mockI18nService = {
+    t: jest.fn((key: string) => {
+      const translations: Record<string, string> = {
+        'auth.error.email_already_registered_login': 'Email này đã được đăng ký. Vui lòng đăng nhập!',
+        'auth.success.otp_sent': 'Gửi mã OTP thành công!',
+        'auth.success.otp_verified': 'Xác thực OTP thành công.',
+        'auth.error.invalid_credentials': 'Email hoặc mật khẩu không chính xác!',
+        'auth.error.password_not_set': 'Tài khoản chưa được thiết lập mật khẩu!',
+        'auth.error.invalid_role': 'Tài khoản chưa được gán quyền hợp lệ!',
+        'auth.success.login_success': 'Đăng nhập thành công!',
+        'auth.success.logout_success': 'Đăng xuất thành công!',
+        'auth.success.register_success': 'Đăng ký tài khoản thành công!',
+        'auth.success.admin_welcome': 'Chào mừng Admin! Bạn có quyền truy cập khu vực bí mật này.',
+      };
+      return translations[key] ?? key;
+    }),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -47,6 +66,7 @@ describe('AuthService', () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: MailService, useValue: mockMailService },
         { provide: JwtService, useValue: mockJwtService },
+        { provide: I18nService, useValue: mockI18nService },
       ],
     }).compile();
 
@@ -72,7 +92,7 @@ describe('AuthService', () => {
 
       expect(mockPrismaService.otp.upsert).toHaveBeenCalled();
       expect(mockMailService.sendOtpEmail).toHaveBeenCalledWith(dto.email, expect.any(String));
-      expect(result).toEqual({ message: 'Mã OTP đã được gửi thành công đến email của bạn.' });
+      expect(result).toEqual({ message: 'Gửi mã OTP thành công!' });
     });
   });
 

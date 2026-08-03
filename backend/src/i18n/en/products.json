@@ -1,0 +1,10 @@
+{
+  "success": {
+    "product_created": "Product and options created successfully in the database"
+  },
+  "error": {
+    "product_not_found": "Product not found",
+    "product_not_found_with_id": "Product with ID: {id} was not found",
+    "product_save_failed": "System error while saving the product, please try again"
+  }
+}

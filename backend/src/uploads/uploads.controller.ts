@@ -1,12 +1,16 @@
 import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { I18nService } from 'nestjs-i18n';
 import { diskStorage } from 'multer';
 import { UploadsService } from './uploads.service';
 import * as fs from 'fs';
 
 @Controller('upload')
 export class UploadsController {
-  constructor(private uploadsService: UploadsService) {}
+  constructor(
+    private uploadsService: UploadsService,
+    private readonly i18n: I18nService,
+  ) {}
 
   @Post()
   @UseInterceptors(
@@ -21,7 +25,7 @@ export class UploadsController {
       }),
       fileFilter: (_req, file, callback) => {
         if (!file.mimetype.startsWith('image/')) {
-          return callback(new BadRequestException('Chỉ chấp nhận hình ảnh'), false);
+          return callback(new BadRequestException('uploads.error.only_images_allowed'), false);
         }
         callback(null, true);
       },
@@ -30,7 +34,7 @@ export class UploadsController {
   )
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('Không có file được tải lên');
+      throw new BadRequestException(this.i18n.t('uploads.error.no_file_uploaded'));
     }
 
     return this.uploadsService.buildFileResponse(file.filename, 'categories');
@@ -61,7 +65,7 @@ export class UploadsController {
       }),
       fileFilter: (_req, file, callback) => {
         if (!file.mimetype.startsWith('image/')) {
-          return callback(new BadRequestException('Chỉ chấp nhận hình ảnh'), false);
+          return callback(new BadRequestException('uploads.error.only_images_allowed'), false);
         }
         callback(null, true);
       },
@@ -69,7 +73,7 @@ export class UploadsController {
     }),
   )
   async uploadProductImage(@UploadedFile() file: Express.Multer.File) {
-    if (!file) throw new BadRequestException('Không có file được tải lên');
+    if (!file) throw new BadRequestException(this.i18n.t('uploads.error.no_file_uploaded'));
     
     // Gọi hàm service và truyền thêm tên thư mục 'products'
     return this.uploadsService.buildFileResponse(file.filename, 'products');

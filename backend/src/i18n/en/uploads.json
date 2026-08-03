@@ -1,0 +1,6 @@
+{
+  "error": {
+    "no_file_uploaded": "No file was uploaded",
+    "only_images_allowed": "Only image files are allowed"
+  }
+}

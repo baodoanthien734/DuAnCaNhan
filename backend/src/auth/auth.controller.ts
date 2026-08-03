@@ -16,10 +16,14 @@ import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
+import { I18nService } from 'nestjs-i18n';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly i18n: I18nService,
+  ) {}
 
   @Post('send-otp')
   @HttpCode(HttpStatus.OK)
@@ -65,7 +69,7 @@ export class AuthController {
   @Roles('ADMIN')
   @Get('admin-only')
   async adminOnlyRoute() {
-    return { message: 'Chào mừng Admin! Bạn có quyền truy cập khu vực bí mật này.' };
+    return { message: this.i18n.t('auth.success.admin_welcome') };
   }
 
   // 🔄 Route Refresh Token
