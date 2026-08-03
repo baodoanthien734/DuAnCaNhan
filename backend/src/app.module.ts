@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { AcceptLanguageResolver, I18nModule, I18nJsonLoader } from 'nestjs-i18n';
+import { join } from 'path';
 import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
@@ -11,6 +13,18 @@ import { ProductsModule } from './products/products.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Cho phép dùng ConfigService ở mọi nơi
+    }),
+    I18nModule.forRoot({
+      fallbackLanguage: 'vi',
+      loaderOptions: {
+        path: join(__dirname, '/i18n/'),
+        filePattern: '*.json',
+      },
+      loader: I18nJsonLoader,
+      resolvers: [
+        { use: AcceptLanguageResolver, options: { matchType: 'strict-loose' } },
+      ],
+      typesOutputPath: join(__dirname, '../src/generated/i18n.generated.ts'),
     }),
     PrismaModule,
     MailModule,
