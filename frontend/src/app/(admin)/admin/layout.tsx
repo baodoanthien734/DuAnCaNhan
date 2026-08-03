@@ -1,0 +1,35 @@
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
+import AdminShell from './AdminShell';
+import "../../globals.css";
+
+async function getProfile(token: string) {
+  try {
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: 'no-store',
+    });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  const cookieStore = await cookies();
+  const token = cookieStore.get('accessToken')?.value;
+
+  if (!token) redirect('/login');
+
+  const user = await getProfile(token);
+  if (!user) redirect('/login');
+
+  const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
+  if (!roles.includes('ADMIN')) {
+    redirect('/home');
+  }
+
+  return <AdminShell user={user}>{children}</AdminShell>;
+}

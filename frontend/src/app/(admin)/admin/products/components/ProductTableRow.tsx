@@ -1,0 +1,209 @@
+"use client";
+
+import React, { useState } from "react";
+import Link from "next/link"; // Import thẻ Link của Next.js
+import { updateProductStatus, deleteProduct } from "@/lib/products-api"; // Import API
+
+// Định nghĩa nhanh type dựa theo cấu trúc Prisma của bạn
+interface ProductTableRowProps {
+  product: any;
+  onRefresh: () => void; // Khai báo thêm prop onRefresh
+}
+
+export default function ProductTableRow({ product, onRefresh }: ProductTableRowProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false); // Trạng thái loading khi đang xóa/sửa
+
+  // Hàm xử lý Đổi trạng thái
+  const handleToggleStatus = async () => {
+    const newStatus = product.status === 'ACTIVE' ? 'DRAFT' : 'ACTIVE';
+    try {
+      setIsProcessing(true);
+      await updateProductStatus(product.id, newStatus);
+      onRefresh(); // Báo page.tsx tải lại dữ liệu
+    } catch (error) {
+      console.error("Lỗi cập nhật trạng thái:", error);
+      alert("Không thể cập nhật trạng thái. Vui lòng thử lại!");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Hàm xử lý Xóa
+  const handleDelete = async () => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${product.name}"? Dữ liệu sẽ được chuyển vào mục Lưu trữ.`)) {
+      return;
+    }
+    
+    try {
+      setIsProcessing(true);
+      await deleteProduct(product.id);
+      onRefresh(); // Báo page.tsx tải lại dữ liệu
+    } catch (error) {
+      console.error("Lỗi xóa sản phẩm:", error);
+      alert("Không thể xóa sản phẩm lúc này!");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  // Format tiền tệ
+  const formatPrice = (price: any) => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(price));
+  };
+
+  return (
+    <React.Fragment>
+      <tr className={`border-b hover:bg-gray-50 transition items-start ${isExpanded ? 'bg-blue-50/30 border-blue-100' : 'border-gray-50'}`}>
+        <td className="px-4 py-4 w-10">
+          <button 
+            onClick={() => setIsExpanded(!isExpanded)}
+            className={`p-1.5 rounded-md hover:bg-gray-200 text-gray-500 transition-transform duration-200 ${isExpanded ? 'rotate-90 bg-blue-100 text-blue-600' : ''}`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+            </svg>
+          </button>
+        </td>
+
+        <td className="px-6 py-4">
+          <div className="flex gap-4">
+            <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden shrink-0 border border-gray-100 shadow-sm">
+              {product.images && product.images.length > 0 ? (
+                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">No img</div>
+              )}
+            </div>
+            <div className="flex flex-col justify-center">
+              <span className="font-semibold text-gray-800 line-clamp-2 leading-tight mb-1">
+                {product.name}
+              </span>
+              <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-medium w-fit">
+                {product.category?.name || "Chưa phân loại"}
+              </span>
+            </div>
+          </div>
+        </td>
+
+        <td className="px-6 py-4 font-medium text-gray-900 align-middle">
+          {formatPrice(product.basePrice)}
+        </td>
+
+        <td className="px-6 py-4 align-middle">
+          <button 
+            onClick={handleToggleStatus}
+            disabled={isProcessing || product.status === 'ARCHIVED'} // Không cho toggle nếu đang bị archived
+            className="focus:outline-none transition-opacity hover:opacity-80 disabled:opacity-50"
+            title="Nhấn để đổi trạng thái"
+          >
+            {product.status === 'ACTIVE' && <span className="text-green-700 bg-green-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-green-200 cursor-pointer">Đang bán</span>}
+            {product.status === 'DRAFT' && <span className="text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md text-xs font-semibold border border-gray-200 cursor-pointer">Bản nháp</span>}
+            {product.status === 'ARCHIVED' && <span className="text-red-700 bg-red-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-red-200 cursor-not-allowed">Lưu trữ</span>}
+          </button>
+        </td>
+
+       <td className="px-6 py-4 text-right align-middle space-x-4">
+          <Link 
+            href={`/admin/products/${product.id}/edit`} 
+            className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block"
+          >
+            Sửa
+          </Link>
+          <button 
+            onClick={handleDelete}
+            disabled={isProcessing || product.status === 'ARCHIVED'}
+            className="text-red-500 hover:text-red-700 font-medium text-sm disabled:opacity-30 disabled:cursor-not-allowed inline-block"
+          >
+            Xóa
+          </button>
+        </td>
+      </tr>
+
+      {isExpanded && (
+        <tr className="bg-gray-50/80 border-b border-gray-200">
+          <td colSpan={5} className="p-0"> 
+            <div className="p-6 pl-14 grid grid-cols-2 gap-8">
+              
+              <div className="space-y-6">
+                <div>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Mô tả sản phẩm</h4>
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap bg-white p-3 rounded border border-gray-200">
+                    {product.description || <span className="italic text-gray-400">Không có mô tả</span>}
+                  </p>
+                </div>
+
+                {product.customizations && product.customizations.length > 0 && (
+                  <div>
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Yêu cầu cá nhân hóa</h4>
+                    <div className="bg-white rounded border border-gray-200 overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-3 py-2 text-left font-medium text-gray-600">Loại</th>
+                            <th className="px-3 py-2 text-left font-medium text-gray-600">Lựa chọn</th>
+                            <th className="px-3 py-2 text-right font-medium text-gray-600">Giá phụ</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                          {product.customizations.map((cust: any) => (
+                            <tr key={cust.id}>
+                              <td className="px-3 py-2 font-medium">{cust.name} {cust.isRequired && <span className="text-red-500">*</span>}</td>
+                              <td className="px-3 py-2 text-gray-600">
+                                {cust.type === 'TEXT' ? `Nhập chữ (Max: ${cust.maxLength || '∞'} ký tự)` : cust.choices?.map((c:any) => c.label).join(', ')}
+                              </td>
+                              <td className="px-3 py-2 text-right text-gray-600">
+                                {cust.type === 'SELECT' && cust.choices?.map((c:any, i:number) => (
+                                  <div key={i}>{c.label}: <span className="text-orange-600">+{formatPrice(c.extraPrice)}</span></div>
+                                ))}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phân loại & Tồn kho</h4>
+                {product.variants && product.variants.length > 0 ? (
+                  <div className="bg-white rounded border border-gray-200 overflow-hidden">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-3 py-2 text-left font-medium text-gray-600">Mẫu mã</th>
+                          <th className="px-3 py-2 text-left font-medium text-gray-600">SKU</th>
+                          <th className="px-3 py-2 text-right font-medium text-gray-600">Kho</th>
+                          <th className="px-3 py-2 text-right font-medium text-gray-600">Giá bán</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100">
+                        {product.variants.map((v: any) => (
+                          <tr key={v.id}>
+                            <td className="px-3 py-2 font-medium">{v.name}</td>
+                            <td className="px-3 py-2 text-gray-500 text-xs">{v.sku || '-'}</td>
+                            <td className="px-3 py-2 text-right">
+                              <span className={`font-medium ${v.stock === 0 ? 'text-red-500' : 'text-green-600'}`}>
+                                {v.stock}
+                              </span>
+                            </td>
+                            <td className="px-3 py-2 text-right font-medium text-gray-900">{formatPrice(v.price)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 bg-white p-3 rounded border border-gray-200 italic">Sản phẩm này không có biến thể.</p>
+                )}
+              </div>
+
+            </div>
+          </td>
+        </tr>
+      )}
+    </React.Fragment>
+  );
+}
