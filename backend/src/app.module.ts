@@ -17,14 +17,16 @@ import { ProductsModule } from './products/products.module';
     I18nModule.forRoot({
       fallbackLanguage: 'vi',
       loaderOptions: {
-        path: join(__dirname, '/i18n/'),
+        // 👇 ĐÃ SỬA: Thêm '..' để lùi ra một cấp (từ dist/src lùi ra dist, rồi mới chui vào i18n)
+        path: join(__dirname, '..', 'i18n/'), 
         filePattern: '*.json',
       },
       loader: I18nJsonLoader,
       resolvers: [
         { use: AcceptLanguageResolver, options: { matchType: 'strict-loose' } },
       ],
-      typesOutputPath: join(__dirname, '../src/generated/i18n.generated.ts'),
+      // 👇 ĐÃ SỬA: Dùng process.cwd() để luôn sinh file vào đúng thư mục gốc src/ dù chạy ở môi trường nào
+      typesOutputPath: join(process.cwd(), 'src/generated/i18n.generated.ts'),
     }),
     PrismaModule,
     MailModule,

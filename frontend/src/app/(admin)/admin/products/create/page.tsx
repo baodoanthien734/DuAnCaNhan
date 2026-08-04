@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { createProduct } from "@/lib/products-api";
 import ProductForm, { ProductFormValues } from "../components/ProductForm";
 
 export default function CreateProductPage() {
+  const t = useTranslations("admin_products");
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -13,17 +15,17 @@ export default function CreateProductPage() {
     setIsLoading(true);
     try {
       await createProduct(data);
-      alert("Tạo sản phẩm thành công!");
+      alert(t("form.createSuccess"));
       router.push('/admin/products');
     } catch (error: any) {
       console.error("Lỗi kết nối:", error);
       const resData = error.response?.data;
       if (error.response?.status === 401 || error.response?.status === 403) {
-        alert("Phiên đăng nhập đã hết hạn hoặc bạn không đủ quyền!");
+        alert(t("form.createAuthError"));
       } else if (resData?.message) {
-        alert("Lỗi validate:\n" + JSON.stringify(resData.message, null, 2));
+        alert(t("form.createValidationError", { message: JSON.stringify(resData.message, null, 2) }));
       } else {
-        alert("Có lỗi xảy ra, vui lòng thử lại sau!");
+        alert(t("form.createGenericError"));
       }
     } finally {
       setIsLoading(false);

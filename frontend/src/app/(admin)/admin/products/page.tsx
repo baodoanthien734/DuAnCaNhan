@@ -3,11 +3,13 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { listProducts } from "@/lib/products-api";
 import { listCategories } from "@/lib/categories-api";
 import ProductTableRow from "./components/ProductTableRow";
 
 export default function ProductsListPage() {
+  const t = useTranslations("admin_products");
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -94,12 +96,12 @@ export default function ProductsListPage() {
     <div className="p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Danh sách Sản phẩm</h1>
+        <h1 className="text-2xl font-bold text-gray-800">{t("list.title")}</h1>
         <Link 
           href="/admin/products/create"
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
         >
-          + Thêm sản phẩm
+          {t("list.addButton")}
         </Link>
       </div>
 
@@ -108,7 +110,7 @@ export default function ProductsListPage() {
         <div className="flex-1 min-w-[200px]">
           <input
             type="text"
-            placeholder="Tìm theo tên..."
+            placeholder={t("list.searchPlaceholder")}
             value={searchTerm || ""} // <--- Thêm || "" vào đây để ép kiểu chuỗi
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm"
@@ -120,7 +122,7 @@ export default function ProductsListPage() {
           onChange={(e) => updateFilter("categoryId", e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
         >
-          <option value="">Tất cả danh mục</option>
+          <option value="">{t("list.allCategories")}</option>
           {categories.map((cat) => (
             <option key={cat.id} value={cat.id}>{cat.name}</option>
           ))}
@@ -131,10 +133,10 @@ export default function ProductsListPage() {
           onChange={(e) => updateFilter("status", e.target.value)}
           className="px-4 py-2 border border-gray-300 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 outline-none"
         >
-          <option value="">Tất cả trạng thái</option>
-          <option value="ACTIVE">Hoạt động (Active)</option>
-          <option value="DRAFT">Bản nháp (Draft)</option>
-          <option value="ARCHIVED">Lưu trữ (Archived)</option>
+          <option value="">{t("list.allStatuses")}</option>
+          <option value="ACTIVE">{t("list.statuses.ACTIVE")}</option>
+          <option value="DRAFT">{t("list.statuses.DRAFT")}</option>
+          <option value="ARCHIVED">{t("list.statuses.ARCHIVED")}</option>
         </select>
       </div>
 
@@ -145,20 +147,20 @@ export default function ProductsListPage() {
             <thead className="text-xs text-gray-700 uppercase bg-gray-50 border-b border-gray-100">
               <tr>
                 <th className="px-4 py-4 w-10" />
-                <th className="px-6 py-4">Sản phẩm</th>
-                <th className="px-6 py-4">Giá cơ bản</th>
-                <th className="px-6 py-4">Trạng thái</th>
-                <th className="px-6 py-4 text-right">Thao tác</th>
+                <th className="px-6 py-4">{t("list.columns.product")}</th>
+                <th className="px-6 py-4">{t("list.columns.basePrice")}</th>
+                <th className="px-6 py-4">{t("list.columns.status")}</th>
+                <th className="px-6 py-4 text-right">{t("list.columns.actions")}</th>
               </tr>
             </thead>
             <tbody>
               {isLoading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-gray-400">Đang tải dữ liệu...</td>
+                  <td colSpan={5} className="px-6 py-10 text-center text-gray-400">{t("list.loading")}</td>
                 </tr>
               ) : products.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-10 text-center text-gray-400">Không tìm thấy sản phẩm nào.</td>
+                  <td colSpan={5} className="px-6 py-10 text-center text-gray-400">{t("list.empty")}</td>
                 </tr>
               ) : (
                 products.map((product) => (
@@ -177,7 +179,7 @@ export default function ProductsListPage() {
         {!isLoading && totalPages > 1 && (
           <div className="p-4 border-t border-gray-100 flex items-center justify-between">
             <span className="text-sm text-gray-500">
-              Hiển thị <span className="font-semibold text-gray-800">{products.length}</span> / {totalItems} sản phẩm
+              {t("list.pagination.showCount", { count: products.length, total: totalItems })}
             </span>
             <div className="flex gap-2">
               <button
@@ -185,14 +187,14 @@ export default function ProductsListPage() {
                 disabled={currentPage === 1}
                 className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Trước
+                {t("list.pagination.prev")}
               </button>
               <button
                 onClick={() => updateFilter("page", String(currentPage + 1))}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1.5 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                Sau
+                {t("list.pagination.next")}
               </button>
             </div>
           </div>

@@ -1,12 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { apiClient } from '@/lib/api-client';
 import { setLoginData } from '@/lib/auth';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 
 export default function LoginPage() {
   const router = useRouter();
+  const t = useTranslations('auth.login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -53,8 +56,12 @@ export default function LoginPage() {
       alignItems: 'center', 
       justifyContent: 'center', 
       background: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)', // Gradient pastel mộng mơ
-      fontFamily: '"Nunito", "Segoe UI", sans-serif' // Font mềm mại hơn
+      fontFamily: '"Nunito", "Segoe UI", sans-serif', // Font mềm mại hơn
+      position: 'relative'
     }}>
+      <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+        <LanguageSwitcher />
+      </div>
       {/* Main Container */}
       <div style={{ 
         width: '100%', 
@@ -73,9 +80,9 @@ export default function LoginPage() {
             color: '#845ec2', // Màu tím mộng mơ
             fontWeight: '700'
           }}>
-            🧶 Trạm Thủ Công
+            {t('title')}
           </h1>
-          <p style={{ margin: 0, color: '#9b89b3', fontSize: '14px' }}>Mở cửa thế giới sáng tạo của bạn ✨</p>
+          <p style={{ margin: 0, color: '#9b89b3', fontSize: '14px' }}>{t('subtitle')}</p>
         </div>
 
         {/* Error Message */}
@@ -101,14 +108,14 @@ export default function LoginPage() {
           {/* Email Field */}
           <div style={{ marginBottom: '20px' }}>
             <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
-              💌 Địa chỉ Email
+              {t('emailLabel')}
             </label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="nhadothucong@gmail.com"
+              placeholder={t('emailPlaceholder')}
               style={{
                 width: '100%',
                 padding: '14px 16px',
@@ -135,7 +142,7 @@ export default function LoginPage() {
           {/* Password Field with Toggle */}
           <div style={{ marginBottom: '30px' }}>
             <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
-              🗝️ Chìa khóa (Mật khẩu)
+              {t('passwordLabel')}
             </label>
             <div style={{ position: 'relative' }}>
               <input
@@ -143,7 +150,7 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Nhập mật khẩu của bạn..."
+                placeholder={t('passwordPlaceholder')}
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -181,7 +188,7 @@ export default function LoginPage() {
                   padding: '5px',
                   color: '#9b89b3'
                 }}
-                title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                title={showPassword ? t('hidePasswordTitle') : t('showPasswordTitle')}
               >
                 {showPassword ? '🌸' : '💮'}
               </button>
@@ -209,21 +216,21 @@ export default function LoginPage() {
             onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
             onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
           >
-            {loading ? '🧶 Đang đan len...' : '✨ Bước Vào Tiệm'}
+            {loading ? t('submitLoading') : t('submit')}
           </button>
         </form>
 
         {/* Divider */}
         <div style={{ margin: '25px 0', display: 'flex', alignItems: 'center', gap: '15px' }}>
           <div style={{ flex: 1, height: '1px', backgroundColor: '#f3e8ff' }}></div>
-          <span style={{ color: '#d5c4e3', fontSize: '11px', letterSpacing: '1px' }}>HOẶC</span>
+          <span style={{ color: '#d5c4e3', fontSize: '11px', letterSpacing: '1px' }}>{t('divider')}</span>
           <div style={{ flex: 1, height: '1px', backgroundColor: '#f3e8ff' }}></div>
         </div>
 
         {/* Register Link */}
         <div style={{ textAlign: 'center' }}>
           <p style={{ margin: '0 0 12px 0', color: '#9b89b3', fontSize: '13px' }}>
-            Bạn là người mới?
+            {t('newUser')}
           </p>
           <a
             href="/register"
@@ -249,7 +256,7 @@ export default function LoginPage() {
               e.currentTarget.style.borderColor = '#fbc2eb';
             }}
           >
-            🎀 Đăng Ký Ngay
+            {t('registerLink')}
           </a>
         </div>
 
@@ -267,7 +274,7 @@ export default function LoginPage() {
             onMouseEnter={(e) => e.currentTarget.style.color = '#845ec2'}
             onMouseLeave={(e) => e.currentTarget.style.color = '#c2a9db'}
           >
-            ← Về lại trang chủ
+            {t('backHome')}
           </a>
         </div>
       </div>

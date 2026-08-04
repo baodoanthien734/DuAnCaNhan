@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
 import AdminShell from './AdminShell';
 import "../../globals.css";
 
@@ -31,5 +32,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/home');
   }
 
-  return <AdminShell user={user}>{children}</AdminShell>;
+  const t = await getTranslations('admin_sidebar');
+
+  return (
+    <AdminShell user={user} brand={t('brand')} title={t('title')}>
+      {children}
+    </AdminShell>
+  );
 }

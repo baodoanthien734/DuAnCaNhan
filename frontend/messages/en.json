@@ -1,0 +1,347 @@
+{
+  "public_pages": {
+    "layout": {
+      "lang": "en"
+    },
+    "header": {
+      "title": "🍃 Handmade Studio",
+      "subtitle": "Small handcrafted pieces for your living space and gifts.",
+      "login": "Log in",
+      "register": "Sign up"
+    },
+    "hero": {
+      "eyebrow": "HANDMADE SHOP",
+      "title": "Every product is a small story.",
+      "description": "Discover a collection of unique handmade items made with care and designed for warm, meaningful moments.",
+      "primaryCta": "🛍️ Shop now",
+      "secondaryCta": "🎁 Create a custom order"
+    },
+    "categories": {
+      "title": "Featured categories",
+      "all": "All",
+      "decor": "Decor",
+      "gifts": "Gifts",
+      "jewelry": "Jewelry",
+      "home": "Home goods",
+      "cardsAndBags": "Cards & Bags"
+    },
+    "products": {
+      "title": "Handcrafted products",
+      "detail": "View details",
+      "empty": "No products available yet.",
+      "item1": {
+        "title": "Ceramic vase",
+        "description": "Handcrafted flower vase with warm earthy textures.",
+        "price": "220,000 VND"
+      },
+      "item2": {
+        "title": "Embroidered tote bag",
+        "description": "Light canvas bag with elegant floral patterns.",
+        "price": "180,000 VND"
+      },
+      "item3": {
+        "title": "Handmade scented candle",
+        "description": "Soft lavender candle, entirely handcrafted.",
+        "price": "130,000 VND"
+      },
+      "item4": {
+        "title": "Greeting card",
+        "description": "Handmade paper card with elegant handwritten details.",
+        "price": "95,000 VND"
+      }
+    },
+    "story": {
+      "eyebrow": "OUR STORY",
+      "title": "Handmade passion for your space.",
+      "description": "Each piece is made by hand, with careful material selection and thoughtful finishing. A small shop filled with love.",
+      "items": [
+        "Unique design",
+        "Natural materials",
+        "Made to order",
+        "Gift packaging"
+      ]
+    },
+    "product_list": {
+      "title": "All Products",
+      "searchPlaceholder": "Search products...",
+      "empty": "No products found."
+    },
+    "product_detail": {
+      "variants": "Variants",
+      "customizations": "Customizations",
+      "addToCart": "Add to Cart",
+      "back": "← Back to products",
+      "required": "Required"
+    },
+    "category_page": {
+      "back": "← Go back",
+      "empty": "No products in this category yet."
+    },
+    "footer": "© 2026 Handmade Studio. Small, refined, and heartfelt handcrafted pieces."
+  },
+  "auth": {
+    "login": {
+      "title": "🧶 Handmade Corner",
+      "subtitle": "Open the door to your creative world ✨",
+      "emailLabel": "💌 Email Address",
+      "emailPlaceholder": "handmade.studio@gmail.com",
+      "passwordLabel": "🗝️ Key (Password)",
+      "passwordPlaceholder": "Enter your password...",
+      "showPasswordTitle": "Show password",
+      "hidePasswordTitle": "Hide password",
+      "submitLoading": "🧶 Crafting...",
+      "submit": "✨ Step Into the Shop",
+      "divider": "OR",
+      "newUser": "New here?",
+      "registerLink": "🎀 Sign Up Now",
+      "backHome": "← Back to home"
+    },
+    "register": {
+      "title": "🧶 Handmade Corner",
+      "subtitle": "Create your creative space ✨",
+      "stepLabel": "Step {step}/3",
+      "step1": {
+        "emailLabel": "💌 Email Address",
+        "emailPlaceholder": "handmade.studio@gmail.com",
+        "helperText": "We will send a letter containing a confirmation code here.",
+        "submitLoading": "🧶 Sending letter...",
+        "submit": "📬 Send confirmation code"
+      },
+      "step2": {
+        "emailSent": "✉️ The letter has been sent to:",
+        "changeEmail": "← Wrong inbox? Change it",
+        "otpLabel": "🎫 Confirmation code (6 digits)",
+        "otpPlaceholder": "••••••",
+        "expiredTitle": "🥀 The confirmation code has expired!",
+        "requestNew": "✨ Request a new code",
+        "requestingNew": "🧶 Requesting a new code...",
+        "countdown": "⏱️ The code will fade in:",
+        "submitLoading": "🧶 Checking...",
+        "submit": "🌸 Unlock the inbox"
+      },
+      "step3": {
+        "nameLabel": "👤 Friendly name",
+        "namePlaceholder": "What would you like us to call you?",
+        "passwordLabel": "🗝️ Secure key (Password)",
+        "passwordPlaceholder": "Create a strong password...",
+        "helperText": "Mix uppercase, lowercase, numbers, or special characters to make your thread strong.",
+        "submitLoading": "🧶 Finishing up...",
+        "submit": "✨ Complete & Step into the shop"
+      },
+      "footer": {
+        "haveAccount": "Already have a key to the shop?",
+        "loginLink": "🎀 Log In",
+        "backHome": "← Back to home"
+      }
+    }
+  },
+  "admin_sidebar": {
+    "brand": "TinyHandMade",
+    "title": "Admin",
+    "greeting": "Hello, {name}",
+    "nav": {
+      "dashboard": "Dashboard",
+      "categories": "Categories",
+      "products": "Products",
+      "posts": "Posts",
+      "orders": "Orders",
+      "reviews": "Reviews",
+      "customers": "Customers"
+    }
+  },
+  "admin_categories": {
+    "page": {
+      "eyebrow": "Category management",
+      "title": "Product categories",
+      "description": "Create, edit, delete, or reorder categories in your handmade store."
+    },
+    "list": {
+      "title": "Category list",
+      "description": "You can manage categories such as decor, gifts, crafts, and new products here.",
+      "searchPlaceholder": "Search categories...",
+      "searchButton": "Search",
+      "showTree": "Show tree",
+      "createButton": "Create category",
+      "loading": "Loading...",
+      "loadError": "Failed to load categories",
+      "empty": "No categories",
+      "columns": {
+        "image": "Image",
+        "name": "Name",
+        "slug": "Slug",
+        "position": "Position",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Hidden"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete",
+        "deleteLoading": "Deleting...",
+        "moveUp": "Move up",
+        "moveDown": "Move down",
+        "deleteConfirm": "Delete category \"{name}\"? This action will hide the category.",
+        "reorderSuccess": "Position updated",
+        "deleteSuccess": "Category deleted",
+        "reorderError": "Failed to reorder",
+        "deleteError": "Delete failed"
+      },
+      "pagination": {
+        "prev": "Previous",
+        "next": "Next"
+      }
+    },
+    "form": {
+      "requiredName": "Category name is required",
+      "nameLabel": "Name *",
+      "slugLabel": "Slug",
+      "parentLabel": "Parent",
+      "noneOption": "-- None --",
+      "positionLabel": "Position",
+      "activeLabel": "Active",
+      "imageLabel": "Category image",
+      "imageHelp": "Or paste an image URL below if you already have one.",
+      "imagePlaceholder": "Image URL",
+      "previewLabel": "Preview",
+      "uploading": "Uploading image...",
+      "metaTitleLabel": "Meta Title",
+      "metaDescriptionLabel": "Meta Description",
+      "saveButton": "Save",
+      "saving": "Saving...",
+      "cancelButton": "Cancel",
+      "uploadError": "Unable to upload image",
+      "saveError": "Failed to save category",
+      "createTitle": "Create new category",
+      "editTitle": "Edit category"
+    }
+  },
+  "admin_products": {
+    "list": {
+      "title": "Products list",
+      "addButton": "+ Add product",
+      "searchPlaceholder": "Search by name...",
+      "allCategories": "All categories",
+      "allStatuses": "All statuses",
+      "statuses": {
+        "ACTIVE": "Active",
+        "DRAFT": "Draft",
+        "ARCHIVED": "Archived"
+      },
+      "columns": {
+        "product": "Product",
+        "basePrice": "Base price",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "loading": "Loading data...",
+      "empty": "No products found.",
+      "pagination": {
+        "showCount": "Showing {count} / {total} products",
+        "prev": "Previous",
+        "next": "Next"
+      }
+    },
+    "row": {
+      "uncategorized": "Uncategorized",
+      "noImage": "No image",
+      "toggleStatusTitle": "Click to change status",
+      "statuses": {
+        "ACTIVE": "For sale",
+        "DRAFT": "Draft",
+        "ARCHIVED": "Archived"
+      },
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteConfirm": "Are you sure you want to delete product \"{name}\"? The data will be moved to Archived.",
+      "statusError": "Unable to update status. Please try again!",
+      "deleteError": "Unable to delete product right now!",
+      "descriptionTitle": "Product description",
+      "noDescription": "No description",
+      "customizationTitle": "Customization requests",
+      "typeLabel": "Type",
+      "choiceLabel": "Choice",
+      "extraPriceLabel": "Extra price",
+      "textInputWithMax": "Text input (Max: {max} characters)",
+      "unlimited": "∞",
+      "variantTitle": "Variants & Stock",
+      "noVariants": "This product has no variants.",
+      "variantName": "Variant",
+      "variantSku": "SKU",
+      "variantStock": "Stock",
+      "variantPrice": "Sale price"
+    },
+    "form": {
+      "titleCreate": "Add New Product",
+      "titleEdit": "Update Product",
+      "description": "Enter detailed information and options for the handmade item.",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "saveCreate": "Save Product",
+      "saveEdit": "Save changes",
+      "sectionInfo": "1. General information",
+      "sectionVariants": "2. Variants & stock",
+      "sectionVariantsSubtitle": "Create sizes or physical colors that are available in inventory.",
+      "sectionCustomizations": "3. Customization & accessories",
+      "sectionCustomizationsSubtitle": "Options such as embroidery names or charms (not counted in inventory).",
+      "nameLabel": "Product name",
+      "nameRequired": "Product name",
+      "namePlaceholder": "Example: Cute capybara crochet keychain",
+      "descriptionLabel": "Product description",
+      "descriptionPlaceholder": "Material, size, use case...",
+      "addVariant": "+ Add variant",
+      "variantEmpty": "This product has no variants yet.",
+      "variantNameLabel": "Variant name (e.g. Size S)",
+      "variantSkuLabel": "SKU code",
+      "variantPriceLabel": "Custom price (VND)",
+      "variantStockLabel": "Stock quantity",
+      "variantRemoveTitle": "Remove variant",
+      "addCustomization": "+ Add option",
+      "customizationEmpty": "No customization has been set up for this product yet.",
+      "customizationNameLabel": "Display name (e.g. Name to embroider, Choose Charm)",
+      "customizationTypeLabel": "Display type",
+      "customizationTypeText": "Customer enters text",
+      "customizationTypeSelect": "Customer selects from a list",
+      "customizationRequired": "Required",
+      "customizationMaxLengthLabel": "Maximum character limit",
+      "maxLengthPlaceholder": "Example: 15",
+      "customizationChoicesLabel": "Choices & Extra Fees:",
+      "addChoice": "+ Add choice",
+      "choicePlaceholder": "Example: Red bow",
+      "choiceExtraPricePlaceholder": "+ Fee",
+      "choiceRemoveTitle": "Remove choice",
+      "customizationRemoveTitle": "Remove option",
+      "choiceEmpty": "Please add at least one choice.",
+      "salesSetupTitle": "Sales setup",
+      "basePriceLabel": "Base price (VND)",
+      "basePriceHint": "Default displayed price if no variant is selected.",
+      "categoryLabel": "Category",
+      "loadingCategories": "Loading categories...",
+      "statusLabel": "Sales status",
+      "statusActive": "Visible (Active)",
+      "statusDraft": "Draft",
+      "statusArchived": "Archived",
+      "privateLabel": "Private link",
+      "privateHint": "Only people with the link can view it.",
+      "imageTitle": "Product images",
+      "addImage": "Add image",
+      "imageHint": "Format: JPG, PNG, WEBP.",
+      "imageCount": "{count}/5 images",
+      "imageAlt": "Product image {index}",
+      "imageUploadLoading": "Uploading...",
+      "imageUploadError": "Unable to upload image. Please try again!",
+      "removeImageTitle": "Remove this image",
+      "loadingProduct": "Loading product data...",
+      "createSuccess": "Product created successfully!",
+      "createAuthError": "Your login session has expired or you do not have permission!",
+      "createValidationError": "Validation error:\n{message}",
+      "createGenericError": "Something went wrong. Please try again later!",
+      "updateSuccess": "Product updated successfully!",
+      "updateValidationError": "Backend data error:\n{message}",
+      "updateError": "An error occurred while updating the product. Please check the console for details!",
+      "detailsLoadError": "The product does not exist or has been deleted."
+    }
+  }
+}

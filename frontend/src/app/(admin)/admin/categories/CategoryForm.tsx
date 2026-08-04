@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { Category, createCategory, updateCategory, listCategories, uploadCategoryImage } from '../../../../lib/categories-api';
 
 interface Props {
@@ -10,6 +11,7 @@ interface Props {
 }
 
 export default function CategoryForm({ initial = null, onSaved, onCancel }: Props) {
+  const t = useTranslations('admin_categories');
   const [name, setName] = useState(initial?.name || '');
   const [slug, setSlug] = useState(initial?.slug || '');
   const [parentId, setParentId] = useState<number | ''>(initial?.parentId ?? '');
@@ -43,7 +45,7 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
     setError(null);
-    if (!name.trim()) return setError('Tên danh mục là bắt buộc');
+    if (!name.trim()) return setError(t('form.requiredName'));
 
     const payload: Partial<Category> = {
       name: name.trim(),
@@ -67,7 +69,7 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
       onSaved && onSaved(saved);
     } catch (err: any) {
       console.error(err);
-      setError(err?.message || 'Lỗi khi lưu danh mục');
+      setError(err?.message || t('form.saveError'));
     } finally {
       setSubmitting(false);
     }
@@ -78,19 +80,19 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
       {error && <div style={{ color: 'red' }}>{error}</div>}
 
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151' }}>Tên *</label>
+        <label style={{ fontSize: 13, color: '#374151' }}>{t('form.nameLabel')}</label>
         <input value={name} onChange={(e) => setName(e.target.value)} style={{ padding: 8 }} />
       </div>
 
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151' }}>Slug</label>
+        <label style={{ fontSize: 13, color: '#374151' }}>{t('form.slugLabel')}</label>
         <input value={slug} onChange={(e) => setSlug(e.target.value)} style={{ padding: 8 }} />
       </div>
 
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151' }}>Parent</label>
+        <label style={{ fontSize: 13, color: '#374151' }}>{t('form.parentLabel')}</label>
         <select value={parentId} onChange={(e) => setParentId(e.target.value === '' ? '' : Number(e.target.value))} style={{ padding: 8 }}>
-          <option value="">-- Không --</option>
+          <option value="">{t('form.noneOption')}</option>
           {parents.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -100,17 +102,17 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
       </div>
 
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151' }}>Vị trí</label>
+        <label style={{ fontSize: 13, color: '#374151' }}>{t('form.positionLabel')}</label>
         <input type="number" value={position as any} onChange={(e) => setPosition(e.target.value === '' ? '' : Number(e.target.value))} style={{ padding: 8 }} />
       </div>
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
         <input id="isActive" type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-        <label htmlFor="isActive">Hoạt động</label>
+        <label htmlFor="isActive">{t('form.activeLabel')}</label>
       </div>
 
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151' }}>Ảnh danh mục</label>
+        <label style={{ fontSize: 13, color: '#374151' }}>{t('form.imageLabel')}</label>
         <input type="file" accept="image/*" onChange={async (e) => {
           const file = e.target.files?.[0];
           if (!file) return;
@@ -121,38 +123,38 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
             setImage(result.url);
           } catch (err: any) {
             console.error(err);
-            setError(err?.message || 'Không thể upload ảnh');
+            setError(err?.message || t('form.uploadError'));
           } finally {
             setUploading(false);
           }
         }} style={{ padding: 8 }} />
-        <small style={{ color: '#6b7280' }}>Hoặc dán URL hình ảnh bên dưới nếu bạn đã có sẵn.</small>
-        <input value={image} onChange={(e) => setImage(e.target.value)} placeholder="URL hình ảnh" style={{ padding: 8 }} />
+        <small style={{ color: '#6b7280' }}>{t('form.imageHelp')}</small>
+        <input value={image} onChange={(e) => setImage(e.target.value)} placeholder={t('form.imagePlaceholder')} style={{ padding: 8 }} />
         {image && (
           <div style={{ display: 'grid', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>Xem trước</span>
+            <span style={{ fontSize: 13, color: '#374151' }}>{t('form.previewLabel')}</span>
             <img src={image} alt="Preview" style={{ maxWidth: '200px', maxHeight: '160px', borderRadius: 12, objectFit: 'cover' }} />
           </div>
         )}
-        {uploading && <div style={{ color: '#2563eb' }}>Đang tải ảnh...</div>}
+        {uploading && <div style={{ color: '#2563eb' }}>{t('form.uploading')}</div>}
       </div>
 
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151' }}>Meta Title</label>
+        <label style={{ fontSize: 13, color: '#374151' }}>{t('form.metaTitleLabel')}</label>
         <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} style={{ padding: 8 }} />
       </div>
 
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151' }}>Meta Description</label>
+        <label style={{ fontSize: 13, color: '#374151' }}>{t('form.metaDescriptionLabel')}</label>
         <textarea value={metaDesc} onChange={(e) => setMetaDesc(e.target.value)} style={{ padding: 8 }} />
       </div>
 
       <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
         <button type="submit" disabled={submitting} style={{ padding: '8px 12px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: 8 }}>
-          {submitting ? 'Đang lưu...' : 'Lưu'}
+          {submitting ? t('form.saving') : t('form.saveButton')}
         </button>
         <button type="button" onClick={() => onCancel && onCancel()} style={{ padding: '8px 12px', borderRadius: 8 }}>
-          Hủy
+          {t('form.cancelButton')}
         </button>
       </div>
     </form>

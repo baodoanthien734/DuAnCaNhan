@@ -222,4 +222,60 @@ export class ProductsService {
     // 5. Trả về dữ liệu mới nhất, đầy đủ nhất sau khi đã cập nhật xong
     return this.findOne(id);
   }
+
+  // Lấy danh sách sản phẩm công khai (chỉ lấy sản phẩm ACTIVE)
+  async findAllPublic(query: { q?: string; categoryId?: string; skip?: number; take?: number }) {
+    const { q, categoryId, skip, take } = query;
+    const where: any = { status: 'ACTIVE' };
+
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { slug: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    if (categoryId) {
+      where.categoryId = Number(categoryId);
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        skip: skip ? Number(skip) : 0,
+        take: take ? Number(take) : 12,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          category: true,
+          variants: true,
+          customizations: {
+            include: { choices: true },
+          },
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return { items, total };
+  }
+
+  // Lấy chi tiết sản phẩm theo slug (dành cho trang chi tiết public)
+  async findOneBySlug(slug: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { slug, status: 'ACTIVE' },
+      include: {
+        category: true,
+        variants: true,
+        customizations: {
+          include: { choices: true },
+        },
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
+    }
+
+    return product;
+  }
 }

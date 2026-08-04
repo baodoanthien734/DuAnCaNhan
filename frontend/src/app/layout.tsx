@@ -1,7 +1,21 @@
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages, getTranslations } from 'next-intl/server';
+
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Giữ nguyên logic của bạn: Dùng để lấy chữ cho các thẻ meta/html ở Server
+  const t = await getTranslations('public_pages');
+  
+  // THÊM MỚI: Lấy toàn bộ bộ từ điển hiện tại
+  const messages = await getMessages();
+
   return (
-    <html lang="vi">
-      <body>{children}</body>
+    <html lang={t('layout.lang')}>
+      <body>
+        {/* THÊM MỚI: Bọc Provider này để "bơm" từ điển xuống cho các Client Component (như trang Login) */}
+        <NextIntlClientProvider messages={messages}>
+          {children}
+        </NextIntlClientProvider>
+      </body>
     </html>
   );
 }

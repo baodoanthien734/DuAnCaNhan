@@ -1,10 +1,9 @@
 import { Module } from '@nestjs/common';
-import { I18nModule } from 'nestjs-i18n';
 import { UploadsController } from './uploads.controller';
 import { UploadsService } from './uploads.service';
 
 @Module({
-  imports: [I18nModule],
+  imports: [],
   controllers: [UploadsController],
   providers: [UploadsService],
 })

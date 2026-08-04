@@ -1,16 +1,13 @@
-// src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Mở rộng các route public để bao gồm OTP/2FA endpoints
 const publicRoutes = ['/login', '/register', '/verify-otp', '/send-otp'];
 const protectedRoutes = ['/home', '/admin'];
+const supportedLocales = ['vi', 'en'] as const;
 
 function routeMatches(route: string, pathname: string) {
-  // normalize
   if (pathname === route) return true;
   if (pathname.startsWith(route + '/')) return true;
-  // support locale or prefix like /vi/register => split and match segment
   const seg = route.replace(/^\//, '');
   return pathname.split('/').includes(seg);
 }
@@ -33,11 +30,23 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('accessToken')?.value;
 
-  // Debug helpers: log route + token presence to server console
-  try {
-    // eslint-disable-next-line no-console
-    console.log('[middleware] path:', pathname, 'hasToken:', !!token);
-  } catch (e) {}
+  const firstSegment = pathname.split('/').filter(Boolean)[0];
+  if (firstSegment && supportedLocales.includes(firstSegment as (typeof supportedLocales)[number])) {
+    const cleanedPathname = pathname.replace(`/${firstSegment}`, '') || '/';
+    const url = request.nextUrl.clone();
+    url.pathname = cleanedPathname;
+    return NextResponse.redirect(url);
+  }
+
+  const response = NextResponse.next();
+  const localeCookie = request.cookies.get('NEXT_LOCALE')?.value;
+  if (!localeCookie || !supportedLocales.includes(localeCookie as (typeof supportedLocales)[number])) {
+    response.cookies.set('NEXT_LOCALE', 'vi', {
+      path: '/',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 24 * 365,
+    });
+  }
 
   const isProtectedRoute = protectedRoutes.some((route) => routeMatches(route, pathname));
   const isPublicRoute = publicRoutes.some((route) => routeMatches(route, pathname));
@@ -52,14 +61,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL('/home', request.url));
     }
 
-    const response = NextResponse.next();
     response.cookies.delete('accessToken');
     response.cookies.delete('refreshToken');
     response.cookies.delete('userId');
     return response;
   }
 
-  return NextResponse.next();
+  return response;
 }
 
 export const config = {
