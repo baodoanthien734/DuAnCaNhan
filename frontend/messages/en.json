@@ -343,5 +343,97 @@
       "updateError": "An error occurred while updating the product. Please check the console for details!",
       "detailsLoadError": "The product does not exist or has been deleted."
     }
+  },
+  "editor": {
+    "placeholder": "Write your post content here...",
+    "heading_2": "H2",
+    "heading_3": "H3",
+    "bold": "Bold",
+    "italic": "Italic",
+    "bullet_list": "Bullet List",
+    "upload_image": "Upload Image"
+  },
+  "posts": {
+    "create": {
+      "eyebrow": "Create post",
+      "title": "Publish a new article",
+      "description": "Prepare news, brand stories, or product inspiration for your shop in one place.",
+      "fields": {
+        "titleLabel": "Title",
+        "titlePlaceholder": "Enter the post title",
+        "summaryLabel": "Summary",
+        "summaryPlaceholder": "Write a short summary for the article",
+        "thumbnailLabel": "Thumbnail image",
+        "thumbnailHint": "Choose a cover image for this post.",
+        "publishLabel": "Publish immediately",
+        "contentLabel": "Content",
+        "contentHint": "{count} content image(s) prepared from the editor."
+      },
+      "actions": {
+        "submit": "Create post",
+        "submitting": "Creating...",
+        "cancel": "Cancel"
+      },
+      "toastSuccess": "Post created successfully. Redirecting...",
+      "toastAuthError": "Your session has expired or you do not have permission to create posts.",
+      "toastValidationError": "Validation error: {message}",
+      "toastGenericError": "Unable to create the post right now. Please try again later."
+    },
+    "list": {
+      "header": {
+        "subtitle": "Post Management",
+        "title": "Content and Stories",
+        "description": "Create posts to share the crafting process, store updates, and news.",
+        "createBtn": "Create Post"
+      },
+      "filter": {
+        "searchPlaceholder": "Search posts by title...",
+        "allStatuses": "All Statuses",
+        "published": "Published",
+        "draft": "Draft"
+      },
+      "table": {
+        "id": "ID",
+        "post": "Post",
+        "author": "Author",
+        "status": "Status",
+        "actions": "Actions",
+        "loading": "Loading data...",
+        "empty": "No posts available.",
+        "noImage": "No img",
+        "edit": "Edit"
+      },
+      "pagination": {
+        "showCount": "Showing {current} of {total} posts",
+        "prev": "Previous",
+        "next": "Next"
+      }
+    },
+    "edit": {
+      "eyebrow": "Edit Post",
+      "title": "Update Post",
+      "description": "Edit news, brand stories, or inspiring content.",
+      "fields": {
+        "titleLabel": "Title",
+        "titlePlaceholder": "Enter post title",
+        "summaryLabel": "Summary",
+        "summaryPlaceholder": "Write a short summary for the post",
+        "thumbnailLabel": "Thumbnail",
+        "thumbnailHint": "Select a new thumbnail if you want to replace the current one.",
+        "publishLabel": "Publish now",
+        "contentLabel": "Content",
+        "contentHint": "Prepared {count} content images from the editor."
+      },
+      "actions": {
+        "submit": "Update Post",
+        "submitting": "Updating...",
+        "cancel": "Cancel"
+      },
+      "toastSuccess": "Post updated successfully. Redirecting...",
+      "toastAuthError": "Session expired or you do not have permission to edit this post.",
+      "toastValidationError": "Validation error: {message}",
+      "toastGenericError": "Cannot update the post at this time. Please try again later.",
+      "toastFetchError": "Failed to load post data. Please check again."
+    }
   }
 }

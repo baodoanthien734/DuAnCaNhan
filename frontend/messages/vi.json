@@ -343,5 +343,97 @@
       "updateError": "Đã xảy ra lỗi khi cập nhật sản phẩm. Vui lòng mở F12 để xem chi tiết!",
       "detailsLoadError": "Sản phẩm không tồn tại hoặc đã bị xóa."
     }
+  },
+  "editor": {
+    "placeholder": "Nhập nội dung bài viết tại đây...",
+    "heading_2": "H2",
+    "heading_3": "H3",
+    "bold": "In đậm",
+    "italic": "In nghiêng",
+    "bullet_list": "Danh sách chấm tròn",
+    "upload_image": "Tải ảnh lên"
+  },
+  "posts": {
+    "create": {
+      "eyebrow": "Tạo bài viết",
+      "title": "Đăng bài viết mới",
+      "description": "Chuẩn bị tin tức, câu chuyện thương hiệu hoặc nội dung truyền cảm hứng cho shop tại một nơi.",
+      "fields": {
+        "titleLabel": "Tiêu đề",
+        "titlePlaceholder": "Nhập tiêu đề bài viết",
+        "summaryLabel": "Tóm tắt",
+        "summaryPlaceholder": "Viết phần tóm tắt ngắn cho bài viết",
+        "thumbnailLabel": "Ảnh bìa",
+        "thumbnailHint": "Chọn một ảnh bìa cho bài viết này.",
+        "publishLabel": "Đăng ngay",
+        "contentLabel": "Nội dung",
+        "contentHint": "Đã chuẩn bị {count} ảnh nội dung từ trình soạn thảo."
+      },
+      "actions": {
+        "submit": "Tạo bài viết",
+        "submitting": "Đang tạo...",
+        "cancel": "Hủy"
+      },
+      "toastSuccess": "Tạo bài viết thành công. Đang chuyển hướng...",
+      "toastAuthError": "Phiên đăng nhập đã hết hạn hoặc bạn không có quyền tạo bài viết.",
+      "toastValidationError": "Lỗi xác thực dữ liệu: {message}",
+      "toastGenericError": "Không thể tạo bài viết lúc này. Vui lòng thử lại sau."
+    },
+    "list": {
+      "header": {
+        "subtitle": "Quản lý bài viết",
+        "title": "Nội dung và câu chuyện",
+        "description": "Tạo bài viết chia sẻ quy trình làm đồ thủ công, cập nhật sự kiện và tin tức cửa hàng.",
+        "createBtn": "Tạo bài viết"
+      },
+      "filter": {
+        "searchPlaceholder": "Tìm bài viết theo tiêu đề...",
+        "allStatuses": "Tất cả trạng thái",
+        "published": "Đã xuất bản",
+        "draft": "Bản nháp"
+      },
+      "table": {
+        "id": "ID",
+        "post": "Bài viết",
+        "author": "Tác giả",
+        "status": "Trạng thái",
+        "actions": "Thao tác",
+        "loading": "Đang tải dữ liệu...",
+        "empty": "Chưa có bài viết nào.",
+        "noImage": "Không có ảnh",
+        "edit": "Sửa"
+      },
+      "pagination": {
+        "showCount": "Hiển thị {current} trên tổng {total} bài viết",
+        "prev": "Trang trước",
+        "next": "Trang sau"
+      }
+    },
+    "edit": {
+      "eyebrow": "Sửa bài viết",
+      "title": "Cập nhật bài viết",
+      "description": "Chỉnh sửa tin tức, câu chuyện thương hiệu hoặc nội dung truyền cảm hứng.",
+      "fields": {
+        "titleLabel": "Tiêu đề",
+        "titlePlaceholder": "Nhập tiêu đề bài viết",
+        "summaryLabel": "Tóm tắt",
+        "summaryPlaceholder": "Viết phần tóm tắt ngắn cho bài viết",
+        "thumbnailLabel": "Ảnh bìa",
+        "thumbnailHint": "Chọn một ảnh bìa mới nếu bạn muốn thay đổi ảnh cũ.",
+        "publishLabel": "Đăng ngay",
+        "contentLabel": "Nội dung",
+        "contentHint": "Đã chuẩn bị {count} ảnh nội dung từ trình soạn thảo."
+      },
+      "actions": {
+        "submit": "Cập nhật bài viết",
+        "submitting": "Đang cập nhật...",
+        "cancel": "Hủy"
+      },
+      "toastSuccess": "Cập nhật bài viết thành công. Đang chuyển hướng...",
+      "toastAuthError": "Phiên đăng nhập đã hết hạn hoặc bạn không có quyền sửa bài viết.",
+      "toastValidationError": "Lỗi xác thực dữ liệu: {message}",
+      "toastGenericError": "Không thể cập nhật bài viết lúc này. Vui lòng thử lại sau.",
+      "toastFetchError": "Không thể tải dữ liệu bài viết cũ. Vui lòng kiểm tra lại."
+    }
   }
 }

@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { AcceptLanguageResolver, I18nModule, I18nJsonLoader } from 'nestjs-i18n';
+import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PrismaModule } from './prisma/prisma.module';
 import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
+import { PostsModule } from './posts/posts.module';
 import { UploadsModule } from './uploads/uploads.module';
 import { ProductsModule } from './products/products.module';
 
@@ -13,6 +16,11 @@ import { ProductsModule } from './products/products.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true, // Cho phép dùng ConfigService ở mọi nơi
+    }),
+    ScheduleModule.forRoot(),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'public'), // Trỏ đúng vào thư mục public ở root
+      serveRoot: '/', // URL truy cập sẽ bắt đầu từ root (vd: /uploads/posts/...)
     }),
     I18nModule.forRoot({
       fallbackLanguage: 'vi',
@@ -33,6 +41,7 @@ import { ProductsModule } from './products/products.module';
     AuthModule,
     UploadsModule,
     CategoriesModule,
+    PostsModule,
     ProductsModule,
   ],
 })
