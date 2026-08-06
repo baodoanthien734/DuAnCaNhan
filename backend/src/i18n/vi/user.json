@@ -1,0 +1,36 @@
+{
+  "validation": {
+    "name_string": "Họ và tên phải là chuỗi ký tự",
+    "name_max_length": "Họ và tên không được vượt quá 100 ký tự",
+    "recipient_name_string": "Tên người nhận phải là chuỗi ký tự",
+    "recipient_name_required": "Tên người nhận không được để trống",
+    "recipient_name_max_length": "Tên người nhận không được vượt quá 120 ký tự",
+    "phone_string": "Số điện thoại phải là chuỗi ký tự",
+    "phone_required": "Số điện thoại không được để trống",
+    "phone_max_length": "Số điện thoại không được vượt quá 20 ký tự",
+    "street_string": "Địa chỉ đường phải là chuỗi ký tự",
+    "street_required": "Địa chỉ đường không được để trống",
+    "street_max_length": "Địa chỉ đường không được vượt quá 255 ký tự",
+    "ward_string": "Phường/Xã phải là chuỗi ký tự",
+    "ward_required": "Phường/Xã không được để trống",
+    "ward_max_length": "Phường/Xã không được vượt quá 120 ký tự",
+    "district_string": "Quận/Huyện phải là chuỗi ký tự",
+    "district_required": "Quận/Huyện không được để trống",
+    "district_max_length": "Quận/Huyện không được vượt quá 120 ký tự",
+    "city_string": "Tỉnh/Thành phố phải là chuỗi ký tự",
+    "city_required": "Tỉnh/Thành phố không được để trống",
+    "city_max_length": "Tỉnh/Thành phố không được vượt quá 120 ký tự",
+    "is_default_boolean": "isDefault phải là giá trị boolean"
+  },
+  "error": {
+    "user_not_found": "Không tìm thấy người dùng",
+    "address_not_found": "Không tìm thấy địa chỉ",
+    "address_forbidden": "Bạn không có quyền truy cập địa chỉ này"
+  },
+  "success": {
+    "profile_updated": "Cập nhật hồ sơ thành công",
+    "address_created": "Thêm địa chỉ thành công",
+    "address_removed": "Xóa địa chỉ thành công",
+    "default_address_updated": "Đặt địa chỉ mặc định thành công"
+  }
+}

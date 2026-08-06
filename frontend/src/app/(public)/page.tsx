@@ -2,8 +2,9 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { getPublicCategories, getPublicProducts } from '@/lib/public-api';
-// Dẫn link import tới component bạn vừa tạo
 import FeaturedProducts from '@/components/ui/FeaturedProducts'; 
+// Dẫn link import tới AuthGroup
+import AuthGroup from '@/components/ui/AuthGroup'; 
 
 export default async function Home() {
   const t = await getTranslations('public_pages');
@@ -28,7 +29,6 @@ export default async function Home() {
 
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', color: '#111827' }}>
-      {/* Header và Hero section giữ nguyên như cũ... */}
       <header style={{ backgroundColor: '#fff', padding: '22px 20px', boxShadow: '0 10px 35px rgba(15, 23, 42, 0.05)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
           <div>
@@ -37,12 +37,8 @@ export default async function Home() {
           </div>
           <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
             <LanguageSwitcher />
-            <Link href="/login" style={{ color: '#111827', textDecoration: 'none', padding: '10px 18px' }}>
-              {t('header.login')}
-            </Link>
-            <Link href="/register" style={{ backgroundColor: '#111827', color: '#fff', padding: '10px 18px', borderRadius: '999px', textDecoration: 'none' }}>
-              {t('header.register')}
-            </Link>
+            {/* Gọi Component chứa Nút bấm và Modal tại đây */}
+            <AuthGroup />
           </div>
         </div>
       </header>

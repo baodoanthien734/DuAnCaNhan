@@ -1,0 +1,13 @@
+{
+  "error": {
+    "cart_not_found": "Không tìm thấy giỏ hàng của bạn.",
+    "product_not_found": "Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.",
+    "invalid_quantity": "Số lượng sản phẩm không hợp lệ.",
+    "item_not_found": "Không tìm thấy sản phẩm này trong giỏ hàng."
+  },
+  "success": {
+    "item_added": "Đã thêm sản phẩm vào giỏ hàng.",
+    "item_updated": "Cập nhật số lượng thành công.",
+    "item_removed": "Đã xóa sản phẩm khỏi giỏ hàng."
+  }
+}

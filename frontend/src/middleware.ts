@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 const publicRoutes = ['/login', '/register', '/verify-otp', '/send-otp'];
-const protectedRoutes = ['/home', '/admin'];
+// Xóa '/home', chỉ giữ lại các route thực sự cần bảo vệ
+const protectedRoutes = ['/admin', '/checkout', '/profile']; 
 const supportedLocales = ['vi', 'en'] as const;
 
 function routeMatches(route: string, pathname: string) {
@@ -52,13 +53,15 @@ export async function middleware(request: NextRequest) {
   const isPublicRoute = publicRoutes.some((route) => routeMatches(route, pathname));
 
   if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    // Nếu vào Admin mà chưa có token -> Bật về thẳng trang chủ (nơi có AuthModal)
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   if (isPublicRoute && token) {
     const valid = await isTokenValid(token);
     if (valid) {
-      return NextResponse.redirect(new URL('/home', request.url));
+      // Đã đăng nhập mà cố tình vào API public routes -> Bật về Landing Page
+      return NextResponse.redirect(new URL('/', request.url));
     }
 
     response.cookies.delete('accessToken');

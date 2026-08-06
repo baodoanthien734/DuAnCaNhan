@@ -1,0 +1,12 @@
+{
+  "error": {
+    "empty_cart": "Giỏ hàng của bạn đang trống, không thể tiến hành đặt hàng.",
+    "out_of_stock": "Sản phẩm {productName} đã hết hàng hoặc không đủ số lượng để đặt.",
+    "order_not_found": "Không tìm thấy thông tin đơn hàng.",
+    "invalid_status": "Trạng thái đơn hàng không hợp lệ để cập nhật."
+  },
+  "success": {
+    "order_placed": "Bạn đã đặt hàng thành công!",
+    "status_updated": "Cập nhật trạng thái đơn hàng thành công."
+  }
+}

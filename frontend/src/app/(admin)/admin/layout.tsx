@@ -22,14 +22,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const cookieStore = await cookies();
   const token = cookieStore.get('accessToken')?.value;
 
-  if (!token) redirect('/login');
+  // Sửa '/login' thành '/'
+  if (!token) redirect('/');
 
   const user = await getProfile(token);
-  if (!user) redirect('/login');
+  // Sửa '/login' thành '/'
+  if (!user) redirect('/');
 
   const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
   if (!roles.includes('ADMIN')) {
-    redirect('/home');
+    // Sửa '/home' thành '/' (Landing Page)
+    redirect('/');
   }
 
   const t = await getTranslations('admin_sidebar');

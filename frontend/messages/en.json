@@ -7,7 +7,10 @@
       "title": "🍃 Handmade Studio",
       "subtitle": "Small handcrafted pieces for your living space and gifts.",
       "login": "Log in",
-      "register": "Sign up"
+      "register": "Sign up",
+      "profile": "Profile",
+      "adminPanel": "Admin Panel",
+      "logout": "Logout"
     },
     "hero": {
       "eyebrow": "HANDMADE SHOP",
@@ -81,57 +84,42 @@
   },
   "auth": {
     "login": {
-      "title": "🧶 Handmade Corner",
-      "subtitle": "Open the door to your creative world ✨",
-      "emailLabel": "💌 Email Address",
-      "emailPlaceholder": "handmade.studio@gmail.com",
-      "passwordLabel": "🗝️ Key (Password)",
-      "passwordPlaceholder": "Enter your password...",
-      "showPasswordTitle": "Show password",
-      "hidePasswordTitle": "Hide password",
-      "submitLoading": "🧶 Crafting...",
-      "submit": "✨ Step Into the Shop",
-      "divider": "OR",
-      "newUser": "New here?",
-      "registerLink": "🎀 Sign Up Now",
-      "backHome": "← Back to home"
+      "title": "Sign In",
+      "subtitle": "Welcome back to your account",
+      "emailLabel": "Your Email",
+      "emailPlaceholder": "enteremail@domain.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "submit": "Sign In",
+      "submitLoading": "Processing...",
+      "divider": "Or",
+      "newUser": "Don't have an account?",
+      "registerLink": "Register"
     },
     "register": {
-      "title": "🧶 Handmade Corner",
-      "subtitle": "Create your creative space ✨",
-      "stepLabel": "Step {step}/3",
+      "title": "Create Account",
+      "subtitle": "Join us today and get started",
       "step1": {
-        "emailLabel": "💌 Email Address",
-        "emailPlaceholder": "handmade.studio@gmail.com",
-        "helperText": "We will send a letter containing a confirmation code here.",
-        "submitLoading": "🧶 Sending letter...",
-        "submit": "📬 Send confirmation code"
+        "emailLabel": "Your Email",
+        "emailPlaceholder": "enteremail@domain.com",
+        "submit": "Continue",
+        "submitLoading": "Sending..."
       },
       "step2": {
-        "emailSent": "✉️ The letter has been sent to:",
-        "changeEmail": "← Wrong inbox? Change it",
-        "otpLabel": "🎫 Confirmation code (6 digits)",
-        "otpPlaceholder": "••••••",
-        "expiredTitle": "🥀 The confirmation code has expired!",
-        "requestNew": "✨ Request a new code",
-        "requestingNew": "🧶 Requesting a new code...",
-        "countdown": "⏱️ The code will fade in:",
-        "submitLoading": "🧶 Checking...",
-        "submit": "🌸 Unlock the inbox"
+        "emailSent": "Verification code has been sent to",
+        "changeEmail": "Change email",
+        "submit": "Verify OTP",
+        "submitLoading": "Checking..."
       },
       "step3": {
-        "nameLabel": "👤 Friendly name",
-        "namePlaceholder": "What would you like us to call you?",
-        "passwordLabel": "🗝️ Secure key (Password)",
-        "passwordPlaceholder": "Create a strong password...",
-        "helperText": "Mix uppercase, lowercase, numbers, or special characters to make your thread strong.",
-        "submitLoading": "🧶 Finishing up...",
-        "submit": "✨ Complete & Step into the shop"
+        "namePlaceholder": "Full Name",
+        "passwordPlaceholder": "Password",
+        "submit": "Complete Registration",
+        "submitLoading": "Saving..."
       },
       "footer": {
-        "haveAccount": "Already have a key to the shop?",
-        "loginLink": "🎀 Log In",
-        "backHome": "← Back to home"
+        "haveAccount": "Already have an account?",
+        "loginLink": "Sign In"
       }
     }
   },
@@ -435,5 +423,55 @@
       "toastGenericError": "Cannot update the post at this time. Please try again later.",
       "toastFetchError": "Failed to load post data. Please check again."
     }
+  },
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is currently empty",
+    "guest_hint": "Please sign in to sync and checkout your cart.",
+    "login_to_checkout": "Sign in to checkout",
+    "total": "Total",
+    "checkout_button": "Proceed to Checkout",
+    "success_add": "Added to cart successfully!",
+    "success_update": "Quantity updated successfully!",
+    "success_remove": "Item removed from cart.",
+    "error_add": "Could not add to cart. Please try again.",
+    "error_fetch": "Error fetching cart data.",
+    "required_variant": "Please select a variant.",
+    "required_customization": "Please complete all required options."
+  },
+  "checkout": {
+    "title": "Checkout",
+    "success_order": "Order placed successfully! Thank you.",
+    "error_order": "An error occurred while placing your order. Please try again.",
+    "submit_button": "Place Order",
+    "submitting": "Processing..."
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your personal info and shipping address book",
+    "personalInfo": "Personal Information",
+    "fullName": "Full Name",
+    "email": "Email",
+    "saveProfile": "Save Profile",
+    "saving": "Saving...",
+    "addressBook": "Address Book",
+    "addNewAddress": "Add New Address",
+    "recipientName": "Recipient",
+    "phone": "Phone Number",
+    "street": "Street Address",
+    "ward": "Ward",
+    "district": "District",
+    "city": "City",
+    "isDefault": "Set as default",
+    "setDefault": "Set Default",
+    "defaultBadge": "Default",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "saveAddress": "Save Address",
+    "noAddresses": "You do not have any shipping addresses yet.",
+    "addressDeleted": "Address deleted successfully",
+    "addressCreated": "Address added successfully",
+    "profileUpdated": "Profile updated successfully",
+    "defaultAddressUpdated": "Default address updated successfully"
   }
 }
