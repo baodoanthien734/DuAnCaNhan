@@ -1,10 +1,9 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { getPublicCategories, getPublicProducts } from '@/lib/public-api';
 import FeaturedProducts from '@/components/ui/FeaturedProducts'; 
-// Dẫn link import tới AuthGroup
-import AuthGroup from '@/components/ui/AuthGroup'; 
+
+// 🗑️ Đã xóa import LanguageSwitcher và AuthGroup vì chúng đã nằm ở layout.tsx
 
 export default async function Home() {
   const t = await getTranslations('public_pages');
@@ -15,7 +14,7 @@ export default async function Home() {
   try {
     const [catRes, prodRes] = await Promise.all([
       getPublicCategories(),
-      getPublicProducts({ take: 20 }), // Lấy khoảng 20 sản phẩm để filter cho phong phú
+      getPublicProducts({ take: 20 }), 
     ]);
     categories = Array.isArray(catRes) ? catRes : catRes.items || [];
     if (Array.isArray(prodRes)) {
@@ -28,20 +27,10 @@ export default async function Home() {
   }
 
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', color: '#111827' }}>
-      <header style={{ backgroundColor: '#fff', padding: '22px 20px', boxShadow: '0 10px 35px rgba(15, 23, 42, 0.05)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
-          <div>
-            <h1 style={{ fontSize: '30px', margin: 0 }}>{t('header.title')}</h1>
-            <p style={{ margin: '6px 0 0', color: '#6b7280' }}>{t('header.subtitle')}</p>
-          </div>
-          <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <LanguageSwitcher />
-            {/* Gọi Component chứa Nút bấm và Modal tại đây */}
-            <AuthGroup />
-          </div>
-        </div>
-      </header>
+    // 🗑️ Đã xóa minHeight 100vh ở đây để nhường quyền kiểm soát chiều cao cho layout.tsx
+    <div style={{ color: '#111827' }}>
+      
+      {/* 🗑️ ĐÃ XÓA TOÀN BỘ KHỐI <header> BỊ TRÙNG LẶP */}
 
       <section style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%)', padding: '70px 20px 50px', textAlign: 'center' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
@@ -58,8 +47,7 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* Gọi Component Lọc Tại Chỗ (Thay thế cho phần Categories và Products cũ) */}
-      <section style={{ padding: '40px 20px' }}>
+      <section style={{ padding: '40px 20px', backgroundColor: '#f7f5f2' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
           <h3 style={{ margin: '0 0 20px', fontSize: '26px', color: '#111827' }}>
              {t('categories.title')}
@@ -78,9 +66,7 @@ export default async function Home() {
         </div>
       </section>
 
-      <footer style={{ backgroundColor: '#f3f4f6', color: '#6b7280', padding: '26px 20px', textAlign: 'center' }}>
-        <p style={{ margin: 0 }}>{t('footer')}</p>
-      </footer>
+      {/* 🗑️ ĐÃ XÓA <footer> VÌ layout.tsx ĐÃ CÓ FOOTER CHUNG */}
     </div>
   );
 }

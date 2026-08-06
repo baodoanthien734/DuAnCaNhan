@@ -8,9 +8,15 @@
       "subtitle": "Small handcrafted pieces for your living space and gifts.",
       "login": "Log in",
       "register": "Sign up",
+      "cart": "🛒 Cart",
       "profile": "Profile",
       "adminPanel": "Admin Panel",
-      "logout": "Logout"
+      "logout": "Logout",
+      "orders": "My Orders",
+      "nav": {
+        "home": "Home",
+        "products": "Products"
+      }
     },
     "hero": {
       "eyebrow": "HANDMADE SHOP",
@@ -427,17 +433,55 @@
   "cart": {
     "title": "Your Cart",
     "empty": "Your cart is currently empty",
+    "loading": "Loading cart...",
     "guest_hint": "Please sign in to sync and checkout your cart.",
     "login_to_checkout": "Sign in to checkout",
     "total": "Total",
     "checkout_button": "Proceed to Checkout",
+    "currency": "VND",
+    "variant_label": "Variant",
+    "remove_button": "Remove",
     "success_add": "Added to cart successfully!",
     "success_update": "Quantity updated successfully!",
     "success_remove": "Item removed from cart.",
     "error_add": "Could not add to cart. Please try again.",
     "error_fetch": "Error fetching cart data.",
+    "no_description": "No detailed description for this product.",
+    "variants_label": "Variants",
+    "customizations_label": "Customizations",
+    "required": "Required",
+    "text_input_placeholder": "Enter {name}...",
+    "adding": "Adding...",
+    "add_button": "🛒 Add to Cart",
     "required_variant": "Please select a variant.",
     "required_customization": "Please complete all required options."
+  },
+  "private_layout": {
+    "back_home": "← Back to Home"
+  },
+  "language_switcher": {
+    "label": "Language",
+    "select_aria_label": "Select language",
+    "locales": {
+      "vi": "Vietnamese",
+      "en": "English"
+    }
+  },
+  "products": {
+    "list_title": "All Products",
+    "search_placeholder": "Search products...",
+    "search_input_aria": "Search products",
+    "search_button_aria": "Search products",
+    "empty": "No products found.",
+    "no_description": "...",
+    "currency": "VND",
+    "view_detail": "View details",
+    "back_to_products": "← Back to products"
+  },
+  "categories": {
+    "all": "All",
+    "back": "← Go back",
+    "empty": "No products in this category yet."
   },
   "checkout": {
     "title": "Checkout",
@@ -473,5 +517,87 @@
     "addressCreated": "Address added successfully",
     "profileUpdated": "Profile updated successfully",
     "defaultAddressUpdated": "Default address updated successfully"
+  },
+  "admin_orders": {
+    "list_title": "📦 Order Management",
+    "loading_list": "Loading orders...",
+    "empty_list": "No orders found.",
+    "table": {
+      "order_code": "Order Code",
+      "customer": "Customer",
+      "order_date": "Date",
+      "total": "Total",
+      "status": "Status",
+      "action": "Action",
+      "detail_btn": "Detail"
+    },
+    "status": {
+      "PENDING": "⏳ Pending",
+      "PROCESSING": "📦 Processing",
+      "SHIPPING": "🚚 Shipping",
+      "DELIVERED": "✅ Delivered",
+      "CANCELLED": "❌ Cancelled"
+    },
+    "detail": {
+      "back": "← Back to list",
+      "title": "Order Detail",
+      "update_status": "Update status:",
+      "success_update": "Order status updated successfully!",
+      "error_update": "Error updating status",
+      "loading": "Loading order details...",
+      "not_found": "Order not found!",
+      "shipping_info": "Shipping Information",
+      "recipient": "Recipient",
+      "phone": "Phone",
+      "address": "Address",
+      "customer_note": "Customer note",
+      "payment_info": "Payment Information",
+      "method": "Method",
+      "payment_status": "Payment Status",
+      "paid": "Paid",
+      "unpaid": "Unpaid",
+      "order_date": "Order Date",
+      "products": "Products",
+      "product_name": "Product",
+      "price": "Price",
+      "quantity": "Qty",
+      "subtotal": "Subtotal",
+      "variant": "Variant",
+      "total_amount": "Total Amount"
+    }
+  },
+  "my_orders": {
+    "title": "📦 My Orders",
+    "loading": "Loading your orders...",
+    "empty": "You have no orders yet.",
+    "shop_now": "Continue Shopping",
+    "order_code": "Order ID:",
+    "order_date": "Date:",
+    "total_amount": "Total:",
+    "view_detail": "View Details",
+    "status": {
+      "PENDING": "⏳ Pending",
+      "PROCESSING": "📦 Processing",
+      "SHIPPING": "🚚 Shipping",
+      "DELIVERED": "✅ Delivered",
+      "CANCELLED": "❌ Cancelled"
+    },
+    "detail": {
+      "back": "← Back to orders",
+      "title": "Order Details",
+      "not_found": "Order not found!",
+      "shipping_info": "📍 Shipping Info",
+      "payment_info": "💳 Payment Info",
+      "payment_method": "Method:",
+      "payment_status": "Status:",
+      "paid": "Paid",
+      "unpaid": "Cash on Delivery",
+      "products": "Purchased Items",
+      "price": "Price",
+      "qty": "Qty",
+      "subtotal": "Subtotal",
+      "cancelled_msg": "This order has been cancelled.",
+      "note": "Note:"
+    }
   }
 }

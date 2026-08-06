@@ -8,9 +8,15 @@
       "subtitle": "Đồ thủ công nhỏ xinh cho góc sống và quà tặng.",
       "login": "Đăng nhập",
       "register": "Đăng ký",
+      "cart": "🛒 Giỏ hàng",
       "profile": "Hồ sơ",
       "adminPanel": "Vào trang Quản trị",
-      "logout": "Đăng xuất"
+      "logout": "Đăng xuất",
+      "orders": "Đơn hàng",
+      "nav": {
+        "home": "Trang chủ",
+        "products": "Sản phẩm"
+      }
     },
     "hero": {
       "eyebrow": "SHOP THỦ CÔNG",
@@ -427,17 +433,55 @@
   "cart": {
     "title": "Giỏ hàng của bạn",
     "empty": "Giỏ hàng đang trống",
+    "loading": "Đang tải giỏ hàng...",
     "guest_hint": "Vui lòng đăng nhập để đồng bộ và thanh toán giỏ hàng.",
     "login_to_checkout": "Đăng nhập để thanh toán",
     "total": "Tổng tiền",
     "checkout_button": "Tiến hành thanh toán",
+    "currency": "đ",
+    "variant_label": "Phân loại",
+    "remove_button": "Xóa",
     "success_add": "Đã thêm vào giỏ hàng thành công!",
     "success_update": "Cập nhật số lượng thành công!",
     "success_remove": "Đã xóa sản phẩm khỏi giỏ.",
     "error_add": "Không thể thêm vào giỏ hàng. Vui lòng thử lại.",
     "error_fetch": "Lỗi khi lấy dữ liệu giỏ hàng.",
+    "no_description": "Không có mô tả chi tiết cho sản phẩm này.",
+    "variants_label": "Phân loại / Biến thể",
+    "customizations_label": "Tùy chọn cá nhân hóa",
+    "required": "Bắt buộc",
+    "text_input_placeholder": "Nhập {name}...",
+    "adding": "Đang thêm...",
+    "add_button": "🛒 Thêm vào giỏ hàng",
     "required_variant": "Vui lòng chọn một phân loại.",
     "required_customization": "Vui lòng hoàn thành các tùy chọn bắt buộc."
+  },
+  "private_layout": {
+    "back_home": "← Về trang chủ"
+  },
+  "language_switcher": {
+    "label": "Ngôn ngữ",
+    "select_aria_label": "Chọn ngôn ngữ",
+    "locales": {
+      "vi": "Tiếng Việt",
+      "en": "English"
+    }
+  },
+  "products": {
+    "list_title": "Tất cả sản phẩm",
+    "search_placeholder": "Tìm kiếm sản phẩm...",
+    "search_input_aria": "Tìm kiếm sản phẩm",
+    "search_button_aria": "Tìm sản phẩm",
+    "empty": "Không tìm thấy sản phẩm nào phù hợp.",
+    "no_description": "...",
+    "currency": "đ",
+    "view_detail": "Xem chi tiết",
+    "back_to_products": "← Quay lại danh sách"
+  },
+  "categories": {
+    "all": "Tất cả",
+    "back": "← Quay lại danh sách",
+    "empty": "Chưa có sản phẩm nào trong danh mục này."
   },
   "checkout": {
     "title": "Thanh toán",
@@ -473,5 +517,87 @@
     "addressCreated": "Đã thêm địa chỉ thành công",
     "profileUpdated": "Đã cập nhật hồ sơ thành công",
     "defaultAddressUpdated": "Đã cập nhật địa chỉ mặc định"
+  },
+  "admin_orders": {
+    "list_title": "📦 Quản lý Đơn hàng",
+    "loading_list": "Đang tải danh sách đơn hàng...",
+    "empty_list": "Chưa có đơn hàng nào.",
+    "table": {
+      "order_code": "Mã đơn",
+      "customer": "Khách hàng",
+      "order_date": "Ngày đặt",
+      "total": "Tổng tiền",
+      "status": "Trạng thái",
+      "action": "Hành động",
+      "detail_btn": "Chi tiết"
+    },
+    "status": {
+      "PENDING": "⏳ Chờ xác nhận",
+      "PROCESSING": "📦 Đang chuẩn bị",
+      "SHIPPING": "🚚 Đang giao",
+      "DELIVERED": "✅ Đã giao",
+      "CANCELLED": "❌ Đã hủy"
+    },
+    "detail": {
+      "back": "← Quay lại danh sách",
+      "title": "Chi tiết đơn hàng",
+      "update_status": "Cập nhật trạng thái:",
+      "success_update": "Đã cập nhật trạng thái đơn hàng!",
+      "error_update": "Lỗi cập nhật trạng thái",
+      "loading": "Đang tải chi tiết đơn hàng...",
+      "not_found": "Không tìm thấy đơn hàng!",
+      "shipping_info": "Thông tin giao hàng",
+      "recipient": "Người nhận",
+      "phone": "Số điện thoại",
+      "address": "Địa chỉ",
+      "customer_note": "Ghi chú của khách",
+      "payment_info": "Thanh toán",
+      "method": "Phương thức",
+      "payment_status": "Trạng thái thanh toán",
+      "paid": "Đã thanh toán",
+      "unpaid": "Chưa thanh toán",
+      "order_date": "Ngày đặt",
+      "products": "Sản phẩm",
+      "product_name": "Sản phẩm",
+      "price": "Đơn giá",
+      "quantity": "SL",
+      "subtotal": "Thành tiền",
+      "variant": "Phân loại",
+      "total_amount": "Tổng cộng"
+    }
+  },
+  "my_orders": {
+    "title": "📦 Đơn hàng của tôi",
+    "loading": "Đang tải đơn hàng...",
+    "empty": "Bạn chưa có đơn hàng nào.",
+    "shop_now": "Tiếp tục mua sắm",
+    "order_code": "Mã đơn:",
+    "order_date": "Ngày đặt:",
+    "total_amount": "Tổng tiền:",
+    "view_detail": "Xem chi tiết",
+    "status": {
+      "PENDING": "⏳ Chờ xác nhận",
+      "PROCESSING": "📦 Đang chuẩn bị",
+      "SHIPPING": "🚚 Đang giao",
+      "DELIVERED": "✅ Hoàn thành",
+      "CANCELLED": "❌ Đã hủy"
+    },
+    "detail": {
+      "back": "← Quay lại danh sách",
+      "title": "Chi tiết đơn hàng",
+      "not_found": "Không tìm thấy đơn hàng!",
+      "shipping_info": "📍 Thông tin nhận hàng",
+      "payment_info": "💳 Thanh toán",
+      "payment_method": "Phương thức:",
+      "payment_status": "Trạng thái:",
+      "paid": "Đã thanh toán",
+      "unpaid": "Thanh toán khi nhận hàng",
+      "products": "Sản phẩm đã mua",
+      "price": "Giá",
+      "qty": "SL",
+      "subtotal": "Thành tiền",
+      "cancelled_msg": "Đơn hàng này đã bị hủy.",
+      "note": "Ghi chú:"
+    }
   }
 }

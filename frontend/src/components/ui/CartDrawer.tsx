@@ -125,7 +125,7 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
         {/* Nội dung danh sách sản phẩm */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
           {loading ? (
-            <p style={{ textAlign: 'center', color: '#6b7280' }}>Đang tải giỏ hàng...</p>
+            <p style={{ textAlign: 'center', color: '#6b7280' }}>{t('loading')}</p>
           ) : errorMsg ? (
             <p style={{ textAlign: 'center', color: '#ef4444' }}>{errorMsg}</p>
           ) : !cart || !cart.items || cart.items.length === 0 ? (
@@ -181,19 +181,19 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
                       {/* Hiển thị Biến thể nếu có */}
                       {item.variant && (
                         <div style={{ fontSize: '12px', color: '#4b5563', marginBottom: '2px' }}>
-                          Phân loại: <b>{item.variant.name}</b>
+                          {t('variant_label')}: <b>{item.variant.name}</b>
                         </div>
                       )}
 
                       {/* Hiển thị Cá nhân hóa (Customizations JSON) nếu có */}
                       {item.customizations && Array.isArray(item.customizations) && item.customizations.map((c: any, idx: number) => (
                         <div key={idx} style={{ fontSize: '12px', color: '#6b7280' }}>
-                          {c.name}: <b>{c.value}</b> {c.extraPrice > 0 ? `(+${Number(c.extraPrice).toLocaleString()}đ)` : ''}
+                          {c.name}: <b>{c.value}</b> {c.extraPrice > 0 ? `(+${Number(c.extraPrice).toLocaleString()} ${t('currency')})` : ''}
                         </div>
                       ))}
 
                       <div style={{ fontSize: '13px', fontWeight: '700', color: '#b45309', marginTop: '6px' }}>
-                        {unitPrice.toLocaleString()} đ
+                        {unitPrice.toLocaleString()} {t('currency')}
                       </div>
 
                       {/* Nút tăng giảm số lượng & Xóa */}
@@ -218,7 +218,7 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
                           onClick={() => handleRemove(item.id)}
                           style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '12px', cursor: 'pointer', fontWeight: '500' }}
                         >
-                          Xóa
+                          {t('remove_button')}
                         </button>
                       </div>
                     </div>

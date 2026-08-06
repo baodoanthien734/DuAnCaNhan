@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import Link from 'next/link'; // Import Link
+import Link from 'next/link';
 import AuthModal from '@/components/ui/AuthModal';
 import CartDrawer from '@/components/ui/CartDrawer';
 import { logout } from '@/lib/auth';
@@ -85,9 +85,30 @@ export default function AuthGroup() {
             fontSize: '13px'
           }}
         >
-          🛒 Giỏ hàng
+          {t('header.cart')}
         </button>
 
+        {/* 📦 Nút Lịch sử Đơn hàng */}
+        <Link
+          href="/orders"
+          style={{
+            padding: '8px 16px',
+            backgroundColor: '#f3f4f6',
+            color: '#374151',
+            borderRadius: '999px',
+            fontSize: '13px',
+            fontWeight: '600',
+            textDecoration: 'none',
+            border: '1px solid #e5e7eb',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e5e7eb')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f3f4f6')}
+        >
+          {t('header.orders')}
+        </Link>
+
+        {/* 👤 Nút Hồ sơ */}
         <Link
           href="/profile"
           style={{
@@ -135,7 +156,7 @@ export default function AuthGroup() {
             width: '36px',
             height: '36px',
             borderRadius: '50%',
-            backgroundColor: isAdmin ? '#0f172a' : '#f3f4f6', // Admin avatar đen cho ngầu
+            backgroundColor: isAdmin ? '#0f172a' : '#f3f4f6',
             color: isAdmin ? '#fff' : '#111827',
             display: 'flex',
             alignItems: 'center',
@@ -159,7 +180,7 @@ export default function AuthGroup() {
           onClick={handleLogout}
           style={{
             fontSize: '13px',
-            color: '#ef4444', // Màu đỏ nhẹ cho dễ thấy
+            color: '#ef4444', 
             background: 'none',
             border: 'none',
             cursor: 'pointer',
@@ -193,7 +214,7 @@ export default function AuthGroup() {
           fontSize: '14px',
         }}
       >
-        🛒 Giỏ hàng
+        {t('header.cart')}
       </button>
 
       <button 

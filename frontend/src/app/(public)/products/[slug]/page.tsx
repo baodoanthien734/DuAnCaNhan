@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { getPublicProductBySlug } from '@/lib/public-api';
 import { notFound } from 'next/navigation';
-import AddToCartForm from '@/components/ui/AddToCartForm'; // 👈 Import component mới
+import AddToCartForm from '@/components/ui/AddToCartForm';
 
 interface PageProps {
   params: Promise<{
@@ -12,7 +11,7 @@ interface PageProps {
 }
 
 export default async function ProductDetailPage({ params }: PageProps) {
-  const t = await getTranslations('public_pages');
+  const tProducts = await getTranslations('products');
   
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
@@ -32,24 +31,10 @@ export default async function ProductDetailPage({ params }: PageProps) {
   const mainImage = product.images && product.images.length > 0 ? product.images[0] : null;
 
   return (
-    <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', color: '#111827' }}>
-      <header style={{ backgroundColor: '#fff', padding: '18px 20px', boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
-          <Link href="/" style={{ fontSize: '22px', fontWeight: 'bold', color: '#111827', textDecoration: 'none' }}>
-            🍃 {t('header.title')}
-          </Link>
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-            <LanguageSwitcher />
-            <Link href="/login" style={{ color: '#111827', textDecoration: 'none', padding: '8px 14px', fontSize: '14px' }}>
-              {t('header.login')}
-            </Link>
-          </div>
-        </div>
-      </header>
-
-      <main style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 20px' }}>
+    <div style={{ fontFamily: 'system-ui, sans-serif', padding: '40px 20px', color: '#111827' }}>
+      <main style={{ maxWidth: '1000px', margin: '0 auto' }}>
         <Link href="/products" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '14px', fontWeight: '500', display: 'inline-block', marginBottom: '24px' }}>
-          {t('product_detail.back')}
+          {tProducts('back_to_products')}
         </Link>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', backgroundColor: '#fff', padding: '32px', borderRadius: '24px', boxShadow: '0 20px 40px rgba(15, 23, 42, 0.06)' }}>
@@ -83,7 +68,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
               )}
               <h1 style={{ fontSize: '28px', margin: '8px 0 12px', color: '#111827' }}>{product.name}</h1>
               
-              {/* Gọi Client Component quản lý toàn bộ logic chọn biến thể, cá nhân hóa và nút submit */}
               <AddToCartForm product={product} />
             </div>
           </div>
