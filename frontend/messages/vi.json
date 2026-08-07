@@ -599,5 +599,124 @@
       "cancelled_msg": "Đơn hàng này đã bị hủy.",
       "note": "Ghi chú:"
     }
+  },
+  "admin_customers": {
+    "list_title": "Quản lý Khách hàng",
+    "list_subtitle": "Theo dõi hành vi mua sắm và quản trị trạng thái tài khoản khách hàng.",
+    "loading_list": "Đang tải danh sách khách hàng...",
+    "empty_list": "Chưa có khách hàng nào phù hợp.",
+    "search_placeholder": "Tìm theo tên hoặc email...",
+    "search_button": "Tìm",
+    "confirm_lock": "Bạn có chắc muốn khóa tài khoản {name}?",
+    "err_load": "Không thể tải danh sách khách hàng.",
+    "err_toggle": "Không thể cập nhật trạng thái khách hàng.",
+    "table": {
+      "customer": "Khách hàng",
+      "joined_at": "Ngày tham gia",
+      "total_spent": "Tổng chi tiêu",
+      "order_count": "Số đơn hàng",
+      "status": "Trạng thái",
+      "action": "Hành động"
+    },
+    "status": {
+      "active": "Đang hoạt động",
+      "locked": "Đã khóa"
+    },
+    "actions": {
+      "view_detail": "Xem chi tiết",
+      "lock": "Khóa",
+      "unlock": "Mở khóa"
+    },
+    "pagination": {
+      "total": "Tổng: {total}",
+      "prev": "Trước",
+      "next": "Sau"
+    },
+    "order_status": {
+      "PENDING": "Chờ xác nhận",
+      "PROCESSING": "Đang xử lý",
+      "SHIPPING": "Đang giao",
+      "DELIVERED": "Đã giao",
+      "CANCELLED": "Đã hủy"
+    },
+    "detail": {
+      "back": "← Quay lại danh sách",
+      "loading": "Đang tải chi tiết khách hàng...",
+      "not_found": "Không tìm thấy khách hàng.",
+      "overview": "Thông tin tổng quan",
+      "email": "Email",
+      "joined_at": "Ngày tham gia",
+      "login_methods": "Phương thức đăng nhập",
+      "login_method_password": "Tài khoản thường",
+      "login_method_google": "Google",
+      "total_spent": "Tổng tiền đã chi",
+      "order_count": "Số đơn hàng",
+      "review_count": "Số đánh giá",
+      "address_book": "Sổ địa chỉ",
+      "no_addresses": "Khách hàng chưa có địa chỉ nào.",
+      "default_badge": "Mặc định",
+      "purchase_history": "Lịch sử mua hàng",
+      "no_orders": "Chưa có đơn hàng nào.",
+      "order_code": "Mã đơn",
+      "order_date": "Ngày",
+      "order_total": "Tổng tiền",
+      "order_status": "Trạng thái",
+      "recent_activity": "Hoạt động gần đây",
+      "no_activity": "Chưa có hoạt động nào.",
+      "timeline": {
+        "review_title": "Đánh giá sản phẩm",
+        "review_badge": "Review",
+        "review_event": "Đánh giá sản phẩm {product} với {rating} sao",
+        "unknown_product": "Sản phẩm không xác định",
+        "log_title": "Nhật ký hệ thống",
+        "log_badge": "Log"
+      }
+    }
+  },
+  "admin_reviews": {
+    "title": "Quản lý Đánh giá",
+    "empty": "Chưa có đánh giá nào.",
+    "product": "Sản phẩm",
+    "order": "Đơn hàng",
+    "btn_reply": "Trả lời",
+    "btn_edit_reply": "Sửa phản hồi",
+    "btn_delete": "Xóa",
+    "admin_reply_label": "Phản hồi của Cửa hàng:",
+    "input_label": "Nhập nội dung phản hồi:",
+    "placeholder": "Cảm ơn bạn đã mua hàng...",
+    "btn_cancel": "Hủy",
+    "btn_save": "Lưu phản hồi",
+    "btn_saving": "Đang lưu...",
+    "confirm_delete": "Bạn có chắc chắn muốn xóa đánh giá này?",
+    "err_delete": "Không thể xóa đánh giá này.",
+    "err_reply": "Có lỗi xảy ra khi lưu phản hồi!"
+  },
+  "user_reviews": {
+    "btn_review": "Đánh giá sản phẩm",
+    "btn_edit": "Sửa đánh giá",
+    "btn_delete": "Xóa",
+    "modal_title": "Đánh giá sản phẩm",
+    "rating_label": "Chất lượng sản phẩm",
+    "comment_label": "Nhận xét của bạn",
+    "comment_placeholder": "Hãy chia sẻ cảm nhận của bạn về sản phẩm này nhé...",
+    "image_label": "Thêm hình ảnh (Tối đa 3 ảnh)",
+    "btn_cancel": "Trở lại",
+    "btn_submit": "Gửi đánh giá",
+    "btn_submitting": "Đang gửi...",
+    "success": "Cảm ơn bạn đã đánh giá sản phẩm!",
+    "err_rating": "Vui lòng chọn số sao.",
+    "err_upload": "Lỗi khi tải ảnh lên. Vui lòng thử lại.",
+    "err_submit": "Có lỗi xảy ra khi gửi đánh giá.",
+    "confirm_delete": "Bạn có chắc chắn muốn xóa đánh giá này không?",
+    "success_update": "Đã cập nhật đánh giá thành công!",
+    "success_delete": "Đã xóa đánh giá thành công!",
+    "err_action": "Không thể thực hiện thao tác này."
+  },
+  "public_reviews": {
+    "title": "Đánh giá sản phẩm",
+    "empty": "Sản phẩm này chưa có đánh giá nào. Hãy là người đầu tiên sở hữu và chia sẻ cảm nhận nhé!",
+    "average_rating": "Điểm trung bình",
+    "reviews_count": "đánh giá",
+    "admin_reply": "Phản hồi từ Cửa hàng:"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "error": {
+    "customer_not_found": "Customer not found.",
+    "fetch_failed": "Failed to fetch customer data.",
+    "toggle_status_failed": "Failed to update customer status."
+  },
+  "success": {
+    "status_updated": "Customer status updated successfully."
+  }
+}

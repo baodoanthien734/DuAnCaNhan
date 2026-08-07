@@ -599,5 +599,124 @@
       "cancelled_msg": "This order has been cancelled.",
       "note": "Note:"
     }
+  },
+  "admin_customers": {
+    "list_title": "Customer Management",
+    "list_subtitle": "Track purchase behavior and manage customer account status.",
+    "loading_list": "Loading customer list...",
+    "empty_list": "No customers found.",
+    "search_placeholder": "Search by name or email...",
+    "search_button": "Search",
+    "confirm_lock": "Are you sure you want to lock account {name}?",
+    "err_load": "Unable to load customer list.",
+    "err_toggle": "Unable to update customer status.",
+    "table": {
+      "customer": "Customer",
+      "joined_at": "Joined Date",
+      "total_spent": "Total Spent",
+      "order_count": "Orders",
+      "status": "Status",
+      "action": "Action"
+    },
+    "status": {
+      "active": "Active",
+      "locked": "Locked"
+    },
+    "actions": {
+      "view_detail": "View Details",
+      "lock": "Lock",
+      "unlock": "Unlock"
+    },
+    "pagination": {
+      "total": "Total: {total}",
+      "prev": "Previous",
+      "next": "Next"
+    },
+    "order_status": {
+      "PENDING": "Pending",
+      "PROCESSING": "Processing",
+      "SHIPPING": "Shipping",
+      "DELIVERED": "Delivered",
+      "CANCELLED": "Cancelled"
+    },
+    "detail": {
+      "back": "← Back to list",
+      "loading": "Loading customer details...",
+      "not_found": "Customer not found.",
+      "overview": "Overview",
+      "email": "Email",
+      "joined_at": "Joined Date",
+      "login_methods": "Login Methods",
+      "login_method_password": "Password Account",
+      "login_method_google": "Google",
+      "total_spent": "Total Spent",
+      "order_count": "Total Orders",
+      "review_count": "Total Reviews",
+      "address_book": "Address Book",
+      "no_addresses": "This customer has no addresses yet.",
+      "default_badge": "Default",
+      "purchase_history": "Purchase History",
+      "no_orders": "No order history.",
+      "order_code": "Order Code",
+      "order_date": "Date",
+      "order_total": "Total",
+      "order_status": "Status",
+      "recent_activity": "Recent Activity",
+      "no_activity": "No activity available.",
+      "timeline": {
+        "review_title": "Product Review",
+        "review_badge": "Review",
+        "review_event": "Reviewed {product} with {rating} stars",
+        "unknown_product": "Unknown Product",
+        "log_title": "System Log",
+        "log_badge": "Log"
+      }
+    }
+  },
+  "admin_reviews": {
+    "title": "Reviews Management",
+    "empty": "No reviews yet.",
+    "product": "Product",
+    "order": "Order",
+    "btn_reply": "Reply",
+    "btn_edit_reply": "Edit reply",
+    "btn_delete": "Delete",
+    "admin_reply_label": "Store's Reply:",
+    "input_label": "Enter your reply:",
+    "placeholder": "Thank you for your purchase...",
+    "btn_cancel": "Cancel",
+    "btn_save": "Save Reply",
+    "btn_saving": "Saving...",
+    "confirm_delete": "Are you sure you want to delete this review?",
+    "err_delete": "Failed to delete this review.",
+    "err_reply": "An error occurred while saving the reply!"
+  },
+  "user_reviews": {
+    "btn_review": "Write a Review",
+    "btn_edit": "Edit Review",
+    "btn_delete": "Delete",
+    "modal_title": "Review Product",
+    "rating_label": "Product Quality",
+    "comment_label": "Your comments",
+    "comment_placeholder": "Share your thoughts about this product...",
+    "image_label": "Add photos (Max 3)",
+    "btn_cancel": "Back",
+    "btn_submit": "Submit Review",
+    "btn_submitting": "Submitting...",
+    "success": "Thank you for your review!",
+    "err_rating": "Please select a star rating.",
+    "err_upload": "Error uploading images. Please try again.",
+    "err_submit": "An error occurred while submitting.",
+    "confirm_delete": "Are you sure you want to delete this review?",
+    "success_update": "Review updated successfully!",
+    "success_delete": "Review deleted successfully!",
+    "err_action": "Unable to perform this action."
+  },
+  "public_reviews": {
+    "title": "Product Reviews",
+    "empty": "There are no reviews for this product yet. Be the first to own it and share your thoughts!",
+    "average_rating": "Average Rating",
+    "reviews_count": "reviews",
+    "admin_reply": "Store's Reply:"
   }
 }

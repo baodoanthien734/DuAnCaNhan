@@ -34,6 +34,7 @@ export default function EditProductPage() {
           })) || [],
           customizations: data.customizations?.map((c: any) => ({
             ...c,
+            extraPrice: Number(c.extraPrice || 0), // <--- 1. THÊM DÒNG NÀY ĐỂ LOAD DỮ LIỆU CŨ LÊN FORM
             choices: c.choices?.map((choice: any) => ({
               ...choice,
               extraPrice: Number(choice.extraPrice)
@@ -79,13 +80,14 @@ export default function EditProductPage() {
 
         // Làm tương tự với mảng customizations (cả tầng 1 và tầng 2)
         customizations: data.customizations.map((c: any) => ({
-          id: c.id, // Vô cùng quan trọng
+          id: c.id, 
           name: c.name,
           type: c.type,
           isRequired: c.isRequired,
           maxLength: c.maxLength,
+          extraPrice: c.extraPrice || 0, // <--- 2. THÊM DÒNG NÀY! ĐÂY LÀ CHỐT CHẶN CUỐI CÙNG!
           choices: c.choices?.map((choice: any) => ({
-            id: choice.id, // Vô cùng quan trọng
+            id: choice.id, 
             label: choice.label,
             extraPrice: choice.extraPrice
           }))

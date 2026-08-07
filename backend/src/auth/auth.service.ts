@@ -131,7 +131,6 @@ export class AuthService {
   async login(dto: LoginDto) {
     const { email, password } = dto;
 
-    // Tim User theo email
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { roles: true },
@@ -141,7 +140,6 @@ export class AuthService {
       throw new UnauthorizedException(this.i18n.t('auth.error.invalid_credentials'));
     }
 
-    // Kiểm tra Password
     const passwordHash = user.password;
     if (!passwordHash) {
       throw new UnauthorizedException(this.i18n.t('auth.error.password_not_set'));
@@ -157,17 +155,23 @@ export class AuthService {
       throw new UnauthorizedException(this.i18n.t('auth.error.invalid_role'));
     }
 
+    // TÍNH TOÁN THỜI GIAN REFRESH TOKEN DỰA TRÊN QUYỀN
+    const rolesArray = user.roles.map(r => r.name);
+    const isAdmin = rolesArray.includes('ADMIN');
+    // Admin 20 phút để test (sau này bạn đổi thành '1d' hoặc '12h'), User thường 7 ngày
+    const refreshTokenTTL = isAdmin ? '20m' : '7d';
+
     // Tạo cặp AccessToken và RefreshToken
     const payload = { sub: user.id, email: user.email, role: userRole };
     
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET || 'access_secret_key',
-      expiresIn: '15m', // Access Token sống 15 phút
+      expiresIn: '15m', // Access Token luôn là 15 phút
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret_key',
-      expiresIn: '7d', // Refresh Token sống 7 ngày
+      expiresIn: refreshTokenTTL, // <-- Đưa biến thời gian động vào đây
     });
 
     // Hash Refresh Token và lưu vào DB
@@ -179,13 +183,13 @@ export class AuthService {
 
     return {
       message: this.i18n.t('auth.success.login_success'),
-      accessToken,
+      accessToken,  
       refreshToken,
       user: {
         id: user.id,
         email: user.email,
         name: user.name,
-        roles: user.roles.map((r) => r.name),
+        roles: rolesArray,
       },
     };
   }
@@ -206,6 +210,11 @@ export class AuthService {
       throw new UnauthorizedException(this.i18n.t('auth.error.refresh_token_invalid'));
     }
 
+    // TÍNH TOÁN LẠI THỜI GIAN CHO TOKEN MỚI
+    const rolesArray = user.roles.map(r => r.name);
+    const isAdmin = rolesArray.includes('ADMIN');
+    const refreshTokenTTL = isAdmin ? '20m' : '7d'; // Vẫn giữ luật Admin 20 phút, User 7 ngày
+
     // Cấp lại cặp Token mới
     const primaryRole = user.roles[0]?.name || 'CUSTOMER';
     const payload = { sub: user.id, email: user.email, role: primaryRole };
@@ -217,7 +226,7 @@ export class AuthService {
 
     const newRefreshToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret_key',
-      expiresIn: '7d',
+      expiresIn: refreshTokenTTL, // <-- Áp dụng biến thời gian động
     });
 
     // Cập nhật Hash Refresh Token mới vào DB
@@ -232,7 +241,6 @@ export class AuthService {
       refreshToken: newRefreshToken,
     };
   }
-
   // 6. API Logout
   async logout(userId: number) {
     // Thu hồi Refresh Token bằng cách xóa hash trong DB

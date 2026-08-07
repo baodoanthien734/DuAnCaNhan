@@ -1,0 +1,10 @@
+{
+  "error": {
+    "customer_not_found": "Không tìm thấy khách hàng.",
+    "fetch_failed": "Lỗi khi lấy dữ liệu khách hàng.",
+    "toggle_status_failed": "Lỗi khi cập nhật trạng thái khách hàng."
+  },
+  "success": {
+    "status_updated": "Cập nhật trạng thái khách hàng thành công."
+  }
+}

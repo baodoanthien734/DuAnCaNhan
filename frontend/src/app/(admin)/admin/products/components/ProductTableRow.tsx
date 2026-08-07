@@ -155,9 +155,15 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
                                 {cust.type === 'TEXT' ? t("row.textInputWithMax", { max: cust.maxLength || t("row.unlimited") }) : cust.choices?.map((c:any) => c.label).join(', ')}
                               </td>
                               <td className="px-3 py-2 text-right text-gray-600">
+                                {/* Hiển thị phụ phí cho type SELECT */}
                                 {cust.type === 'SELECT' && cust.choices?.map((c:any, i:number) => (
                                   <div key={i}>{c.label}: <span className="text-orange-600">+{formatPrice(c.extraPrice)}</span></div>
                                 ))}
+                                {cust.type === 'TEXT' && cust.extraPrice > 0 && (
+                                  <div>
+                                    Phụ phí: <span className="text-orange-600">+{formatPrice(cust.extraPrice)}</span>
+                                  </div>
+                                )}
                               </td>
                             </tr>
                           ))}

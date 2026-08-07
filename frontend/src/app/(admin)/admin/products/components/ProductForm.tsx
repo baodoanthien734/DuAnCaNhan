@@ -26,6 +26,7 @@ export type ProductFormValues = {
     type: "TEXT" | "SELECT";
     isRequired: boolean;
     maxLength?: number;
+    extraPrice?: number;
     choices: { label: string; extraPrice: number }[];
   }[];
 };
@@ -287,7 +288,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                 </div>
                 <button
                   type="button"
-                  onClick={() => appendCustom({ name: "", type: "TEXT", isRequired: false, maxLength: 10, choices: [] })}
+                  onClick={() => appendCustom({ name: "", type: "TEXT", isRequired: false, maxLength: 10, extraPrice: 0, choices: [] })}
                   className="bg-purple-50 text-purple-600 font-semibold px-4 py-2 rounded-lg hover:bg-purple-100 border border-purple-200 transition"
                 >
                   {t("form.addCustomization")}
@@ -325,9 +326,29 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
                       {/* Hiển thị linh hoạt dựa vào TYPE */}
                       {currentType === "TEXT" && (
-                        <div className="mt-3 w-1/3">
-                          <label className="text-xs font-medium text-gray-600 mb-1 block">{t("form.customizationMaxLengthLabel")}</label>
-                          <input type="number" {...register(`customizations.${index}.maxLength` as const, { valueAsNumber: true })} className="w-full p-2 border border-purple-200 rounded focus:ring-2 focus:ring-purple-500 text-sm" placeholder={t("form.maxLengthPlaceholder")} />
+                        <div className="mt-3 flex gap-4 w-2/3">
+                          <div className="flex-1">
+                            <label className="text-xs font-medium text-gray-600 mb-1 block">
+                              {t("form.customizationMaxLengthLabel")}
+                            </label>
+                            <input 
+                              type="number" 
+                              {...register(`customizations.${index}.maxLength` as const, { valueAsNumber: true })} 
+                              className="w-full p-2 border border-purple-200 rounded focus:ring-2 focus:ring-purple-500 text-sm" 
+                              placeholder={t("form.maxLengthPlaceholder")} 
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <label className="text-xs font-medium text-gray-600 mb-1 block">
+                              Phụ phí thêu/khắc (VNĐ)
+                            </label>
+                            <input 
+                              type="number" 
+                              {...register(`customizations.${index}.extraPrice` as const, { valueAsNumber: true })} 
+                              className="w-full p-2 border border-purple-200 rounded focus:ring-2 focus:ring-purple-500 text-sm" 
+                              placeholder="Ví dụ: 15000" 
+                            />
+                          </div>
                         </div>
                       )}
 

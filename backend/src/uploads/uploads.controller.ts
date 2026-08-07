@@ -1,4 +1,4 @@
-import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
+import { Controller, Post, UploadedFile, UseInterceptors, BadRequestException, Param } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { I18nService } from 'nestjs-i18n';
 import { diskStorage } from 'multer';
@@ -77,5 +77,54 @@ export class UploadsController {
     
     // Gọi hàm service và truyền thêm tên thư mục 'products'
     return this.uploadsService.buildFileResponse(file.filename, 'products');
+  }
+
+  // ==============================================================
+  // 3. API MỚI DÀNH RIÊNG CHO ẢNH ĐÁNH GIÁ SẢN PHẨM
+  // ==============================================================
+  @Post('reviews/:productId')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: (req: any, file, cb) => {
+          // Lấy productId từ URL
+          const productId = req.params.productId;
+          const uploadPath = `./public/uploads/reviews/product-${productId}`;
+          
+          // Kiểm tra nếu thư mục chưa tồn tại thì tự động tạo mới
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          
+          cb(null, uploadPath);
+        },
+        filename: (_req, file, callback) => {
+          const timestamp = Date.now();
+          const sanitized = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '-');
+          callback(null, `${timestamp}-${sanitized}`);
+        },
+      }),
+      fileFilter: (_req, file, callback) => {
+        if (!file.mimetype.startsWith('image/')) {
+          return callback(new BadRequestException('uploads.error.only_images_allowed'), false);
+        }
+        callback(null, true);
+      },
+      limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn 5MB
+    }),
+  )
+  async uploadReviewImage(
+    @Param('productId') productId: string,
+    @UploadedFile() file: Express.Multer.File
+  ) {
+    if (!file) {
+      throw new BadRequestException(this.i18n.t('uploads.error.no_file_uploaded'));
+    }
+
+    // Trả về URL chuẩn, lưu vào đúng thư mục product-{id}
+    return this.uploadsService.buildFileResponse(
+      file.filename, 
+      `reviews/product-${productId}`
+    );
   }
 }

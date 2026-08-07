@@ -1,0 +1,14 @@
+{
+  "error": {
+    "not_eligible": "You cannot review this product or the order is not yet completed.",
+    "already_reviewed": "You have already reviewed this product in this order.",
+    "not_found": "Review not found.",
+    "unauthorized": "You are not authorized to edit this review."
+  },
+  "success": {
+    "created": "Product reviewed successfully.",
+    "replied": "Reply saved successfully.",
+    "deleted": "Review deleted successfully.",
+    "updated": "Review updated successfully."
+  }
+}

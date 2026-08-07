@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import { getPublicProductBySlug } from '@/lib/public-api';
 import { notFound } from 'next/navigation';
 import AddToCartForm from '@/components/ui/AddToCartForm';
+import ProductReviews from '@/components/ui/ProductReviews'; 
 
 interface PageProps {
   params: Promise<{
@@ -37,9 +38,9 @@ export default async function ProductDetailPage({ params }: PageProps) {
           {tProducts('back_to_products')}
         </Link>
 
+        {/* Khối Thông tin Sản phẩm */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '40px', backgroundColor: '#fff', padding: '32px', borderRadius: '24px', boxShadow: '0 20px 40px rgba(15, 23, 42, 0.06)' }}>
-          
-          {/* Cột hình ảnh sản phẩm */}
+          {/* ... Cột hình ảnh sản phẩm (Giữ nguyên) ... */}
           <div>
             <div style={{ width: '100%', height: '350px', backgroundColor: '#fef3c7', borderRadius: '16px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               {mainImage ? (
@@ -58,7 +59,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Cột thông tin chi tiết & Tương tác giỏ hàng */}
+          {/* ... Cột thông tin chi tiết & Giỏ hàng (Giữ nguyên) ... */}
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               {product.category && (
@@ -71,8 +72,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
               <AddToCartForm product={product} />
             </div>
           </div>
-
         </div>
+
+        {/* HIỂN THỊ ĐÁNH GIÁ SẢN PHẨM */}
+        <ProductReviews productId={product.id} />
+
       </main>
     </div>
   );

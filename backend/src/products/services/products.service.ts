@@ -19,21 +19,19 @@ export class ProductsService {
     private readonly i18n: I18nService,
   ) {}
 
-  // Hàm helper tự động tạo slug tiếng Việt không dấu
   private generateSlug(text: string): string {
     const baseSlug = text
       .toString()
       .toLowerCase()
-      .normalize('NFD') // Tách dấu ra khỏi chữ
-      .replace(/[\u0300-\u036f]/g, '') // Xóa dấu
-      .replace(/đ/g, 'd').replace(/Đ/g, 'D') // Xử lý chữ Đ
-      .replace(/\s+/g, '-') // Thay khoảng trắng bằng gạch ngang
-      .replace(/[^\w\-]+/g, '') // Xóa các ký tự đặc biệt
-      .replace(/\-\-+/g, '-') // Xóa các gạch ngang liên tiếp
-      .replace(/^-+/, '') // Xóa gạch ngang ở đầu
-      .replace(/-+$/, ''); // Xóa gạch ngang ở cuối
+      .normalize('NFD') 
+      .replace(/[\u0300-\u036f]/g, '') 
+      .replace(/đ/g, 'd').replace(/Đ/g, 'D') 
+      .replace(/\s+/g, '-') 
+      .replace(/[^\w\-]+/g, '') 
+      .replace(/\-\-+/g, '-') 
+      .replace(/^-+/, '') 
+      .replace(/-+$/, ''); 
       
-    // Gắn thêm timestamp để đảm bảo tính Unique
     return `${baseSlug}-${Date.now()}`;
   }
 
@@ -43,14 +41,12 @@ export class ProductsService {
     try {
       const newProduct = await this.prisma.$transaction(async (tx) => {
         
-        // Tạo slug từ tên sản phẩm
         const productSlug = this.generateSlug(createProductDto.name);
 
-        // 1. Lưu thông tin cơ bản
         const product = await tx.product.create({
           data: {
             name: createProductDto.name,
-            slug: productSlug, // Bổ sung trường slug còn thiếu
+            slug: productSlug,
             categoryId: createProductDto.categoryId,
             description: createProductDto.description,
             basePrice: createProductDto.basePrice,
@@ -61,7 +57,6 @@ export class ProductsService {
           },
         });
 
-        // 2. Lưu mảng Biến thể
         if (createProductDto.variants && createProductDto.variants.length > 0) {
           await tx.productVariant.createMany({
             data: createProductDto.variants.map((v) => ({
@@ -75,7 +70,7 @@ export class ProductsService {
           });
         }
 
-        // 3. Lưu mảng Cá nhân hóa
+        // 👇 BỔ SUNG LƯU EXTRAPRICE CHO BẢNG CHA TẠI ĐÂY
         if (createProductDto.customizations && createProductDto.customizations.length > 0) {
           for (const custom of createProductDto.customizations) {
             await tx.productCustomization.create({
@@ -85,6 +80,7 @@ export class ProductsService {
                 type: custom.type,
                 isRequired: custom.isRequired || false,
                 maxLength: custom.maxLength,
+                extraPrice: custom.extraPrice || 0, // <--- THÊM DÒNG NÀY
                 choices: custom.choices && custom.choices.length > 0
                   ? {
                       create: custom.choices.map((c) => ({
@@ -117,7 +113,6 @@ export class ProductsService {
     const { q, categoryId, status, skip, take } = query;
     const where: any = {};
 
-    // 1 & 2. Đồng bộ logic tìm kiếm: Tìm trên cả name và slug, không phân biệt hoa thường
     if (q) {
       where.OR = [
         { name: { contains: q, mode: 'insensitive' } },
@@ -133,7 +128,6 @@ export class ProductsService {
       where.status = status;
     }
 
-    // 3. Đồng bộ logic bất đồng bộ: Dùng $transaction thay vì Promise.all
     const [items, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,
@@ -154,7 +148,6 @@ export class ProductsService {
     return { items, total };
   }
 
-  // Cập nhật trạng thái nhanh (Toggle Active/Draft)
   async updateStatus(id: number, status: any) {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
@@ -165,7 +158,6 @@ export class ProductsService {
     });
   }
 
-  // Xóa mềm (Chuyển thành ARCHIVED)
   async remove(id: number) {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
@@ -181,10 +173,10 @@ export class ProductsService {
       where: { id },
       include: {
         category: true,
-        variants: true, // Lấy toàn bộ phân loại (size, màu sắc...)
+        variants: true,
         customizations: {
           include: {
-            choices: true, // Bắt buộc phải lồng thêm include này để lấy được mảng các lựa chọn (và extraPrice) bên trong
+            choices: true,
           },
         },
       },
@@ -198,32 +190,27 @@ export class ProductsService {
   }
 
   async update(id: number, dto: UpdateProductDto) {
-    // 1. Kiểm tra xem sản phẩm có tồn tại không (tái sử dụng hàm findOne)
     await this.findOne(id);
-
-    // 2. Bóc tách dữ liệu: Tách mảng con ra khỏi các trường cơ bản của Product
     const { variants, customizations, ...productData } = dto as any;
 
-    // 3. Cập nhật các trường cơ bản của bảng Product (name, price, images...)
     await this.prisma.product.update({
       where: { id },
       data: productData,
     });
 
-    // 4. Ủy quyền đồng bộ (Sync) mảng con cho các Service chuyên trách
     if (variants) {
       await this.variantsService.syncVariants(id, variants);
     }
 
+    // Nếu bạn có tính năng Sửa Sản Phẩm (Update), hãy nhớ bổ sung `extraPrice` 
+    // vào bên trong file `product-customizations.service.ts` tương tự như cách thêm ở trên nhé!
     if (customizations) {
       await this.customizationsService.syncCustomizations(id, customizations);
     }
 
-    // 5. Trả về dữ liệu mới nhất, đầy đủ nhất sau khi đã cập nhật xong
     return this.findOne(id);
   }
 
-  // Lấy danh sách sản phẩm công khai (chỉ lấy sản phẩm ACTIVE)
   async findAllPublic(query: { q?: string; categoryId?: string; skip?: number; take?: number }) {
     const { q, categoryId, skip, take } = query;
     const where: any = { status: 'ACTIVE' };
@@ -259,7 +246,6 @@ export class ProductsService {
     return { items, total };
   }
 
-  // Lấy chi tiết sản phẩm theo slug (dành cho trang chi tiết public)
   async findOneBySlug(slug: string) {
     const product = await this.prisma.product.findFirst({
       where: { slug, status: 'ACTIVE' },
