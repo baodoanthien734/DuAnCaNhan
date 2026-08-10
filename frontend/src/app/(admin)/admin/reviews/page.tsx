@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { getAdminReviews, replyAdminReview, deleteAdminReview } from '@/lib/admin-reviews-api';
+import { useModal } from '@/hooks/useModal';
 
 type Review = {
   id: number;
@@ -18,6 +19,7 @@ type Review = {
 
 export default function AdminReviewsPage() {
   const t = useTranslations('admin_reviews');
+  const modal = useModal();
 
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
@@ -63,20 +65,20 @@ export default function AdminReviewsPage() {
       setReplyingToId(null);
       setReplyText('');
     } catch (error) {
-      alert(t('err_reply'));
+      await modal.alert(t('err_reply'));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!window.confirm(t('confirm_delete'))) return;
+    if (!(await modal.confirm(t('confirm_delete')))) return;
     try {
       await deleteAdminReview(id);
       setReviews((prev) => prev.filter((r) => r.id !== id));
     } catch (error) {
       console.error('Lỗi khi xóa:', error);
-      alert(t('err_delete'));
+      await modal.alert(t('err_delete'));
     }
   };
 

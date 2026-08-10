@@ -80,7 +80,8 @@
       "customizations": "Tùy chọn cá nhân hóa",
       "addToCart": "Thêm vào giỏ hàng",
       "back": "← Quay lại danh sách",
-      "required": "Bắt buộc"
+      "required": "Bắt buộc",
+      "from": "Từ"
     },
     "category_page": {
       "back": "← Quay lại danh sách",
@@ -129,10 +130,25 @@
       }
     }
   },
+  "global_modal": {
+    "title": {
+      "alert": "Thông báo",
+      "confirm": "Xác nhận",
+      "prompt": "Nhập thông tin"
+    },
+    "button": {
+      "ok": "OK",
+      "cancel": "Hủy",
+      "confirm": "Xác nhận",
+      "submit": "Gửi"
+    }
+  },
   "admin_sidebar": {
     "brand": "TinyHandMade",
     "title": "Quản trị",
     "greeting": "Xin chào, {name}",
+    "session_refreshing": "Đang làm mới phiên đăng nhập Admin...",
+    "session_refreshing_hint": "Vui lòng đợi trong giây lát.",
     "nav": {
       "dashboard": "Bảng điều khiển",
       "categories": "Danh mục",
@@ -291,6 +307,13 @@
       "variantSkuLabel": "Mã SKU",
       "variantPriceLabel": "Giá riêng (VNĐ)",
       "variantStockLabel": "Số lượng tồn kho",
+      "variantImageLabel": "Ảnh biến thể",
+      "addVariantImage": "Thêm ảnh",
+      "variantImageAlt": "Ảnh biến thể {index}",
+      "removeVariantImageTitle": "Xóa ảnh biến thể",
+      "variantImageUploadError": "Không thể tải ảnh biến thể lên. Vui lòng thử lại!",
+      "variantPriceMinBaseError": "Giá biến thể phải lớn hơn hoặc bằng giá cơ bản ({basePrice}).",
+      "variantPriceSubmitBlocked": "Không thể lưu: vẫn còn biến thể có giá nhỏ hơn giá cơ bản ({basePrice}).",
       "variantRemoveTitle": "Xóa phân loại",
       "addCustomization": "+ Thêm Tùy Chọn",
       "customizationEmpty": "Chưa thiết lập cá nhân hóa cho sản phẩm này.",

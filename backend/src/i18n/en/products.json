@@ -5,6 +5,8 @@
   "error": {
     "product_not_found": "Product not found",
     "product_not_found_with_id": "Product with ID: {id} was not found",
-    "product_save_failed": "System error while saving the product, please try again"
+    "product_save_failed": "System error while saving the product, please try again",
+    "variant_price_must_be_greater_or_equal_base": "Variant price must be greater than or equal to base price ({basePrice}).",
+    "product_images_limit_exceeded": "A product can have at most 5 main images."
   }
 }

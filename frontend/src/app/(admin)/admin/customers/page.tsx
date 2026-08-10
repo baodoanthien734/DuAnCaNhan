@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
 import { getAdminCustomers, toggleCustomerStatus } from '@/lib/admin-customers-api';
+import { useModal } from '@/hooks/useModal';
 
 type AdminCustomerRow = {
   id: number;
@@ -19,6 +20,7 @@ const TAKE = 12;
 
 export default function AdminCustomersPage() {
   const t = useTranslations('admin_customers');
+  const modal = useModal();
   const locale = useLocale();
 
   const [loading, setLoading] = useState(true);
@@ -63,7 +65,7 @@ export default function AdminCustomersPage() {
       setTotal(res.total || 0);
     } catch (error) {
       console.error('Failed to load customers', error);
-      alert(t('err_load'));
+      await modal.alert(t('err_load'));
     } finally {
       setLoading(false);
     }
@@ -81,7 +83,7 @@ export default function AdminCustomersPage() {
 
   const handleToggleStatus = async (customer: AdminCustomerRow) => {
     const confirmed = customer.isActive
-      ? window.confirm(t('confirm_lock', { name: customer.name || customer.email }))
+      ? await modal.confirm(t('confirm_lock', { name: customer.name || customer.email }))
       : true;
 
     if (!confirmed) return;
@@ -103,7 +105,7 @@ export default function AdminCustomersPage() {
       );
     } catch (error) {
       console.error('Failed to toggle status', error);
-      alert(t('err_toggle'));
+      await modal.alert(t('err_toggle'));
     } finally {
       setSubmittingId(null);
     }

@@ -1,11 +1,14 @@
 import { apiClient } from './api-client';
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 // Các Interface định nghĩa kiểu dữ liệu dựa theo Form của bạn
 export interface ProductVariant {
   name: string;
   sku: string;
   price: number;
   stock: number;
+  image?: string;
 }
 
 export interface ProductCustomizationChoice {
@@ -69,6 +72,13 @@ export async function uploadProductImage(file: File) {
   return resp.data as { url: string; filename: string };
 }
 
+export function resolveProductImageUrl(imageUrl?: string | null) {
+  if (!imageUrl) return '';
+  if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
+  const normalizedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
+  return `${API_BASE_URL}${normalizedPath}`;
+}
+
 export async function updateProductStatus(id: number, status: string) {
   const resp = await apiClient.patch(`/admin/products/${id}/status`, { status });
   return resp.data;
@@ -91,6 +101,16 @@ export async function updateProduct(id: number, data: any) {
   return resp.data;
 }
 
+// Xóa ảnh tạm của sản phẩm trên server
+export const deleteTempProductImage = async (url: string) => {
+  try {
+    // Thay apiClient bằng instance axios mà bạn đang dùng
+    await apiClient.delete('/upload/tmp', { data: { url } });
+  } catch (error) {
+    console.error("Lỗi khi xóa ảnh tạm:", error);
+  }
+};
+
 export default {
   listProducts,
   getProduct,
@@ -98,4 +118,6 @@ export default {
   updateProduct,
   removeProduct,
   uploadProductImage,
+  resolveProductImageUrl,
+  deleteTempProductImage,
 };

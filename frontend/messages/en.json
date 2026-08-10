@@ -80,7 +80,8 @@
       "customizations": "Customizations",
       "addToCart": "Add to Cart",
       "back": "← Back to products",
-      "required": "Required"
+      "required": "Required",
+      "from": "From"
     },
     "category_page": {
       "back": "← Go back",
@@ -129,10 +130,25 @@
       }
     }
   },
+  "global_modal": {
+    "title": {
+      "alert": "Notification",
+      "confirm": "Confirmation",
+      "prompt": "Input"
+    },
+    "button": {
+      "ok": "OK",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "submit": "Submit"
+    }
+  },
   "admin_sidebar": {
     "brand": "TinyHandMade",
     "title": "Admin",
     "greeting": "Hello, {name}",
+    "session_refreshing": "Refreshing your Admin session...",
+    "session_refreshing_hint": "Please wait a moment.",
     "nav": {
       "dashboard": "Dashboard",
       "categories": "Categories",
@@ -291,6 +307,13 @@
       "variantSkuLabel": "SKU code",
       "variantPriceLabel": "Custom price (VND)",
       "variantStockLabel": "Stock quantity",
+      "variantImageLabel": "Variant image",
+      "addVariantImage": "Add image",
+      "variantImageAlt": "Variant image {index}",
+      "removeVariantImageTitle": "Remove variant image",
+      "variantImageUploadError": "Unable to upload variant image. Please try again!",
+      "variantPriceMinBaseError": "Variant price must be greater than or equal to base price ({basePrice}).",
+      "variantPriceSubmitBlocked": "Cannot save: some variants are still priced below base price ({basePrice}).",
       "variantRemoveTitle": "Remove variant",
       "addCustomization": "+ Add option",
       "customizationEmpty": "No customization has been set up for this product yet.",

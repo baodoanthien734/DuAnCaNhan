@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { uploadReviewImage, submitReview, updateReview } from '@/lib/reviews-api';
+import { useModal } from '@/hooks/useModal';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -32,6 +33,7 @@ type LocalImagePreview = {
 
 export default function ReviewModal({ isOpen, onClose, productId, orderId, productName, existingReview, onSuccess }: ReviewModalProps) {
   const t = useTranslations('user_reviews');
+  const modal = useModal();
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   
@@ -107,7 +109,7 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
   const onSubmit = async (data: ReviewFormData) => {
     // 1. Kiểm tra số sao trước tiên
     if (rating === 0) {
-      alert(t('err_rating'));
+      await modal.alert(t('err_rating'));
       return;
     }
 
@@ -123,7 +125,7 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
           }
         } catch (err) {
           console.error('Upload failed for one image:', err);
-          alert(t('err_upload'));
+          await modal.alert(t('err_upload'));
           setIsSubmitting(false);
           return; 
         }
@@ -141,7 +143,7 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
           images: finalImages,
         });
         savedData = res?.data;
-        alert(t('success_update'));
+        await modal.alert(t('success_update'));
       } else {
         const res = await submitReview({
           productId,
@@ -151,7 +153,7 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
           images: finalImages,
         });
         savedData = res?.data;
-        alert(t('success'));
+        await modal.alert(t('success'));
       }
 
       // 4. Dọn dẹp form sau khi thành công
@@ -167,7 +169,7 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
 
     } catch (error: any) {
       console.error(error);
-      alert(error.response?.data?.message || t('err_submit'));
+      await modal.alert(error.response?.data?.message || t('err_submit'));
     } finally {
       setIsSubmitting(false);
     }

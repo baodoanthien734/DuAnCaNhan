@@ -4,7 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { listCategories } from "@/lib/categories-api";
-import { uploadProductImage } from "@/lib/products-api";
+import { deleteTempProductImage, resolveProductImageUrl, uploadProductImage } from "@/lib/products-api";
+import { useModal } from '@/hooks/useModal';
 
 // --- TYPE DEFINITIONS ---
 export type ProductFormValues = {
@@ -16,10 +17,12 @@ export type ProductFormValues = {
   status: "DRAFT" | "ACTIVE" | "ARCHIVED";
   images: string[];
   variants: {
+    id?: number;
     name: string;
     sku: string;
     price: number;
     stock: number;
+    image?: string;
   }[];
   customizations: {
     name: string;
@@ -94,8 +97,12 @@ interface ProductFormProps {
 
 export default function ProductForm({ initialData, onSubmitData, isLoading }: ProductFormProps) {
   const t = useTranslations("admin_products");
+  const modal = useModal();
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [uploadingVariantIndex, setUploadingVariantIndex] = useState<number | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [variantImagePreviews, setVariantImagePreviews] = useState<Record<number, string>>({});
 
   const {
     register,
@@ -123,8 +130,20 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   useEffect(() => {
     if (initialData) {
       reset(initialData);
+      // Lấp đầy mảng bằng chuỗi rỗng tương ứng với số ảnh đang có để không bị lệch Index
+      setImagePreviews(new Array(initialData.images?.length || 0).fill(""));
+      setVariantImagePreviews({});
     }
   }, [initialData, reset]);
+
+  const readFileAsDataUrl = (file: File) => {
+    return new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(new Error("Failed to read file"));
+      reader.readAsDataURL(file);
+    });
+  };
 
   const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
     control,
@@ -138,6 +157,14 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
   const watchCustomizations = watch("customizations");
   const imagesWatch = watch("images") || [];
+  const variantsWatch = watch("variants") || [];
+  const basePriceWatch = Number(watch("basePrice") || 0);
+
+  const variantPriceErrorMap = variantsWatch.map((variant) => {
+    const variantPrice = Number(variant?.price ?? 0);
+    return Number.isFinite(variantPrice) && variantPrice < basePriceWatch;
+  });
+  const hasVariantPriceError = variantPriceErrorMap.some(Boolean);
 
   useEffect(() => {
     listCategories().then(setCategories).catch(console.error);
@@ -149,24 +176,77 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
     setIsUploadingImage(true);
     try {
+      const previewUrl = await readFileAsDataUrl(file);
+      setImagePreviews((current) => [...current, previewUrl]);
+
       const data = await uploadProductImage(file);
-      setValue("images", [...imagesWatch, data.url], { shouldValidate: true });
+      setValue("images", [...imagesWatch, data.url], { shouldValidate: true, shouldDirty: true });
     } catch (error) {
       console.error("Lỗi upload ảnh:", error);
-      alert(t("form.imageUploadError"));
+      await modal.alert(t("form.imageUploadError"));
     } finally {
       setIsUploadingImage(false);
     }
   };
 
-  const removeImage = (indexToRemove: number) => {
+  const handleVariantImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingVariantIndex(index);
+    try {
+      const previewUrl = await readFileAsDataUrl(file);
+      setVariantImagePreviews((current) => ({ ...current, [index]: previewUrl }));
+
+      const data = await uploadProductImage(file);
+      setValue(`variants.${index}.image`, data.url, { shouldValidate: true, shouldDirty: true });
+    } catch (error) {
+      console.error("Lỗi upload ảnh biến thể:", error);
+      await modal.alert(t("form.variantImageUploadError"));
+    } finally {
+      setUploadingVariantIndex(null);
+    }
+  };
+
+  const removeVariantImage = async (index: number) => {
+    const urlToRemove = variantsWatch[index]?.image;
+
+    // Nếu đây là ảnh tạm (vừa upload) thì gọi API dọn rác trên server
+    if (urlToRemove && urlToRemove.includes('/uploads/tmp/')) {
+      await deleteTempProductImage(urlToRemove);
+    }
+
+    setValue(`variants.${index}.image`, "", { shouldValidate: true, shouldDirty: true });
+    setVariantImagePreviews((current) => {
+      const next = { ...current };
+      delete next[index];
+      return next;
+    });
+  };
+
+  const removeImage = async (indexToRemove: number) => {
+    const urlToRemove = imagesWatch[indexToRemove];
+    
+    // Nếu đây là ảnh tạm (vừa upload) thì gọi API dọn rác trên server
+    if (urlToRemove && urlToRemove.includes('/uploads/tmp/')) {
+      await deleteTempProductImage(urlToRemove);
+    }
+
     const newImages = imagesWatch.filter((_, index) => index !== indexToRemove);
     setValue("images", newImages, { shouldValidate: true });
+    setImagePreviews((current) => current.filter((_, index) => index !== indexToRemove));
   };
+
+  
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
-      <form onSubmit={handleSubmit(onSubmitData)}>
+      <form
+        onSubmit={handleSubmit(async (data) => {
+          if (hasVariantPriceError) return;
+          await onSubmitData(data);
+        })}
+      >
         {/* STICKY HEADER */}
         <div className="sticky top-0 z-10 bg-white border-b shadow-sm px-6 py-4 flex justify-between items-center">
           <div>
@@ -185,7 +265,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
             </button>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || hasVariantPriceError}
               className="bg-blue-600 text-white font-semibold py-2 px-6 rounded-lg hover:bg-blue-700 shadow-md transition disabled:bg-gray-400 flex items-center gap-2"
             >
               {isLoading ? t("form.saving") : (
@@ -238,7 +318,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                 </div>
                 <button
                   type="button"
-                  onClick={() => appendVariant({ name: "", sku: "", price: 0, stock: 0 })}
+                  onClick={() => appendVariant({ name: "", sku: "", price: basePriceWatch || 0, stock: 0, image: "" })}
                   className="bg-green-50 text-green-600 font-semibold px-4 py-2 rounded-lg hover:bg-green-100 border border-green-200 transition"
                 >
                   {t("form.addVariant")}
@@ -247,8 +327,9 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
               <div className="space-y-4">
                 {variantFields.map((field, index) => (
-                  <div key={field.id} className="flex gap-4 p-4 bg-gray-50 rounded-lg border border-gray-200 relative group">
-                    <div className="flex-1 grid grid-cols-2 gap-4">
+                  <div key={field.id} className="p-4 bg-gray-50 rounded-lg border border-gray-200 relative group">
+                    <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4">
+                      <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-xs font-medium text-gray-600">{t("form.variantNameLabel")}</label>
                         <input {...register(`variants.${index}.name` as const, { required: true })} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" />
@@ -260,13 +341,67 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                       <div>
                         <label className="text-xs font-medium text-gray-600">{t("form.variantPriceLabel")}</label>
                         <input type="number" {...register(`variants.${index}.price` as const, { valueAsNumber: true })} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" />
+                        {variantPriceErrorMap[index] && (
+                          <p className="text-xs text-red-600 mt-1">
+                            {t("form.variantPriceMinBaseError", { basePrice: basePriceWatch })}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="text-xs font-medium text-gray-600">{t("form.variantStockLabel")}</label>
                         <input type="number" {...register(`variants.${index}.stock` as const, { valueAsNumber: true })} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" />
                       </div>
+                      </div>
+
+                      <div className="md:w-44">
+                        <label className="text-xs font-medium text-gray-600 block mb-1">{t("form.variantImageLabel")}</label>
+                        <input type="hidden" {...register(`variants.${index}.image` as const)} />
+
+                        {variantsWatch[index]?.image || variantImagePreviews[index] ? (
+                          <div className="relative rounded-lg overflow-hidden border border-gray-200 aspect-square bg-white">
+                            <img
+                              // Ưu tiên hiển thị Base64 (không bọc resolve), nếu không có mới dùng resolve cho URL của Backend
+                              src={variantImagePreviews[index] || resolveProductImageUrl(variantsWatch[index]?.image)}
+                              alt={t("form.variantImageAlt", { index: index + 1 })}
+                              className="w-full h-full object-cover"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeVariantImage(index)}
+                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-90 hover:opacity-100 transition-opacity"
+                              title={t("form.removeVariantImageTitle")}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex flex-col items-center justify-center border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-white hover:bg-gray-100 transition aspect-square relative overflow-hidden">
+                            <div className="flex flex-col items-center justify-center">
+                              <svg className="w-5 h-5 text-gray-400 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                              </svg>
+                              <span className="text-[11px] font-medium text-gray-500">{t("form.addVariantImage")}</span>
+                            </div>
+                            <input
+                              type="file"
+                              className="hidden"
+                              accept="image/*"
+                              onChange={(e) => handleVariantImageUpload(index, e)}
+                              disabled={uploadingVariantIndex === index}
+                            />
+                            {uploadingVariantIndex === index && (
+                              <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
+                                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-1"></div>
+                                <span className="text-[10px] font-semibold text-blue-600">{t("form.imageUploadLoading")}</span>
+                              </div>
+                            )}
+                          </label>
+                        )}
+                      </div>
                     </div>
-                    <button type="button" onClick={() => removeVariant(index)} className="self-center p-2 text-red-500 hover:bg-red-100 rounded-lg transition" title={t("form.variantRemoveTitle")}>
+                    <button type="button" onClick={() => removeVariant(index)} className="absolute top-3 right-3 p-2 text-red-500 hover:bg-red-100 rounded-lg transition" title={t("form.variantRemoveTitle")}>
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                   </div>
@@ -275,6 +410,9 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                   <div className="text-center py-6 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-300">
                     {t("form.variantEmpty")}
                   </div>
+                )}
+                {hasVariantPriceError && (
+                  <p className="text-sm text-red-600">{t("form.variantPriceSubmitBlocked", { basePrice: basePriceWatch })}</p>
                 )}
               </div>
             </div>
@@ -422,21 +560,25 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
               <h2 className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider">{t("form.imageTitle")}</h2>
               <div className="grid grid-cols-3 gap-4 mb-2">
-                {imagesWatch.map((url, index) => (
-                  <div key={index} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square bg-gray-50">
-                    <img src={url} alt={t("form.imageAlt", { index: index + 1 })} className="w-full h-full object-cover" />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(index)}
-                      className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-600"
-                      title={t("form.removeImageTitle")}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
+                {imagesWatch.map((url, index) => {
+                  const previewSrc = imagePreviews[index] || resolveProductImageUrl(url);
+
+                  return (
+                    <div key={index} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square bg-gray-50">
+                      <img src={previewSrc} alt={t("form.imageAlt", { index: index + 1 })} className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(index)}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-sm hover:bg-red-600"
+                        title={t("form.removeImageTitle")}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  );
+                })}
                 {imagesWatch.length < 5 && (
                   <label className="flex flex-col items-center justify-center border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition aspect-square relative overflow-hidden">
                     <div className="flex flex-col items-center justify-center">

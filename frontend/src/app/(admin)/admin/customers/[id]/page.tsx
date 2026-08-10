@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { getAdminCustomerById, toggleCustomerStatus } from '@/lib/admin-customers-api';
+import { useModal } from '@/hooks/useModal';
 
 type Address = {
   id: number;
@@ -73,6 +74,7 @@ type TimelineItem = {
 
 export default function AdminCustomerDetailPage() {
   const t = useTranslations('admin_customers');
+  const modal = useModal();
   const locale = useLocale();
   const params = useParams();
   const id = Number(params.id);
@@ -139,7 +141,7 @@ export default function AdminCustomerDetailPage() {
     if (!customer) return;
 
     const confirmed = customer.isActive
-      ? window.confirm(t('confirm_lock', { name: customer.name || customer.email }))
+      ? await modal.confirm(t('confirm_lock', { name: customer.name || customer.email }))
       : true;
 
     if (!confirmed) return;
@@ -158,7 +160,7 @@ export default function AdminCustomerDetailPage() {
       );
     } catch (error) {
       console.error('Failed to toggle status', error);
-      alert(t('err_toggle'));
+      await modal.alert(t('err_toggle'));
     } finally {
       setSubmitting(false);
     }

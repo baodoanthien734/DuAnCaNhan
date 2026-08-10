@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link"; // Import thẻ Link của Next.js
 import { useTranslations } from "next-intl";
-import { updateProductStatus, deleteProduct } from "@/lib/products-api"; // Import API
+import { deleteProduct, resolveProductImageUrl, updateProductStatus } from "@/lib/products-api"; // Import API
+import { useModal } from '@/hooks/useModal';
 
 // Định nghĩa nhanh type dựa theo cấu trúc Prisma của bạn
 interface ProductTableRowProps {
@@ -13,6 +14,7 @@ interface ProductTableRowProps {
 
 export default function ProductTableRow({ product, onRefresh }: ProductTableRowProps) {
   const t = useTranslations("admin_products");
+  const modal = useModal();
   const [isExpanded, setIsExpanded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); // Trạng thái loading khi đang xóa/sửa
 
@@ -25,7 +27,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
       onRefresh(); // Báo page.tsx tải lại dữ liệu
     } catch (error) {
       console.error("Lỗi cập nhật trạng thái:", error);
-      alert(t("row.statusError"));
+      await modal.alert(t("row.statusError"));
     } finally {
       setIsProcessing(false);
     }
@@ -33,7 +35,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
 
   // Hàm xử lý Xóa
   const handleDelete = async () => {
-    if (!window.confirm(t("row.deleteConfirm", { name: product.name }))) {
+    if (!(await modal.confirm(t("row.deleteConfirm", { name: product.name })))) {
       return;
     }
     
@@ -43,7 +45,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
       onRefresh(); // Báo page.tsx tải lại dữ liệu
     } catch (error) {
       console.error("Lỗi xóa sản phẩm:", error);
-      alert(t("row.deleteError"));
+      await modal.alert(t("row.deleteError"));
     } finally {
       setIsProcessing(false);
     }
@@ -72,7 +74,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
           <div className="flex gap-4">
             <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden shrink-0 border border-gray-100 shadow-sm">
               {product.images && product.images.length > 0 ? (
-                <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
+                <img src={resolveProductImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">{t("row.noImage")}</div>
               )}

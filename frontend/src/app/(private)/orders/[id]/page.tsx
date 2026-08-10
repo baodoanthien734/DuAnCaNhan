@@ -7,12 +7,15 @@ import { useTranslations } from 'next-intl';
 import { getMyOrderById } from '@/lib/orders-api';
 import { deleteReview } from '@/lib/reviews-api';
 import ReviewModal from '@/components/ui/ReviewModal';
+import { useModal } from '@/hooks/useModal';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 const STEPS = ['PENDING', 'PROCESSING', 'SHIPPING', 'DELIVERED'];
 
 export default function MyOrderDetailPage() {
   const t = useTranslations('my_orders');
   const tReview = useTranslations('user_reviews'); 
+  const modal = useModal();
   
   const params = useParams();
   const orderId = Number(params.id);
@@ -96,10 +99,10 @@ export default function MyOrderDetailPage() {
 
   // Hàm xử lý Xóa đánh giá
   const handleDeleteReview = async (reviewId: number, productId: number) => {
-    if (!window.confirm(tReview('confirm_delete'))) return;
+    if (!(await modal.confirm(tReview('confirm_delete')))) return;
     try {
       await deleteReview(reviewId);
-      alert(tReview('success_delete'));
+      await modal.alert(tReview('success_delete'));
       
       // Xóa khỏi state để nút bấm chuyển lại thành "Đánh giá sản phẩm"
       setReviewedMap(prev => {
@@ -109,7 +112,7 @@ export default function MyOrderDetailPage() {
       });
     } catch (error: any) {
       console.error(error);
-      alert(error.response?.data?.message || tReview('err_action'));
+      await modal.alert(error.response?.data?.message || tReview('err_action'));
     }
   };
 
@@ -196,7 +199,7 @@ export default function MyOrderDetailPage() {
                   <Link href={group.productSlug ? `/products/${group.productSlug}` : '#'} style={{ flexShrink: 0 }}>
                     <div style={{ width: '80px', height: '80px', borderRadius: '8px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {group.imageUrl ? (
-                        <img src={group.imageUrl} alt={group.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={resolveProductImageUrl(group.imageUrl)} alt={group.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <span style={{ fontSize: '24px' }}>📦</span>
                       )}

@@ -2,6 +2,7 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import AdminShell from './AdminShell';
+import ClientAuthVerifier from './ClientAuthVerifier';
 import "../../globals.css";
 
 async function getProfile(token: string) {
@@ -20,18 +21,29 @@ async function getProfile(token: string) {
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const cookieStore = await cookies();
-  const token = cookieStore.get('accessToken')?.value;
+  const accessToken = cookieStore.get('accessToken')?.value;
+  const refreshToken = cookieStore.get('refreshToken')?.value;
 
-  // Sửa '/login' thành '/'
-  if (!token) redirect('/');
+  if (!accessToken && !refreshToken) {
+    redirect('/');
+  }
 
-  const user = await getProfile(token);
-  // Sửa '/login' thành '/'
-  if (!user) redirect('/');
+  let user: any = null;
+  if (accessToken) {
+    user = await getProfile(accessToken);
+  }
+
+  // Access token đã chết nhưng còn refresh token => nhường quyền cho client thực hiện auto refresh.
+  if (!user && refreshToken) {
+    return <ClientAuthVerifier />;
+  }
+
+  if (!user && !refreshToken) {
+    redirect('/');
+  }
 
   const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
   if (!roles.includes('ADMIN')) {
-    // Sửa '/home' thành '/' (Landing Page)
     redirect('/');
   }
 

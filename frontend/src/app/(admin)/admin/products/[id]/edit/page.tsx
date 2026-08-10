@@ -5,9 +5,11 @@ import { useRouter, useParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { getProduct, updateProduct } from "@/lib/products-api";
 import ProductForm, { ProductFormValues } from "../../components/ProductForm";
+import { useModal } from '@/hooks/useModal';
 
 export default function EditProductPage() {
   const t = useTranslations("admin_products");
+  const modal = useModal();
   const router = useRouter();
   const params = useParams(); // Lấy ID từ URL
   const id = Number(params.id);
@@ -45,7 +47,7 @@ export default function EditProductPage() {
         setInitialData(formattedData);
       } catch (error) {
         console.error("Lỗi tải chi tiết sản phẩm:", error);
-        alert(t("form.detailsLoadError"));
+        await modal.alert(t("form.detailsLoadError"));
         router.push("/admin/products");
       } finally {
         setIsLoading(false);
@@ -75,7 +77,8 @@ export default function EditProductPage() {
           name: v.name,
           sku: v.sku,
           price: v.price,
-          stock: v.stock
+          stock: v.stock,
+          image: v.image,
         })),
 
         // Làm tương tự với mảng customizations (cả tầng 1 và tầng 2)
@@ -95,16 +98,16 @@ export default function EditProductPage() {
       };
 
       await updateProduct(id, payload);
-      alert(t("form.updateSuccess"));
+      await modal.alert(t("form.updateSuccess"));
       router.push("/admin/products");
       
     } catch (error: any) {
       console.error("Lỗi khi cập nhật:", error);
       const resData = error.response?.data;
       if (resData?.message) {
-        alert(t("form.updateValidationError", { message: JSON.stringify(resData.message, null, 2) }));
+        await modal.alert(t("form.updateValidationError", { message: JSON.stringify(resData.message, null, 2) }));
       } else {
-        alert(t("form.updateError"));
+        await modal.alert(t("form.updateError"));
       }
     } finally {
       setIsSubmitting(false);

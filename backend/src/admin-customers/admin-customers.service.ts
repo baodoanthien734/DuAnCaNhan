@@ -169,9 +169,23 @@ export class AdminCustomersService {
       const nextStatus = !customer.isActive;
 
       const updatedCustomer = await this.prisma.$transaction(async (tx) => {
+        if (!nextStatus) {
+          await tx.account.updateMany({
+            where: { userId: customerId },
+            data: {
+              access_token: null,
+              refresh_token: null,
+              expires_at: null,
+            },
+          });
+        }
+
         const updated = await tx.user.update({
           where: { id: customerId },
-          data: { isActive: nextStatus },
+          data: {
+            isActive: nextStatus,
+            ...(nextStatus ? {} : { hashedRefreshToken: null }),
+          },
           select: {
             id: true,
             name: true,

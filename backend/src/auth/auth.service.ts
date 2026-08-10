@@ -140,6 +140,10 @@ export class AuthService {
       throw new UnauthorizedException(this.i18n.t('auth.error.invalid_credentials'));
     }
 
+    if (!user.isActive) {
+      throw new UnauthorizedException(this.i18n.t('auth.error.account_not_found_or_locked'));
+    }
+
     const passwordHash = user.password;
     if (!passwordHash) {
       throw new UnauthorizedException(this.i18n.t('auth.error.password_not_set'));
@@ -159,14 +163,14 @@ export class AuthService {
     const rolesArray = user.roles.map(r => r.name);
     const isAdmin = rolesArray.includes('ADMIN');
     // Admin 20 phút để test (sau này bạn đổi thành '1d' hoặc '12h'), User thường 7 ngày
-    const refreshTokenTTL = isAdmin ? '20m' : '7d';
+    const refreshTokenTTL = isAdmin ? '8m' : '10m';
 
     // Tạo cặp AccessToken và RefreshToken
     const payload = { sub: user.id, email: user.email, role: userRole };
     
     const accessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET || 'access_secret_key',
-      expiresIn: '15m', // Access Token luôn là 15 phút
+      expiresIn: '5m', // Access Token luôn là 5 phút
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
@@ -195,25 +199,37 @@ export class AuthService {
   }
   // 5. API Refresh Token
   async refreshTokens(userId: number, refreshToken: string) {
+    console.log(`\n[🔄 TOKEN REFRESH] User ID: ${userId} đang yêu cầu cấp lại Token...`);
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: { roles: true },
     });
 
     if (!user || !user.hashedRefreshToken) {
+      console.log(`[❌ REFRESH FAILED] Không tìm thấy user hoặc chưa có refresh token hash trong DB.`);
       throw new UnauthorizedException(this.i18n.t('auth.error.access_denied'));
+    }
+
+    if (!user.isActive) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { hashedRefreshToken: null },
+      });
+      throw new UnauthorizedException(this.i18n.t('auth.error.account_not_found_or_locked'));
     }
 
     // Kiểm tra Refresh Token gửi lên có khớp với Hash trong DB không
     const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
     if (!isRefreshTokenValid) {
+      console.log(`[❌ REFRESH FAILED] Refresh Token gửi lên không khớp với DB!`);
       throw new UnauthorizedException(this.i18n.t('auth.error.refresh_token_invalid'));
     }
 
     // TÍNH TOÁN LẠI THỜI GIAN CHO TOKEN MỚI
     const rolesArray = user.roles.map(r => r.name);
     const isAdmin = rolesArray.includes('ADMIN');
-    const refreshTokenTTL = isAdmin ? '20m' : '7d'; // Vẫn giữ luật Admin 20 phút, User 7 ngày
+    const refreshTokenTTL = isAdmin ? '8m' : '10m'; // Vẫn giữ luật Admin 20 phút, User 7 ngày
 
     // Cấp lại cặp Token mới
     const primaryRole = user.roles[0]?.name || 'CUSTOMER';
@@ -221,7 +237,7 @@ export class AuthService {
 
     const newAccessToken = await this.jwtService.signAsync(payload, {
       secret: process.env.JWT_ACCESS_SECRET || 'access_secret_key',
-      expiresIn: '15m',
+      expiresIn: '5m',
     });
 
     const newRefreshToken = await this.jwtService.signAsync(payload, {
@@ -236,6 +252,8 @@ export class AuthService {
       data: { hashedRefreshToken: newHashedRefreshToken },
     });
 
+    console.log(`[✅ REFRESH SUCCESS] Đã cấp lại Access Token và Refresh Token mới cho User ID: ${userId}\n`);
+    
     return {
       accessToken: newAccessToken,
       refreshToken: newRefreshToken,
