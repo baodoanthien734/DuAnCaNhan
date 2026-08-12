@@ -10,6 +10,7 @@ type ProductVariant = {
   id: number;
   name: string;
   price: number;
+  stock: number;
   image?: string | null;
 };
 
@@ -78,6 +79,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   };
 
   const handleVariantClick = (variant: ProductVariant) => {
+    if (variant.stock === 0) return;
+
     setSelectedVariant(variant);
     setMessage(null);
 
@@ -113,18 +116,18 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const selectedVariantPrice = selectedVariant ? Number(selectedVariant.price || 0) : null;
   const variantPrices = (product.variants || []).map((variant) => Number(variant.price || 0));
   const hasVariants = variantPrices.length > 0;
+  
+  // Kiểm tra xem TOÀN BỘ biến thể có đang hết hàng hay không
+  const isAllVariantsOutOfStock = hasVariants && (product.variants || []).every((v) => v.stock === 0);
 
   const priceDisplay = useMemo(() => {
-    // 1. Tính tổng số tiền phụ phí từ các tuỳ chọn cá nhân hoá
     const totalCustomPrice = customValues.reduce((sum, item) => sum + (item.extraPrice || 0), 0);
 
     if (selectedVariantPrice !== null) {
-      // 2. Cộng phụ phí vào giá của biến thể đã chọn
       return <span className="text-4xl font-semibold tracking-tight text-amber-600">{formatCurrency(selectedVariantPrice + totalCustomPrice)}</span>;
     }
 
     if (hasVariants) {
-      // 3. Cộng phụ phí vào khoảng giá Min - Max
       const minPrice = Math.min(Number(product.basePrice || 0), ...variantPrices) + totalCustomPrice;
       const maxPrice = Math.max(Number(product.basePrice || 0), ...variantPrices) + totalCustomPrice;
 
@@ -142,10 +145,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       );
     }
 
-    // 4. Cộng phụ phí vào giá gốc nếu không có biến thể
     return <span className="text-4xl font-semibold tracking-tight text-amber-600">{formatCurrency(Number(product.basePrice || 0) + totalCustomPrice)}</span>;
     
-  // Đừng quên thêm customValues vào dependency array ở cuối hàm
   }, [hasVariants, product.basePrice, selectedVariantPrice, t, variantPrices, customValues]);
 
   const handleAddToCart = async () => {
@@ -275,43 +276,52 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
             <div className="rounded-[24px] border border-amber-100 bg-gradient-to-br from-amber-50 to-white px-5 py-5 shadow-[0_12px_28px_rgba(251,191,36,0.12)]">
               {priceDisplay}
-              {selectedVariant ? (
-                <p className="mt-2 text-sm text-slate-500">
-                  {selectedVariant.name}
-                </p>
-              ) : null}
             </div>
           </div>
 
+          {/* GIAO DIỆN DROPDOWN MỚI CHO BIẾN THỂ */}
           {hasVariants ? (
             <div className="space-y-3">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{t('variants')}</h2>
               </div>
-              <div className="flex flex-wrap gap-3">
-                {(product.variants || []).map((variant) => {
-                  const isSelected = selectedVariant?.id === variant.id;
-
-                  return (
-                    <button
-                      key={variant.id}
-                      type="button"
-                      onClick={() => handleVariantClick(variant)}
-                      className={`min-w-[112px] rounded-2xl border px-4 py-3 text-left transition-all ${
-                        isSelected
-                          ? 'border-amber-500 bg-amber-50 text-amber-700 shadow-[0_10px_24px_rgba(251,191,36,0.16)]'
-                          : 'border-slate-200 bg-white text-slate-700 hover:border-amber-300 hover:bg-amber-50/70'
-                      }`}
-                    >
-                      <span className="block text-sm font-semibold">{variant.name}</span>
-                      <span className="mt-1 block text-xs font-medium text-amber-600">{formatCurrency(Number(variant.price || 0))}</span>
-                    </button>
-                  );
-                })}
+              <div className="relative">
+                <select
+                  value={selectedVariant?.id || ""}
+                  onChange={(e) => {
+                    const variantId = parseInt(e.target.value);
+                    const variant = product.variants?.find((v) => v.id === variantId);
+                    if (variant) handleVariantClick(variant);
+                  }}
+                  className="w-full appearance-none rounded-2xl border border-slate-200 bg-slate-50/70 px-4 py-3.5 text-sm font-semibold text-slate-800 outline-none transition-all hover:bg-slate-50 focus:border-amber-400 focus:bg-white focus:ring-4 focus:ring-amber-100/50 cursor-pointer"
+                >
+                  <option value="" disabled>
+                    {t('select_variant') || '-- Chọn biến thể --'}
+                  </option>
+                  {(product.variants || []).map((variant) => {
+                    const isOutOfStock = variant.stock === 0;
+                    return (
+                      <option 
+                        key={variant.id} 
+                        value={variant.id} 
+                        disabled={isOutOfStock}
+                      >
+                        {variant.name} - {formatCurrency(Number(variant.price || 0))} {isOutOfStock ? `(${tCart('out_of_stock')})` : ''}
+                      </option>
+                    );
+                  })}
+                </select>
+                {/* Custom Arrow Icon */}
+                <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                  </svg>
+                </div>
               </div>
             </div>
           ) : null}
 
+          {/* Customizations (Giữ nguyên) */}
           {product.customizations && product.customizations.length > 0 ? (
             <div className="space-y-4">
               <h2 className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{t('customizations')}</h2>
@@ -389,10 +399,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
           <button
             type="button"
             onClick={handleAddToCart}
-            disabled={loading}
+            // Khóa nút nếu: Đang tải OR (Có biến thể nhưng tất cả đều hết hàng) OR (Biến thể đang chọn hết hàng)
+            disabled={loading || isAllVariantsOutOfStock || (hasVariants && selectedVariant?.stock === 0)}
             className="mt-auto inline-flex w-full items-center justify-center rounded-full bg-slate-950 px-6 py-4 text-base font-semibold text-white shadow-[0_18px_36px_rgba(15,23,42,0.18)] transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {loading ? tCart('adding') : t('addToCart')}
+            {isAllVariantsOutOfStock ? tCart('out_of_stock') : loading ? tCart('adding') : t('addToCart')}
           </button>
 
           {product.description ? (

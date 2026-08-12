@@ -38,7 +38,8 @@ export class CartService {
               select: { id: true, name: true, slug: true, basePrice: true, images: true, status: true },
             },
             variant: {
-              select: { id: true, name: true, price: true, image: true, stock: true },
+              // BỔ SUNG `version: true` Ở ĐÂY ĐỂ LÀM OPTIMISTIC LOCKING
+              select: { id: true, name: true, price: true, image: true, stock: true, version: true },
             },
           },
           orderBy: { createdAt: 'desc' },
@@ -127,5 +128,37 @@ export class CartService {
     return this.prisma.cartItem.delete({
       where: { id: itemId },
     });
+  }
+
+  /// Hàm public kiểm tra và làm mới giỏ hàng của khách (Guest Cart) dựa trên dữ liệu từ FE gửi lên
+  async validateGuestCart(items: any[]) {
+    if (!items || items.length === 0) return { items: [] };
+
+    const validatedItems = await Promise.all(
+      items.map(async (item) => {
+        // 1. Lấy thông tin mới nhất của Sản phẩm gốc
+        const product = await this.prisma.product.findUnique({
+          where: { id: item.productId },
+          select: { id: true, name: true, slug: true, basePrice: true, images: true, status: true },
+        });
+
+        // 2. Lấy thông tin mới nhất của Biến thể (nếu có) - FIX TYPESCRIPT Ở ĐÂY 👇
+        const variant = item.variantId
+          ? await this.prisma.productVariant.findUnique({
+              where: { id: item.variantId },
+              select: { id: true, name: true, price: true, image: true, stock: true, version: true },
+            })
+          : null;
+
+        // 3. Trả về cấu trúc item đã được "làm mới" (Refresh) dữ liệu từ DB
+        return {
+          ...item,
+          product: product || item.product, // Ghi đè product từ DB (nếu mất DB thì giữ tạm cũ để FE báo lỗi)
+          variant: variant || item.variant, // Ghi đè variant từ DB để có số lượng stock mới nhất
+        };
+      })
+    );
+
+    return { items: validatedItems };
   }
 }

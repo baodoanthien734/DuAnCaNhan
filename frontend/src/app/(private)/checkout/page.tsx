@@ -3,15 +3,17 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { getCart } from '@/lib/cart-api';
 import { checkout } from '@/lib/orders-api';
 import { getAddresses, createAddress } from '@/lib/user-api'; 
-import AddressModal from '@/components/ui/AddressModal'; // Component Modal nhỏ gọn
+import AddressModal from '@/components/ui/AddressModal';
 import { useModal } from '@/hooks/useModal';
 
 export default function CheckoutPage() {
   const router = useRouter();
   const modal = useModal();
+  const t = useTranslations('checkout'); 
 
   const [cart, setCart] = useState<any>(null);
   const [addresses, setAddresses] = useState<any[]>([]); 
@@ -22,7 +24,6 @@ export default function CheckoutPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [note, setNote] = useState('');
 
-  // Trạng thái bật/tắt Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const fetchData = async () => {
@@ -36,13 +37,12 @@ export default function CheckoutPage() {
       setCart(cartData);
       setAddresses(Array.isArray(addressData) ? addressData : []);
 
-      // Tự động chọn địa chỉ mặc định hoặc địa chỉ đầu tiên
       if (addressData && addressData.length > 0) {
         const defaultAddr = addressData.find((a: any) => a.isDefault);
         setSelectedAddressId(defaultAddr ? defaultAddr.id : addressData[0].id);
       }
     } catch (err) {
-      setErrorMsg('Không thể tải dữ liệu thanh toán. Vui lòng thử lại sau.');
+      setErrorMsg(t('error.fetch_failed'));
     } finally {
       setLoading(false);
     }
@@ -63,31 +63,27 @@ export default function CheckoutPage() {
     return sum + itemPrice * item.quantity;
   }, 0) || 0;
 
-  // Xử lý khi User nhập xong địa chỉ ở Modal
   const handleAddressAdded = async (newAddressData: any) => {
     try {
       const res = await createAddress(newAddressData);
       setIsModalOpen(false);
       
-      // Tải lại danh sách địa chỉ mới
       const updatedAddresses = await getAddresses();
       setAddresses(Array.isArray(updatedAddresses) ? updatedAddresses : []);
       
-      // Tự động set ID vừa tạo (ví dụ lấy cái cuối cùng hoặc default)
       if (updatedAddresses && updatedAddresses.length > 0) {
         setSelectedAddressId(updatedAddresses[updatedAddresses.length - 1].id);
       }
     } catch (error: any) {
-      await modal.alert(error.response?.data?.message || 'Có lỗi khi thêm địa chỉ');
+      await modal.alert(error.response?.data?.message || t('error.address_failed'));
     }
   }
 
-  // 🚀 Xử lý Chốt đơn
+  // XỬ LÝ CHỐT ĐƠN (CẬP NHẬT GIAI ĐOẠN 4)
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
-    // FLOW: Nếu chưa có địa chỉ nào -> Bật Modal lên và chặn việc gọi API checkout
     if (addresses.length === 0 || !selectedAddressId) {
       setIsModalOpen(true);
       return;
@@ -101,10 +97,20 @@ export default function CheckoutPage() {
         note: note || undefined,
       });
 
-      await modal.alert('Đặt hàng thành công! Đã lưu vào hệ thống.');
+      await modal.alert(t('success_order'));
       router.push('/');
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng.');
+      // 1. Lấy tin nhắn lỗi từ Backend (Đã được Backend dịch sẵn i18n)
+      const backendMessage = err.response?.data?.message || t('error_order');
+      
+      // 2. Hiển thị UI báo lỗi đỏ tại chỗ (tùy chọn)
+      setErrorMsg(backendMessage);
+
+      // 3. Hiển thị Popup cảnh báo kèm theo hành động chuẩn bị làm
+      await modal.alert(`${backendMessage} ${t('error.reload_cart_notice')}`);
+      
+      // 4. Đá khách hàng về lại trang chủ để mở giỏ hàng xem con số tồn kho mới
+      router.push('/');
     } finally {
       setSubmitting(false);
     }
@@ -128,7 +134,6 @@ export default function CheckoutPage() {
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', padding: '40px 20px', color: '#111827' }}>
       
-      {/* Gọi Modal Nhập địa chỉ (Chỉ hiện khi isModalOpen = true) */}
       <AddressModal 
          isOpen={isModalOpen} 
          onClose={() => setIsModalOpen(false)} 
@@ -141,17 +146,17 @@ export default function CheckoutPage() {
           ← Quay lại trang chủ
         </Link>
 
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '20px 0 24px' }}>📦 Xác nhận Thanh toán</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '20px 0 24px' }}>📦 {t('title')}</h1>
 
         {errorMsg && (
-          <div style={{ padding: '12px', backgroundColor: '#fee2e2', color: '#b91c1c', borderRadius: '8px', marginBottom: '20px', fontSize: '14px' }}>
+          <div style={{ padding: '12px', backgroundColor: '#fee2e2', color: '#b91c1c', borderRadius: '8px', marginBottom: '20px', fontSize: '14px', lineHeight: '1.5' }}>
             {errorMsg}
           </div>
         )}
 
         <form onSubmit={handleCheckout} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
           
-          {/* 📍 KHU VỰC HIỂN THỊ ĐỊA CHỈ */}
+          {/* KHU VỰC HIỂN THỊ ĐỊA CHỈ */}
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 16px' }}>Địa chỉ giao hàng</h3>
 
@@ -185,7 +190,7 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* 🛒 Thông tin đơn hàng tóm tắt */}
+          {/* Thông tin đơn hàng tóm tắt */}
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px', backgroundColor: '#f9fafb' }}>
             <h3 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 12px' }}>Sản phẩm mua ({cart.items.length})</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto' }}>
@@ -230,7 +235,7 @@ export default function CheckoutPage() {
               opacity: submitting ? 0.7 : 1
             }}
           >
-            {submitting ? 'Đang xử lý đơn hàng...' : '🚀 Xác nhận & Chốt đơn'}
+            {submitting ? t('submitting') : t('submit_button')}
           </button>
 
         </form>

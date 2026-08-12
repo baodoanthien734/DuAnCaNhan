@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { Category, createCategory, updateCategory, listCategories, uploadCategoryImage } from '../../../../lib/categories-api';
+import { Category, createCategory, updateCategory, listCategories, resolveCategoryImageUrl } from '../../../../lib/categories-api';
 
 interface Props {
   initial?: Category | null;
@@ -17,13 +17,18 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
   const [parentId, setParentId] = useState<number | ''>(initial?.parentId ?? '');
   const [position, setPosition] = useState<number | ''>(initial?.position ?? '');
   const [isActive, setIsActive] = useState<boolean>(initial?.isActive ?? true);
-  const [image, setImage] = useState(initial?.image || '');
   const [metaTitle, setMetaTitle] = useState(initial?.metaTitle || '');
   const [metaDesc, setMetaDesc] = useState(initial?.metaDesc || '');
 
+  // ==========================================
+  // STATE MỚI CHO LOGIC UPLOAD FORM DATA
+  // ==========================================
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(resolveCategoryImageUrl(initial?.image) || null);
+  const [removeImage, setRemoveImage] = useState(false); // Cờ báo hiệu backend xóa ảnh cũ
+
   const [parents, setParents] = useState<Category[]>([]);
   const [submitting, setSubmitting] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,21 +47,49 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
     };
   }, [initial]);
 
+  // Xử lý khi người dùng chọn file mới (Tạo URL ảo để preview)
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file)); 
+    setRemoveImage(false); // Có ảnh mới thì hủy cờ đòi xóa ảnh
+  }
+
+  // Xử lý khi bấm nút "X" để gỡ ảnh (dọn state và đánh cờ xóa)
+  function handleRemoveImage() {
+    setImageFile(null);
+    setPreviewUrl(null);
+    setRemoveImage(true);
+    
+    // Reset input file để có thể chọn lại chính file đó nếu muốn
+    const fileInput = document.getElementById('category-image') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  }
+
   async function handleSubmit(e?: React.FormEvent) {
     e?.preventDefault();
     setError(null);
     if (!name.trim()) return setError(t('form.requiredName'));
 
-    const payload: Partial<Category> = {
+    // SỬA LẠI ĐOẠN KHỞI TẠO PAYLOAD NÀY
+    const payload: any = {
       name: name.trim(),
-      slug: slug?.trim() || undefined,
-      parentId: parentId === '' ? undefined : Number(parentId),
-      position: position === '' ? undefined : Number(position),
-      isActive,
-      image: image || undefined,
-      metaTitle: metaTitle || undefined,
-      metaDesc: metaDesc || undefined,
+      isActive: String(isActive),
+      removeImage: String(removeImage),
     };
+
+    // Chỉ gán giá trị nếu người dùng thực sự có nhập (tránh gửi chuỗi rỗng "")
+    if (slug?.trim()) payload.slug = slug.trim();
+    if (parentId !== '') payload.parentId = String(parentId);
+    if (position !== '') payload.position = String(position);
+    if (metaTitle) payload.metaTitle = metaTitle;
+    if (metaDesc) payload.metaDesc = metaDesc;
+
+    if (imageFile) {
+      payload.image = imageFile;
+    }
 
     setSubmitting(true);
     try {
@@ -111,32 +144,42 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
         <label htmlFor="isActive">{t('form.activeLabel')}</label>
       </div>
 
+      {/* ========================================== */}
+      {/* UI PREVIEW VÀ UPLOAD ẢNH (BASE64)           */}
+      {/* ========================================== */}
       <div style={{ display: 'grid', gap: 6 }}>
         <label style={{ fontSize: 13, color: '#374151' }}>{t('form.imageLabel')}</label>
-        <input type="file" accept="image/*" onChange={async (e) => {
-          const file = e.target.files?.[0];
-          if (!file) return;
-          setUploading(true);
-          setError(null);
-          try {
-            const result = await uploadCategoryImage(file);
-            setImage(result.url);
-          } catch (err: any) {
-            console.error(err);
-            setError(err?.message || t('form.uploadError'));
-          } finally {
-            setUploading(false);
-          }
-        }} style={{ padding: 8 }} />
+        
+        <div style={{ display: 'flex', gap: 12, alignItems: 'start', flexWrap: 'wrap' }}>
+          {previewUrl && (
+            <div style={{ position: 'relative' }}>
+              <img 
+                src={previewUrl} 
+                alt="Preview" 
+                style={{ width: '120px', height: '120px', borderRadius: 8, objectFit: 'cover', border: '1px solid #e5e7eb' }} 
+              />
+              <button 
+                type="button" 
+                onClick={handleRemoveImage}
+                style={{ position: 'absolute', top: -8, right: -8, background: '#ef4444', color: 'white', border: 'none', borderRadius: '50%', width: 24, height: 24, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
+              >
+                ✕
+              </button>
+            </div>
+          )}
+          
+          <input 
+            id="category-image"
+            type="file" 
+            accept="image/*" 
+            onChange={handleFileChange} 
+            style={{ 
+              padding: 8, border: '1px dashed #d1d5db', borderRadius: 8, background: '#f9fafb', width: '100%',
+              display: previewUrl ? 'none' : 'block' // Ẩn nút chọn file nếu đã có ảnh, ép người dùng bấm nút X nếu muốn đổi ảnh khác
+            }} 
+          />
+        </div>
         <small style={{ color: '#6b7280' }}>{t('form.imageHelp')}</small>
-        <input value={image} onChange={(e) => setImage(e.target.value)} placeholder={t('form.imagePlaceholder')} style={{ padding: 8 }} />
-        {image && (
-          <div style={{ display: 'grid', gap: 8, alignItems: 'center' }}>
-            <span style={{ fontSize: 13, color: '#374151' }}>{t('form.previewLabel')}</span>
-            <img src={image} alt="Preview" style={{ maxWidth: '200px', maxHeight: '160px', borderRadius: 12, objectFit: 'cover' }} />
-          </div>
-        )}
-        {uploading && <div style={{ color: '#2563eb' }}>{t('form.uploading')}</div>}
       </div>
 
       <div style={{ display: 'grid', gap: 6 }}>

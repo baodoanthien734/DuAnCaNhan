@@ -23,7 +23,6 @@ export interface ListCategoriesParams {
 
 export async function listCategories(params: ListCategoriesParams = {}) {
   const resp = await apiClient.get('/admin/categories', { params });
-  // Backend returns { items, total } — normalize to items array for compatibility
   if (resp.data && Array.isArray(resp.data.items)) return resp.data.items as Category[];
   return resp.data as Category[];
 }
@@ -33,23 +32,34 @@ export async function getCategory(id: number) {
   return resp.data as Category;
 }
 
-export async function createCategory(dto: Partial<Category>) {
-  const resp = await apiClient.post('/admin/categories', dto);
-  return resp.data as Category;
-}
-
-export async function updateCategory(id: number, dto: Partial<Category>) {
-  const resp = await apiClient.put(`/admin/categories/${id}`, dto);
-  return resp.data as Category;
-}
-
-export async function uploadCategoryImage(file: File) {
+// Chuyển sang dùng FormData để gửi kèm File
+export async function createCategory(dto: any) {
   const formData = new FormData();
-  formData.append('file', file);
-  const resp = await apiClient.post('/upload', formData, {
+  Object.keys(dto).forEach((key) => {
+    if (dto[key] !== undefined && dto[key] !== null) {
+      formData.append(key, dto[key]);
+    }
+  });
+
+  const resp = await apiClient.post('/admin/categories', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  return resp.data as { url: string; filename: string };
+  return resp.data as Category;
+}
+
+// Chuyển sang dùng FormData và sửa lại thành .put theo chuẩn của bạn
+export async function updateCategory(id: number, dto: any) {
+  const formData = new FormData();
+  Object.keys(dto).forEach((key) => {
+    if (dto[key] !== undefined && dto[key] !== null) {
+      formData.append(key, dto[key]);
+    }
+  });
+
+  const resp = await apiClient.put(`/admin/categories/${id}`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return resp.data as Category;
 }
 
 export async function removeCategory(id: number) {
@@ -60,6 +70,20 @@ export async function removeCategory(id: number) {
 export async function reorderCategories(updates: { id: number; position: number }[]) {
   const resp = await apiClient.post('/admin/categories/reorder', updates);
   return resp.data;
+}
+
+// Hàm xử lý nối domain backend vào link ảnh
+export function resolveCategoryImageUrl(url?: string | null) {
+  if (!url) return '';
+  // Nếu url đã có sẵn http (link ngoài) hoặc là blob preview (từ dạng file) thì giữ nguyên
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:')) {
+    return url;
+  }
+  
+  // Tự động lấy URL backend từ biến môi trường, hoặc fallback về localhost:3001
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:3001';
+  
+  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
 }
 
 export default {

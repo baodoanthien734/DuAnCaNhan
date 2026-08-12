@@ -1,10 +1,12 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, Query, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 
 @Controller('admin/categories')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -14,7 +16,12 @@ export class CategoriesController {
 
   @Get()
   async findAll(@Query('q') q: string, @Query('parentId') parentId: string, @Query('skip') skip: string, @Query('take') take: string) {
-    const res = await this.categoriesService.findAll({ q, parentId: parentId ? Number(parentId) : undefined, skip: skip ? Number(skip) : undefined, take: take ? Number(take) : undefined });
+    const res = await this.categoriesService.findAll({ 
+      q, 
+      parentId: parentId ? Number(parentId) : undefined, 
+      skip: skip ? Number(skip) : undefined, 
+      take: take ? Number(take) : undefined 
+    });
     return res;
   }
 
@@ -24,13 +31,22 @@ export class CategoriesController {
   }
 
   @Post()
-  async create(@Body() dto: CreateCategoryDto) {
-    return this.categoriesService.create(dto);
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async create(
+    @Body() dto: CreateCategoryDto, 
+    @UploadedFile() file?: Express.Multer.File
+  ) {
+    return this.categoriesService.create(dto, file);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateCategoryDto) {
-    return this.categoriesService.update(Number(id), dto);
+  @UseInterceptors(FileInterceptor('image', { storage: memoryStorage() }))
+  async update(
+    @Param('id') id: string, 
+    @Body() dto: UpdateCategoryDto,
+    @UploadedFile() file?: Express.Multer.File
+  ) {
+    return this.categoriesService.update(Number(id), dto, file);
   }
 
   @Delete(':id')

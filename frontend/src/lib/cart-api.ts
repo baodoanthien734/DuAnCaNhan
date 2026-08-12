@@ -66,11 +66,33 @@ const normalizeServerPayload = (data: CartPayload) => ({
   customizations: data.customizations,
 });
 
+// ==========================================
+// ĐÃ CẬP NHẬT HÀM GET CART ĐỂ GỌI API PUBLIC
+// ==========================================
 export const getCart = async () => {
   if (!hasAccessToken()) {
-    return readGuestCart();
+    const localCart = readGuestCart();
+    
+    // Nếu giỏ hàng trống thì không cần gọi API làm gì cho tốn tài nguyên
+    if (localCart.items.length === 0) return localCart;
+
+    try {
+      // Bắn mảng items lên Backend để kiểm tra tồn kho mới nhất
+      const response = await apiClient.post('/public/cart/validate', {
+        items: localCart.items
+      });
+      
+      // Backend trả về mảng items với tồn kho và giá mới nhất, ta ghi đè lại localStorage
+      writeGuestCart(response.data);
+      return response.data;
+    } catch (error) {
+      console.error('Lỗi khi validate giỏ hàng Guest:', error);
+      // Nếu rớt mạng hoặc API lỗi, cứ trả về giỏ cũ để khách không bị mất giao diện
+      return localCart; 
+    }
   }
 
+  // Luồng dành cho User đã đăng nhập
   const response = await apiClient.get('/cart');
   return response.data;
 };

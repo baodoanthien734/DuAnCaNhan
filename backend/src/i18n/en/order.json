@@ -3,7 +3,9 @@
     "empty_cart": "Your cart is empty. Cannot proceed to checkout.",
     "out_of_stock": "The product {productName} is currently out of stock or insufficient in quantity.",
     "order_not_found": "Order details not found.",
-    "invalid_status": "Invalid order status for this update."
+    "invalid_status": "Invalid order status for this update.",
+    "product_not_found": "The product does not exist or has been discontinued.",
+    "inventory_changed": "The stock level for {productName} has just changed. Please check your cart!"
   },
   "success": {
     "order_placed": "Your order has been placed successfully!",

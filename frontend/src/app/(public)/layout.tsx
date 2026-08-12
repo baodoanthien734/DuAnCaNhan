@@ -69,6 +69,11 @@ export default async function PublicLayout({
             <Link href="/products" style={{ color: '#374151', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
               {t('header.nav.products')}
             </Link>
+            
+            {/* Nút mới dẫn đến trang Tạp chí/Blog */}
+            <Link href="/posts" style={{ color: '#374151', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+              {t('header.nav.posts')}
+            </Link>
           </nav>
 
           {/* Cột Phải: Ngôn ngữ & Nhóm đăng nhập / giỏ hàng */}

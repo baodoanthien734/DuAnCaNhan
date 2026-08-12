@@ -3,7 +3,6 @@ import { I18nService } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
 import { CartService } from '../cart/cart.service';
 import { CheckoutDto } from './dto/checkout.dto';
-import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
 import { OrderStatus } from '@prisma/client';
 
 @Injectable()
@@ -27,24 +26,20 @@ export class OrdersService {
       throw new BadRequestException(this.i18n.t('order.error.empty_cart'));
     }
 
-    // 2. Tính toán Giá cho từng Item (Tuyệt đối không lấy giá từ Frontend)
+    // 2. Tính toán Giá cho từng Item
     let totalAmount = 0;
     const orderItemsData: any[] = [];
 
     for (const item of cart.items) {
-      // 2.1 Kiểm tra sản phẩm còn tồn tại và Active không?
       if (!item.product || item.product.status !== 'ACTIVE') {
         throw new BadRequestException(
           this.i18n.t('order.error.out_of_stock', { args: { productName: item.product?.name || 'Unknown' } })
         );
       }
 
-      // 2.2 Tính giá gốc (Base Price) hoặc giá Biến thể (Variant Price)
       let itemPrice = Number(item.variant?.price || item.product.basePrice);
       let variantName = item.variant?.name || null;
 
-      // 2.3 Phân tích chuỗi JSON Customizations để cộng thêm phí (extraPrice)
-      // Giả sử JSON có cấu trúc: [{ name: "Charm", value: "Thỏ", extraPrice: 10000 }]
       const customs = item.customizations as any[];
       if (customs && Array.isArray(customs)) {
         customs.forEach((c) => {
@@ -54,28 +49,56 @@ export class OrdersService {
         });
       }
 
-      // Cộng dồn vào tổng hóa đơn
       totalAmount += itemPrice * item.quantity;
 
-      // Chuẩn bị dữ liệu Snapshot cho OrderItem
       orderItemsData.push({
         productId: item.productId,
         variantId: item.variantId,
-        productName: item.product.name, // SNAPSHOT Tên SP
-        variantName: variantName,       // SNAPSHOT Tên Biến thể
-        price: itemPrice,               // SNAPSHOT Giá (Đã cộng phụ phí)
+        productName: item.product.name, 
+        variantName: variantName,       
+        price: itemPrice,               
         quantity: item.quantity,
-        customizations: item.customizations, // SNAPSHOT Cá nhân hóa
+        customizations: item.customizations, 
       });
     }
 
     // 3. Thực thi Giao dịch Database (Transaction)
     try {
       const order = await this.prisma.$transaction(async (tx) => {
-        // Tạo chuỗi mã đơn hàng ngẫu nhiên (Ví dụ: ORD-1691234567)
-        const orderCode = `ORD-${Date.now()}`;
+        
+        // =================================================================
+        // BƯỚC 3.1: TRỪ KHO VỚI OPTIMISTIC LOCKING
+        // =================================================================
+        for (const item of cart.items) {
+          if (!item.variantId || !item.variant) {
+             throw new BadRequestException(`Sản phẩm ${item.product.name} thiếu thông tin biến thể.`);
+          }
 
-        // 3.1. Tạo Đơn hàng
+          // Cập nhật kẹp điều kiện Version và Stock
+          const updateResult = await tx.productVariant.updateMany({
+            where: {
+              id: item.variantId,
+              version: item.variant.version, // Đảm bảo chưa có ai chạm vào dữ liệu này
+              stock: { gte: item.quantity }  // Đảm bảo hàng trong kho phải >= số lượng cần mua
+            },
+            data: {
+              stock: { decrement: item.quantity },
+              version: { increment: 1 }      // Tăng version lên để khóa các request đến chậm hơn
+            }
+          });
+
+          // Nếu count === 0, nghĩa là câu lệnh WHERE ở trên không tìm thấy dòng nào khớp
+          if (updateResult.count === 0) {
+            // Ném lỗi để ROLLBACK toàn bộ transaction!
+            throw new BadRequestException(
+              this.i18n.t('order.error.inventory_changed', { args: { productName: item.product.name } })
+            );
+          }
+        }
+        // =================================================================
+
+        // 3.2. Tạo Đơn hàng
+        const orderCode = `ORD-${Date.now()}`;
         const newOrder = await tx.order.create({
           data: {
             code: orderCode,
@@ -85,7 +108,7 @@ export class OrdersService {
             paymentMethod: dto.paymentMethod,
             note: dto.note,
             items: {
-              create: orderItemsData, // 3.2. Tạo chi tiết đơn hàng
+              create: orderItemsData, 
             },
           },
         });
@@ -104,7 +127,12 @@ export class OrdersService {
         data: order,
       };
     } catch (error) {
-      this.logger.error('Lỗi Database khi đặt hàng:', error);
+      this.logger.error('Lỗi khi đặt hàng:', error);
+      // Nếu lỗi là BadRequestException (tức là lỗi kho ta chủ động ném ra ở trên), ta ném nó ra ngoài luôn để Frontend hiển thị chữ
+      if (error instanceof BadRequestException) {
+        throw error; 
+      }
+      // Các lỗi khác của Database thì vứt ra lỗi chung
       throw new BadRequestException('Không thể xử lý đơn hàng lúc này.');
     }
   }
@@ -117,19 +145,15 @@ export class OrdersService {
       include: { items: true }, 
     });
 
-    // Xử lý thủ công: Lấy ảnh và slug cho từng item trong đơn hàng
     for (const order of orders) {
       for (const item of order.items) {
-        // Tìm sản phẩm gốc
         const product = await this.prisma.product.findUnique({
           where: { id: item.productId },
           select: { slug: true, images: true }
         });
         
-        // FIX LỖI TYPESCRIPT Ở ĐÂY 👇
         let imageUrl: string | null = null;
 
-        // Nếu có variant, ưu tiên lấy ảnh của variant trước
         if (item.variantId) {
           const variant = await this.prisma.productVariant.findUnique({
             where: { id: item.variantId },
@@ -140,12 +164,10 @@ export class OrdersService {
           }
         }
 
-        // Nếu không có ảnh variant, lấy ảnh đầu tiên của product
         if (!imageUrl && product && product.images && product.images.length > 0) {
           imageUrl = product.images[0];
         }
 
-        // Gắn thông tin vào item (dùng any để bypass TypeScript)
         (item as any).productSlug = product?.slug || null;
         (item as any).imageUrl = imageUrl;
       }
@@ -172,14 +194,12 @@ export class OrdersService {
       throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
     }
 
-    // Xử lý thủ công lấy ảnh và slug tương tự như trên
     for (const item of order.items) {
       const product = await this.prisma.product.findUnique({
         where: { id: item.productId },
         select: { slug: true, images: true }
       });
       
-      // FIX LỖI TYPESCRIPT Ở ĐÂY 👇
       let imageUrl: string | null = null;
       
       if (item.variantId) {
@@ -205,7 +225,7 @@ export class OrdersService {
   // PHẦN 2: DÀNH CHO QUẢN TRỊ VIÊN (ADMIN)
   // ==========================================
 
-  // Admin xem tất cả đơn hàng (có thể lọc theo status)
+  // Admin xem tất cả đơn hàng
   async findAllForAdmin(query: { status?: OrderStatus; skip?: number; take?: number }) {
     const where: any = {};
     if (query.status) where.status = query.status;
@@ -227,7 +247,7 @@ export class OrdersService {
     return { items, total };
   }
 
-  // Admin cập nhật trạng thái đơn (Ví dụ: SHIPPING -> DELIVERED)
+  // Admin cập nhật trạng thái đơn
   async updateStatus(id: number, status: OrderStatus) {
     const order = await this.prisma.order.findUnique({ where: { id } });
     if (!order) throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
@@ -247,7 +267,7 @@ export class OrdersService {
       include: {
         customer: { select: { id: true, name: true, email: true } },
         address: true,
-        items: true, // Lấy chi tiết các sản phẩm trong đơn
+        items: true, 
       },
     });
 
