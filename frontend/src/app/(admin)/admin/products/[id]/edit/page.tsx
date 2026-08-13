@@ -64,6 +64,7 @@ export default function EditProductPage() {
       // Dọn dẹp payload: Chỉ bốc đúng những trường cần thiết và giữ lại 'id'
       const payload = {
         name: data.name,
+        slug: data.slug,
         categoryId: data.categoryId,
         description: data.description,
         basePrice: data.basePrice,
@@ -102,7 +103,7 @@ export default function EditProductPage() {
       router.push("/admin/products");
       
     } catch (error: any) {
-      console.error("Lỗi khi cập nhật:", error);
+      // console.error("Lỗi khi cập nhật:", error);
       const resData = error.response?.data;
       if (resData?.message) {
         await modal.alert(t("form.updateValidationError", { message: JSON.stringify(resData.message, null, 2) }));

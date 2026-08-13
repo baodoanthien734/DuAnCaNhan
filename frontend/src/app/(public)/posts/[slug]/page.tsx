@@ -1,52 +1,32 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { getTranslations } from 'next-intl/server';
 import { getPublicPostBySlug, resolvePostImageUrl } from '@/lib/public-posts-api';
+import { notFound } from 'next/navigation';
 
-export default function PostDetailPage() {
-  const t = useTranslations('public_posts');
-  const { slug } = useParams();
-  const router = useRouter();
+interface PageProps {
+  params: Promise<{
+    slug: string;
+  }>;
+}
+
+export default async function PostDetailPage({ params }: PageProps) {
+  const t = await getTranslations('public_posts');
   
-  const [post, setPost] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  // Await params cho chuẩn Next.js mới
+  const resolvedParams = await params;
+  const slug = resolvedParams.slug;
+  
+  let post: any = null;
 
-  useEffect(() => {
-    const fetchPost = async () => {
-      try {
-        const data = await getPublicPostBySlug(slug as string);
-        setPost(data);
-      } catch (error) {
-        console.error('Lỗi hoặc không tìm thấy bài viết', error);
-        setError(true);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (slug) fetchPost();
-  }, [slug]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#fcfbf9] flex justify-center pt-32">
-        <div className="w-8 h-8 border-4 border-amber-200 border-t-amber-600 rounded-full animate-spin"></div>
-      </div>
-    );
+  try {
+    post = await getPublicPostBySlug(slug);
+  } catch (error) {
+    // Nếu lỗi hoặc không tìm thấy bài viết -> Chuyển hướng ra trang 404
+    notFound();
   }
 
-  if (error || !post) {
-    return (
-      <div className="min-h-screen bg-[#fcfbf9] flex flex-col items-center justify-center pt-20 pb-32">
-        <p className="text-slate-500 mb-6">{t('not_found')}</p>
-        <Link href="/posts" className="px-6 py-2.5 bg-amber-600 text-white font-medium rounded-full hover:bg-amber-700 transition">
-          {t('back')}
-        </Link>
-      </div>
-    );
+  if (!post) {
+    notFound();
   }
 
   return (
@@ -73,9 +53,9 @@ export default function PostDetailPage() {
         <div className="flex items-center justify-center gap-4 text-sm text-slate-500 border-y border-slate-200 py-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
-              {post.author.name.charAt(0)}
+              {post.author?.name?.charAt(0) || 'U'}
             </div>
-            <span className="font-semibold text-slate-800">{post.author.name}</span>
+            <span className="font-semibold text-slate-800">{post.author?.name || 'Unknown'}</span>
           </div>
           <span>•</span>
           <time dateTime={post.createdAt}>{new Date(post.createdAt).toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>

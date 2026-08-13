@@ -1,28 +1,19 @@
-'use client';
-
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
-import { getPublicPosts, PublicPost, resolvePostImageUrl } from '@/lib/public-posts-api';
+import { getTranslations } from 'next-intl/server';
+import { getPublicPosts, resolvePostImageUrl } from '@/lib/public-posts-api';
 
-export default function PostsPage() {
-  const t = useTranslations('public_posts');
-  const [posts, setPosts] = useState<PublicPost[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchPosts = async () => {
-      try {
-        const data = await getPublicPosts({ take: 12 });
-        setPosts(data.items);
-      } catch (error) {
-        console.error('Failed to fetch posts', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchPosts();
-  }, []);
+// BỎ 'use client', biến thành Server Component
+export default async function PostsPage() {
+  const t = await getTranslations('public_posts');
+  
+  let posts: any[] = [];
+  
+  try {
+    const data = await getPublicPosts({ take: 12 });
+    posts = data.items || [];
+  } catch (error) {
+    console.error('Failed to fetch posts', error);
+  }
 
   return (
     <div className="bg-[#fcfbf9] min-h-screen py-16 px-6 font-sans">
@@ -37,9 +28,7 @@ export default function PostsPage() {
           </p>
         </div>
 
-        {loading ? (
-          <div className="text-center text-slate-400 py-20">{t('loading')}</div>
-        ) : posts.length === 0 ? (
+        {posts.length === 0 ? (
           <div className="text-center text-slate-400 py-20 bg-white rounded-3xl border border-slate-100">
             {t('empty')}
           </div>
@@ -74,9 +63,9 @@ export default function PostsPage() {
                   </p>
                   <div className="flex items-center gap-3 mt-auto pt-4 border-t border-slate-100">
                     <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs">
-                      {post.author.name.charAt(0)}
+                      {post.author?.name?.charAt(0) || 'U'}
                     </div>
-                    <span className="text-sm font-medium text-slate-700">{post.author.name}</span>
+                    <span className="text-sm font-medium text-slate-700">{post.author?.name || 'Unknown'}</span>
                   </div>
                 </div>
 

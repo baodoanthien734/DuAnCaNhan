@@ -8,6 +8,11 @@ export class CreateProductDto {
   @IsString()
   name!: string;
 
+  // BỔ SUNG TRƯỜNG SLUG Ở ĐÂY
+  @IsOptional()
+  @IsString()
+  slug?: string;
+
   @IsNumber()
   categoryId!: number;
 
@@ -36,14 +41,12 @@ export class CreateProductDto {
   @IsEnum(ProductStatus)
   status?: ProductStatus;
 
-  // Validate mảng Variants lồng nhau
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateVariantDto)
   variants?: CreateVariantDto[];
 
-  // Validate mảng Customizations lồng nhau
   @IsOptional()
   @IsArray()
   @ValidateNested({ each: true })

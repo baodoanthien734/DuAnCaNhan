@@ -4,7 +4,7 @@
       "lang": "en"
     },
     "header": {
-      "title": "🍃 Handmade Studio",
+      "title": "🍃 Tiny Handmade",
       "subtitle": "Small handcrafted pieces for your living space and gifts.",
       "login": "Log in",
       "register": "Sign up",
@@ -13,6 +13,8 @@
       "adminPanel": "Admin Panel",
       "logout": "Logout",
       "orders": "My Orders",
+      "categories": "Product Categories",
+      "no_subcategories": "No subcategories yet",
       "nav": {
       "home": "Home",
       "products": "Products",
@@ -89,7 +91,7 @@
       "back": "← Go back",
       "empty": "No products in this category yet."
     },
-    "footer": "© 2026 Handmade Studio. Small, refined, and heartfelt handcrafted pieces."
+    "footer": "© 2026 Tiny Handmade. Small, refined, and heartfelt handcrafted pieces."
   },
   "auth": {
     "login": {
@@ -158,7 +160,11 @@
       "posts": "Posts",
       "orders": "Orders",
       "reviews": "Reviews",
-      "customers": "Customers"
+      "customers": "Customers",
+      "settings": "Settings",
+      "language": "Language",
+      "store": "Store",
+      "logout": "Log Out"
     }
   },
   "admin_categories": {
@@ -227,7 +233,8 @@
       "uploadError": "Unable to upload image",
       "saveError": "Failed to save category",
       "createTitle": "Create new category",
-      "editTitle": "Edit category"
+      "editTitle": "Edit category",
+      "slugHelp": "Leave blank to auto-generate, or enter a custom path (e.g., small-teddy-bear)."
     }
   },
   "admin_products": {
@@ -355,12 +362,18 @@
       "loadingProduct": "Loading product data...",
       "createSuccess": "Product created successfully!",
       "createAuthError": "Your login session has expired or you do not have permission!",
-      "createValidationError": "Validation error:\n{message}",
+      "createValidationError": "{message}",
       "createGenericError": "Something went wrong. Please try again later!",
       "updateSuccess": "Product updated successfully!",
-      "updateValidationError": "Backend data error:\n{message}",
+      "updateValidationError": "{message}",
       "updateError": "An error occurred while updating the product. Please check the console for details!",
-      "detailsLoadError": "The product does not exist or has been deleted."
+      "detailsLoadError": "The product does not exist or has been deleted.",
+      "slugLabel": "URL Slug",
+      "slugHelp": "Leave blank to auto-generate, or enter a custom path (e.g., capybara-ceramic-mug).",
+      "variantSkuPlaceholder": "Ex: LY-CAPYBARA-SX ",
+      "variantSkuHint": "Stock Keeping Unit. Must be unique.",
+      "categoryHierarchyLabel": "Display structure:",
+      "categoryNote": "Only leaf categories are available for selection. The product will be displayed in all parent categories related to the selected category."
     }
   },
   "editor": {
@@ -507,6 +520,9 @@
     "back_to_products": "← Back to products"
   },
   "categories": {
+    "home": "Home",
+    "you_might_also_like": "You might also like?",
+    "products_count": "{count} products",
     "all": "All",
     "back": "← Go back",
     "empty": "No products in this category yet."

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import AuthGroup from '@/components/ui/AuthGroup'; 
+import CategoryDropdown from '@/components/ui/CategoryDropdown';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -70,6 +71,9 @@ export default async function PublicLayout({
               {t('header.nav.products')}
             </Link>
             
+            {/* Nút danh mục sản phẩm với dropdown */}
+            <CategoryDropdown />
+
             {/* Nút mới dẫn đến trang Tạp chí/Blog */}
             <Link href="/posts" style={{ color: '#374151', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
               {t('header.nav.posts')}

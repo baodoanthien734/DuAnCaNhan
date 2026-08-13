@@ -1,5 +1,6 @@
 {
   "error": {
-    "category_not_found": "Danh mục không tồn tại"
+    "category_not_found": "Danh mục không tồn tại",
+    "duplicate_slug": "Tên danh mục hoặc đường dẫn (slug) này đã tồn tại trong hệ thống."
   }
 }

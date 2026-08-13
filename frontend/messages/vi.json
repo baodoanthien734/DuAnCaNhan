@@ -4,7 +4,7 @@
       "lang": "vi"
     },
     "header": {
-      "title": "🍃 Handmade Studio",
+      "title": "🍃 Tiny Handmade",
       "subtitle": "Đồ thủ công nhỏ xinh cho góc sống và quà tặng.",
       "login": "Đăng nhập",
       "register": "Đăng ký",
@@ -13,6 +13,8 @@
       "adminPanel": "Vào trang Quản trị",
       "logout": "Đăng xuất",
       "orders": "Đơn hàng",
+      "categories": "Danh Mục Sản Phẩm",
+      "no_subcategories": "Chưa có danh mục khác",
       "nav": {
       "home": "Trang chủ",
       "products": "Sản phẩm",
@@ -89,7 +91,7 @@
       "back": "← Quay lại danh sách",
       "empty": "Chưa có sản phẩm nào trong danh mục này."
     },
-    "footer": "© 2026 Handmade Studio. Đồ thủ công nhỏ, tinh tế và chân thành."
+      "footer": "© 2026 Tiny Handmade. Đồ thủ công nhỏ, tinh tế và chân thành."
   },
   "auth": {
     "login": {
@@ -158,7 +160,11 @@
       "posts": "Bài viết",
       "orders": "Đơn hàng",
       "reviews": "Đánh giá",
-      "customers": "Khách hàng"
+      "customers": "Khách hàng",
+      "settings": "Cài Đặt",
+      "language": "Ngôn Ngữ",
+      "store": "Về Cửa Hàng", 
+      "logout": "Đăng Xuất"
     }
   },
   "admin_categories": {
@@ -227,7 +233,8 @@
       "uploadError": "Không thể upload ảnh",
       "saveError": "Lỗi khi lưu danh mục",
       "createTitle": "Tạo danh mục mới",
-      "editTitle": "Sửa danh mục"
+      "editTitle": "Sửa danh mục",
+      "slugHelp": "Để trống để hệ thống tự động tạo, hoặc nhập đường dẫn bạn muốn (vd: thu-bong-nho)."
     }
   },
   "admin_products": {
@@ -355,12 +362,18 @@
       "loadingProduct": "Đang tải dữ liệu sản phẩm...",
       "createSuccess": "Tạo sản phẩm thành công!",
       "createAuthError": "Phiên đăng nhập đã hết hạn hoặc bạn không đủ quyền!",
-      "createValidationError": "Lỗi validate:\n{message}",
+      "createValidationError": "{message}",
       "createGenericError": "Có lỗi xảy ra, vui lòng thử lại sau!",
       "updateSuccess": "Cập nhật sản phẩm thành công!",
-      "updateValidationError": "Lỗi dữ liệu từ Backend:\n{message}",
+      "updateValidationError": "{message}",
       "updateError": "Đã xảy ra lỗi khi cập nhật sản phẩm. Vui lòng mở F12 để xem chi tiết!",
-      "detailsLoadError": "Sản phẩm không tồn tại hoặc đã bị xóa."
+      "detailsLoadError": "Sản phẩm không tồn tại hoặc đã bị xóa.",
+      "slugLabel": "Đường dẫn (Slug)",
+      "slugHelp": "Để trống để hệ thống tự động tạo, hoặc nhập đường dẫn bạn muốn (vd: ly-su-capybara).",
+      "variantSkuPlaceholder": "VD: LY-CAPYBARA-SX ",
+      "variantSkuHint": "Mã quản lý kho. Không được trùng lặp.",
+      "categoryHierarchyLabel": "Cấu trúc hiển thị:",
+      "categoryNote": "Chỉ hiển thị các danh mục lá. Sản phẩm sẽ được hiển thị ở toàn bộ danh mục cấp cha liên quan đến danh mục được chọn."
     }
   },
   "editor": {
@@ -507,6 +520,9 @@
     "back_to_products": "← Quay lại danh sách"
   },
   "categories": {
+    "home": "Trang chủ",
+    "you_might_also_like": "Bạn cũng có thể muốn?",
+    "products_count": "{count} sản phẩm",
     "all": "Tất cả",
     "back": "← Quay lại danh sách",
     "empty": "Chưa có sản phẩm nào trong danh mục này."

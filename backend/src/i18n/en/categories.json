@@ -1,5 +1,6 @@
 {
   "error": {
-    "category_not_found": "Category not found"
+    "category_not_found": "Category not found",
+    "duplicate_slug": "The name or slug for this category already exists in the system."
   }
 }
