@@ -2,6 +2,7 @@
   "validation": {
     "name_string": "Họ và tên phải là chuỗi ký tự",
     "name_max_length": "Họ và tên không được vượt quá 100 ký tự",
+    "remove_avatar_boolean": "removeAvatar phải là giá trị boolean",
     "recipient_name_string": "Tên người nhận phải là chuỗi ký tự",
     "recipient_name_required": "Tên người nhận không được để trống",
     "recipient_name_max_length": "Tên người nhận không được vượt quá 120 ký tự",
@@ -25,7 +26,10 @@
   "error": {
     "user_not_found": "Không tìm thấy người dùng",
     "address_not_found": "Không tìm thấy địa chỉ",
-    "address_forbidden": "Bạn không có quyền truy cập địa chỉ này"
+    "address_forbidden": "Bạn không có quyền truy cập địa chỉ này",
+    "avatar_invalid_file_type": "Chỉ cho phép tải lên tệp ảnh đại diện",
+    "avatar_upload_failed": "Tải ảnh đại diện thất bại",
+    "avatar_delete_failed": "Xóa ảnh đại diện cũ thất bại"
   },
   "success": {
     "profile_updated": "Cập nhật hồ sơ thành công",

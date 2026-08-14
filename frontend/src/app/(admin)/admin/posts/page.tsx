@@ -64,16 +64,13 @@ export default function AdminPostsPage() {
   const totalPages = Math.ceil(totalItems / take);
 
   // Fallback URL cho ảnh, thay 8080 bằng Port backend của bạn
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080";
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
   return (
     <div className="flex flex-col gap-6">
       {/* Header */}
       <div className="flex justify-between items-start flex-wrap gap-4">
         <div>
-          <p className="m-0 text-blue-600 uppercase tracking-widest text-xs font-bold">
-            {t("header.subtitle")}
-          </p>
           <h1 className="mt-3 text-3xl font-bold text-gray-900">
             {t("header.title")}
           </h1>

@@ -4,7 +4,7 @@
       "lang": "en"
     },
     "header": {
-      "title": "🍃 Tiny Handmade",
+      "title": "Tiny Handmade",
       "subtitle": "Small handcrafted pieces for your living space and gifts.",
       "login": "Log in",
       "register": "Sign up",
@@ -35,32 +35,13 @@
       "gifts": "Gifts",
       "jewelry": "Jewelry",
       "home": "Home goods",
-      "cardsAndBags": "Cards & Bags"
+      "cardsAndBags": "Cards & Bags",
+      "viewAll": "View all"
     },
     "products": {
       "title": "Handcrafted products",
       "detail": "View details",
-      "empty": "No products available yet.",
-      "item1": {
-        "title": "Ceramic vase",
-        "description": "Handcrafted flower vase with warm earthy textures.",
-        "price": "220,000 VND"
-      },
-      "item2": {
-        "title": "Embroidered tote bag",
-        "description": "Light canvas bag with elegant floral patterns.",
-        "price": "180,000 VND"
-      },
-      "item3": {
-        "title": "Handmade scented candle",
-        "description": "Soft lavender candle, entirely handcrafted.",
-        "price": "130,000 VND"
-      },
-      "item4": {
-        "title": "Greeting card",
-        "description": "Handmade paper card with elegant handwritten details.",
-        "price": "95,000 VND"
-      }
+      "empty": "No products available yet."
     },
     "story": {
       "eyebrow": "OUR STORY",
@@ -183,6 +164,15 @@
       "loading": "Loading...",
       "loadError": "Failed to load categories",
       "empty": "No categories",
+      "deleteConfirmTitle": "Confirm Deletion",
+      "deleteConfirmMessage": "Are you sure you want to delete this category? Child categories will also be affected.",
+      "deleteSuccess": "Category deleted successfully!",
+      "deleteError": "Cannot delete system category or an error occurred.",
+      "createSuccess": "Category created successfully!",
+      "updateSuccess": "Category updated successfully!",
+      "reorderError": "Failed to reorder categories.",
+      "statusActive": "Active",
+      "statusInactive": "Inactive",
       "columns": {
         "image": "Image",
         "name": "Name",
@@ -517,7 +507,11 @@
     "no_description": "...",
     "currency": "VND",
     "view_detail": "View details",
-    "back_to_products": "← Back to products"
+    "back_to_products": "← Back to products",
+    "search_no_results": "No products found matching \"{query}\"",
+    "search_view_all": "View all results for \"{query}\"",
+    "search_result_for": "Search results for: \"{query}\"",
+    "explore_all": "Explore all handcrafted art pieces"
   },
   "categories": {
     "home": "Home",
@@ -545,6 +539,11 @@
     "personalInfo": "Personal Information",
     "fullName": "Full Name",
     "email": "Email",
+    "avatar": "Avatar",
+    "avatarHint": "Choose an image and preview before saving.",
+    "changeAvatar": "Change avatar",
+    "removeAvatar": "Remove avatar",
+    "avatarUploadFailed": "Failed to load avatar preview",
     "saveProfile": "Save Profile",
     "saving": "Saving...",
     "addressBook": "Address Book",
@@ -568,24 +567,37 @@
     "defaultAddressUpdated": "Default address updated successfully"
   },
   "admin_orders": {
-    "list_title": "📦 Order Management",
-    "loading_list": "Loading orders...",
+    "list_title": "Order Management",
+    "list_subtitle": "Track and process customer orders",
+    "total_count": "Total orders:",
+    "loading_list": "Loading data...",
     "empty_list": "No orders found.",
+    "search_placeholder": "Search by order ID, customer name, or phone number...",
+    "filter_status_all": "All statuses",
+    "filter_date_all": "All time",
+    "filter_date_today": "Today",
+    "filter_date_7days": "Last 7 days",
+    "filter_date_month": "This month",
+    "filter_date_year": "This year",
     "table": {
-      "order_code": "Order Code",
-      "customer": "Customer",
-      "order_date": "Date",
-      "total": "Total",
-      "status": "Status",
-      "action": "Action",
-      "detail_btn": "Detail"
+    "order_code": "Order ID",
+    "customer": "Customer",
+    "order_date": "Order Date",
+    "total": "Total Amount",
+    "status": "Status",
+    "action": "Action",
+    "detail_btn": "Details"
     },
     "status": {
-      "PENDING": "⏳ Pending",
-      "PROCESSING": "📦 Processing",
-      "SHIPPING": "🚚 Shipping",
-      "DELIVERED": "✅ Delivered",
-      "CANCELLED": "❌ Cancelled"
+    "PENDING": "Pending Payment",
+    "PROCESSING": "Processing",
+    "SHIPPING": "Shipping",
+    "DELIVERED": "Delivered",
+    "CANCELLED": "Cancelled"
+    },
+    "pagination": {
+    "prev": "Previous",
+    "next": "Next"
     },
     "detail": {
       "back": "← Back to list",
@@ -723,22 +735,39 @@
     }
   },
   "admin_reviews": {
-    "title": "Reviews Management",
-    "empty": "No reviews yet.",
+    "title": "Review Management",
+    "subtitle": "Manage and respond to customer product reviews",
+    "search_placeholder": "Search by name, email, or order ID...",
+    "filter_rating_all": "All ratings",
+    "filter_rating_5": "5 Stars",
+    "filter_rating_4": "4 Stars",
+    "filter_rating_3": "3 Stars",
+    "filter_rating_2": "2 Stars",
+    "filter_rating_1": "1 Star",
+    "filter_reply_all": "All statuses",
+    "filter_reply_replied": "Replied",
+    "filter_reply_unreplied": "Unreplied",
+    "total_count": "Total:",
+    "reviews": "reviews",
+    "empty": "No reviews found.",
     "product": "Product",
     "order": "Order",
     "btn_reply": "Reply",
     "btn_edit_reply": "Edit reply",
     "btn_delete": "Delete",
-    "admin_reply_label": "Store's Reply:",
-    "input_label": "Enter your reply:",
-    "placeholder": "Thank you for your purchase...",
+    "admin_reply_label": "Admin Reply",
+    "input_label": "Reply content",
+    "placeholder": "Enter your reply to the customer...",
     "btn_cancel": "Cancel",
-    "btn_save": "Save Reply",
+    "btn_save": "Save reply",
     "btn_saving": "Saving...",
     "confirm_delete": "Are you sure you want to delete this review?",
-    "err_delete": "Failed to delete this review.",
-    "err_reply": "An error occurred while saving the reply!"
+    "err_reply": "An error occurred while saving the reply.",
+    "err_delete": "An error occurred while deleting the review.",
+    "pagination": {
+    "prev": "Previous",
+    "next": "Next"
+    }
   },
   "user_reviews": {
     "btn_review": "Write a Review",
@@ -776,5 +805,28 @@
   "empty": "No articles have been published yet.",
   "back": "Back to list",
   "not_found": "Article not found or has been deleted."
+  },
+  "admin_dashboard": {
+    "badge": "Dashboard",
+    "greeting": "Welcome back, {name} 👋",
+    "subtitle": "Here is an overview of today's business activity. Everything is running smoothly!",
+    "status_title": "System Status",
+    "status_desc": "All services are operating normally. The system is ready to receive orders.",
+    "stats": {
+    "orders": "New Orders",
+    "revenue": "Monthly Revenue",
+    "products": "Active Products",
+    "customers": "Customers"
+    },
+    "quick_links": "Quick Links",
+    "quick_links_desc": "Quickly navigate to key management areas.",
+    "links": {
+    "categories": "Category Management",
+    "products": "Product Management",
+    "posts": "Post Management",
+    "orders": "Order Management",
+    "reviews": "Review Management",
+    "customers": "Customer Management"
+    }
   }
 }

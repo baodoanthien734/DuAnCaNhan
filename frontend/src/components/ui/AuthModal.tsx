@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom'; // 1. Import createPortal
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { apiClient } from '@/lib/api-client';
@@ -17,6 +18,9 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
   const router = useRouter();
   const tLogin = useTranslations('auth.login');
   const tReg = useTranslations('auth.register');
+
+  // --- STATE MOUNTED (CHỐNG LỖI NEXT.JS HYDRATION) ---
+  const [mounted, setMounted] = useState(false);
 
   const [view, setView] = useState<'login' | 'register'>(initialView);
   const [loading, setLoading] = useState(false);
@@ -35,6 +39,11 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
   const [regPassword, setRegPassword] = useState('');
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [countdown, setCountdown] = useState<number>(0);
+
+  // 2. Set mounted = true khi component đã render trên Client
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
@@ -95,10 +104,9 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
       try {
         await syncGuestCartToServer();
       } catch {
-        // Ignore merge errors to avoid blocking successful login.
+        // Ignore merge errors
       }
       onClose();
-      // Luôn ở lại trang hiện tại bất kể là ai
       window.location.reload(); 
     } catch (err: any) {
       const resData = err.response?.data;
@@ -151,7 +159,6 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
     try {
       const currentOtp = regOtp || localStorage.getItem('reg_otp') || '';
       
-      // 1. Đăng ký tài khoản
       await apiClient.post('/auth/register', { 
         email: regEmail, 
         code: currentOtp, 
@@ -160,7 +167,6 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
       });
       clearRegisterStorage();
       
-      // 2. Tự động Đăng nhập ngay lập tức bằng thông tin vừa tạo
       const loginResponse = await apiClient.post('/auth/login', { 
         email: regEmail, 
         password: regPassword 
@@ -169,24 +175,23 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
       setLoginData({ accessToken, refreshToken, user });
       try {
         await syncGuestCartToServer();
-      } catch {
-        // Ignore merge errors to avoid blocking successful registration flow.
-      }
+      } catch {}
       
       onClose();
-      // Tải lại trang để cập nhật Header
       window.location.reload(); 
       
     } catch (err: any) {
       setErrorMsg(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
-      setLoading(false); // Chỉ tắt loading khi lỗi
+      setLoading(false); 
     }
   };
 
-  if (!isOpen) return null;
+  // 3. Nếu chưa mở HOẶC chưa mount xong thì không render gì cả
+  if (!isOpen || !mounted) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm" onClick={onClose}>
+  // 4. Bọc toàn bộ giao diện bằng createPortal
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity" onClick={onClose}>
       <div 
         className="relative w-full max-w-md rounded-2xl bg-white p-8 shadow-2xl"
         onClick={(e) => e.stopPropagation()} 
@@ -307,6 +312,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body // Gắn thẳng vào <body>
   );
 }

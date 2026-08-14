@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server'; 
 
 async function getProfile(token: string) {
   try {
@@ -27,104 +28,134 @@ export default async function AdminPage() {
 
   const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
   if (!roles.includes('ADMIN')) {
-    // Chặn User thường, đá về Landing Page
     redirect('/'); 
   }
 
+  // Khởi tạo bộ dịch
+  const t = await getTranslations('admin_dashboard');
+
   return (
-    <div style={{ display: 'grid', gap: '28px' }}>
-      <section style={{ display: 'grid', gap: '18px' }}>
+    <div style={{ marginTop: '18px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+      
+      {/* SECTION 1: HEADER & STATS (Đồng bộ UI với CategoryList) */}
+      <section>
         <div
           style={{
+            backgroundColor: '#fff',
+            borderRadius: '16px',
+            border: '1px solid #e5e7eb',
+            padding: '24px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '16px',
-            padding: '28px',
-            borderRadius: '32px',
-            backgroundColor: '#ffffff',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 20px 40px rgba(15, 23, 42, 0.05)',
+            gap: '24px',
           }}
         >
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
-            <div style={{ minWidth: 0, flex: '1 1 400px' }}>
-              <p style={{ margin: 0, color: '#0c4a6e', textTransform: 'uppercase', letterSpacing: '0.14em', fontSize: '12px', fontWeight: 700 }}>
-                Bảng điều khiển
-              </p>
-              <h1 style={{ margin: '12px 0 0', fontSize: '36px', color: '#0f172a' }}>Chào mừng đến TinyHandMade</h1>
-              <p style={{ margin: '16px 0 0', color: '#475569', fontSize: '16px', maxWidth: '720px' }}>
-                Quản lý sản phẩm, đơn hàng, nội dung và khách hàng trong một không gian sạch sẽ, thanh lịch và dễ sử dụng.
+          {/* Lời chào & Trạng thái */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap', alignItems: 'center' }}>
+            <div style={{ flex: '1 1 400px' }}>
+              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 700, color: '#111827' }}>
+                {t('greeting', { name: user.name || 'Admin' })}
+              </h1>
+              <p style={{ margin: '6px 0 0', color: '#6b7280', fontSize: '14px' }}>
+                {t('subtitle')}
               </p>
             </div>
 
-            <div style={{ minWidth: '220px', padding: '22px', borderRadius: '24px', backgroundColor: '#eff6ff', border: '1px solid #bae6fd' }}>
-              <p style={{ margin: 0, color: '#0c4a6e', fontSize: '14px', fontWeight: 700 }}>Tình trạng hệ thống</p>
-              <p style={{ margin: '12px 0 0', color: '#334155', fontSize: '15px' }}>
-                Tất cả dịch vụ đang hoạt động ổn định. Bạn có thể kiểm tra số liệu, cập nhật sản phẩm và phản hồi bình luận nhanh chóng.
+            {/* Trạng thái hệ thống - Tone màu giống Toast success của bạn */}
+            <div style={{ padding: '12px 16px', borderRadius: '8px', backgroundColor: '#e0f2fe', border: '1px solid #bae6fd', minWidth: '240px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ display: 'inline-block', width: '8px', height: '8px', backgroundColor: '#0369a1', borderRadius: '50%' }}></span>
+                <p style={{ margin: 0, color: '#0369a1', fontSize: '14px', fontWeight: 600 }}>{t('status_title')}</p>
+              </div>
+              <p style={{ margin: '4px 0 0', color: '#0284c7', fontSize: '13px' }}>
+                {t('status_desc')}
               </p>
             </div>
           </div>
 
+          <div style={{ height: '1px', backgroundColor: '#e5e7eb' }}></div>
+
+          {/* 4 Thẻ Thống kê (Chuyển sang nền trắng xám, font chuẩn CategoryList) */}
           <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
             {[
-              { label: 'Tổng đơn hàng', value: '128' },
-              { label: 'Sản phẩm', value: '52' },
-              { label: 'Bài viết', value: '14' },
-              { label: 'Khách hàng', value: '312' },
+              { label: t('stats.orders'), value: '12', icon: '🛒' },
+              { label: t('stats.revenue'), value: '4.5M', icon: '💰' },
+              { label: t('stats.products'), value: '45', icon: '📦' },
+              { label: t('stats.customers'), value: '128', icon: '👥' },
             ].map((item) => (
-              <div key={item.label} style={{ padding: '22px', borderRadius: '24px', backgroundColor: '#f8fbff', border: '1px solid #dbeafe' }}>
-                <p style={{ margin: 0, color: '#0f172a', fontSize: '13px', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
-                  {item.label}
-                </p>
-                <p style={{ margin: '14px 0 0', fontSize: '32px', fontWeight: 700, color: '#0c4a6e' }}>{item.value}</p>
+              <div 
+                key={item.label} 
+                style={{ 
+                  padding: '16px 20px', 
+                  borderRadius: '12px', 
+                  backgroundColor: '#f9fafb', 
+                  border: '1px solid #e5e7eb',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '16px'
+                }}
+              >
+                <div style={{ fontSize: '28px' }}>{item.icon}</div>
+                <div>
+                  <p style={{ margin: 0, color: '#6b7280', fontSize: '13px', fontWeight: 500 }}>
+                    {item.label}
+                  </p>
+                  <p style={{ margin: '2px 0 0', fontSize: '24px', fontWeight: 700, color: '#111827' }}>
+                    {item.value}
+                  </p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      <section style={{ display: 'grid', gap: '14px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
-          <div>
-            <h2 style={{ margin: 0, fontSize: '28px', color: '#0f172a' }}>Phím tắt quản lý</h2>
-            <p style={{ margin: '8px 0 0', color: '#64748b', fontSize: '15px' }}>
-              Truy cập nhanh đến các khu vực chính của TinyHandMade.
-            </p>
-          </div>
+      {/* SECTION 2: QUICK LINKS */}
+      <section>
+        <div style={{ marginBottom: '16px', paddingLeft: '4px' }}>
+          <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#111827' }}>{t('quick_links')}</h2>
+          <p style={{ margin: '4px 0 0', color: '#6b7280', fontSize: '14px' }}>
+            {t('quick_links_desc')}
+          </p>
         </div>
 
-        <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+        <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))' }}>
           {[
-            { label: 'Danh mục', href: '/admin/categories' },
-            { label: 'Sản phẩm', href: '/admin/products' },
-            { label: 'Bài viết', href: '/admin/posts' },
-            { label: 'Đơn hàng', href: '/admin/orders' },
-            { label: 'Đánh giá', href: '/admin/reviews' },
-            { label: 'Khách hàng', href: '/admin/customers' },
+            { label: t('links.categories'), href: '/admin/categories', icon: '📁' },
+            { label: t('links.products'), href: '/admin/products', icon: '📦' },
+            { label: t('links.posts'), href: '/admin/posts', icon: '📝' },
+            { label: t('links.orders'), href: '/admin/orders', icon: '🛒' },
+            { label: t('links.reviews'), href: '/admin/reviews', icon: '⭐' },
+            { label: t('links.customers'), href: '/admin/customers', icon: '👥' },
           ].map((item) => (
             <Link
               key={item.href}
               href={item.href}
+              className="quick-link-card" 
               style={{
                 display: 'flex',
-                justifyContent: 'space-between',
                 alignItems: 'center',
-                padding: '20px 22px',
-                borderRadius: '20px',
+                gap: '12px',
+                padding: '16px',
+                borderRadius: '12px',
                 backgroundColor: '#ffffff',
                 textDecoration: 'none',
-                color: '#0f172a',
-                fontWeight: 700,
-                boxShadow: '0 16px 35px rgba(15, 23, 42, 0.06)',
-                border: '1px solid #e2e8f0',
+                color: '#374151',
+                fontWeight: 600,
+                fontSize: '14px',
+                border: '1px solid #e5e7eb',
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', // Đổ bóng nhẹ chuẩn Tailwind
               }}
             >
-              <span>{item.label}</span>
-              <span style={{ fontSize: '20px', color: '#0284c7' }}>→</span>
+              <span style={{ fontSize: '20px' }}>{item.icon}</span>
+              <span style={{ flex: 1 }}>{item.label}</span>
+              <span style={{ color: '#9ca3af', fontWeight: 400 }}>→</span>
             </Link>
           ))}
         </div>
       </section>
+
     </div>
   );
 }

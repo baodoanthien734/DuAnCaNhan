@@ -192,11 +192,33 @@ export class ReviewsService {
   }
 
   // 3. LẤY DANH SÁCH ĐÁNH GIÁ (CHO ADMIN)
-  async findAllForAdmin(query: { q?: string; productId?: string; skip?: number; take?: number }) {
+  async findAllForAdmin(query: { q?: string; productId?: string; rating?: string; replyStatus?: string; skip?: number; take?: number }) {
     const where: any = {};
 
+    // Lọc theo Sản phẩm (Nếu có)
     if (query.productId) {
       where.productId = Number(query.productId);
+    }
+
+    // Lọc theo Tìm kiếm (Tên, Email hoặc Mã đơn hàng)
+    if (query.q) {
+      where.OR = [
+        { customer: { name: { contains: query.q, mode: 'insensitive' } } },
+        { customer: { email: { contains: query.q, mode: 'insensitive' } } },
+        { order: { code: { contains: query.q, mode: 'insensitive' } } },
+      ];
+    }
+
+    // Lọc theo Số sao (rating)
+    if (query.rating && !isNaN(Number(query.rating))) {
+      where.rating = Number(query.rating);
+    }
+
+    // Lọc theo Trạng thái phản hồi (Đã trả lời / Chưa trả lời)
+    if (query.replyStatus === 'replied') {
+      where.adminReply = { not: null };
+    } else if (query.replyStatus === 'unreplied') {
+      where.adminReply = null;
     }
 
     const [items, total] = await this.prisma.$transaction([
@@ -216,7 +238,6 @@ export class ReviewsService {
 
     return { items, total };
   }
-
   // 4. ADMIN TRẢ LỜI ĐÁNH GIÁ
   async replyByAdmin(id: number, dto: ReplyReviewDto) {
     const review = await this.prisma.review.findUnique({ where: { id } });

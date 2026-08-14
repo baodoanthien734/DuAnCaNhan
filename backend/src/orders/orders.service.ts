@@ -226,10 +226,55 @@ export class OrdersService {
   // ==========================================
 
   // Admin xem tất cả đơn hàng
-  async findAllForAdmin(query: { status?: OrderStatus; skip?: number; take?: number }) {
+  async findAllForAdmin(query: { q?: string; dateRange?: string; status?: OrderStatus; skip?: number; take?: number }) {
     const where: any = {};
-    if (query.status) where.status = query.status;
 
+    // 1. Lọc theo Trạng thái (Status)
+    if (query.status) {
+      where.status = query.status;
+    }
+
+    // 2. Lọc theo Từ khóa tìm kiếm (Mã đơn, Tên KH, Email, hoặc Số điện thoại)
+    if (query.q) {
+      where.OR = [
+        { code: { contains: query.q, mode: 'insensitive' } },
+        { customer: { name: { contains: query.q, mode: 'insensitive' } } },
+        { customer: { email: { contains: query.q, mode: 'insensitive' } } },
+        { address: { phone: { contains: query.q } } }, // Tìm theo SĐT nhận hàng
+      ];
+    }
+
+    // 3. Lọc theo Thời gian (Date Range)
+    if (query.dateRange) {
+      const now = new Date();
+      
+      // SỬA Ở ĐÂY: Thêm "| null" để TypeScript cho phép gán giá trị null
+      let startDate: Date | null = null; 
+
+      switch (query.dateRange) {
+        case 'today':
+          startDate = new Date(now.setHours(0, 0, 0, 0));
+          break;
+        case '7days':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'month':
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case 'year':
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        default:
+          startDate = null;
+      }
+
+      if (startDate) {
+        where.createdAt = { gte: startDate };
+      }
+    }
+
+    // 4. Thực thi truy vấn với Prisma
     const [items, total] = await this.prisma.$transaction([
       this.prisma.order.findMany({
         where,

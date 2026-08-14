@@ -22,81 +22,59 @@ export const metadata: Metadata = {
   description: "Small handcrafted pieces for your living space and gifts.",
 };
 
-export default async function PublicLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default async function PublicLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const t = await getTranslations('public_pages');
 
   return (
-    <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col`} style={{ fontFamily: 'system-ui, sans-serif', backgroundColor: '#f7f5f2', color: '#111827' }}>
+    <div className={`${geistSans.variable} ${geistMono.variable} min-h-screen flex flex-col font-sans bg-[#fcfbf9] text-slate-900`}>
       
-      {/* HEADER CHUẨN MỰC, CÂN ĐỐI */}
-      <header style={{ 
-        backgroundColor: '#fff', 
-        padding: '16px 24px', 
-        boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)', 
-        position: 'sticky', 
-        top: 0, 
-        zIndex: 50 
-      }}>
-        <div style={{ 
-          maxWidth: '1200px', 
-          margin: '0 auto', 
-          display: 'flex', 
-          justifyContent: 'space-between', 
-          alignItems: 'center', 
-          gap: '16px',
-          flexWrap: 'wrap' 
-        }}>
+      {/* HEADER TỐI GIẢN */}
+      <header className="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
           
-          {/* Cột Trái: Logo & Slogan */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <span style={{ fontSize: '28px' }}></span>
-            <div>
-              <Link href="/" style={{ textDecoration: 'none', color: '#111827' }}>
-                <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: 0, lineHeight: '1.2' }}>{t('header.title')}</h1>
-              </Link>
-              <p style={{ margin: '2px 0 0', color: '#6b7280', fontSize: '13px' }}>{t('header.subtitle')}</p>
+          {/* Cột Trái: Logo */}
+          <Link href="/" className="flex items-center gap-3 group no-underline">
+            <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center text-xl shadow-sm group-hover:scale-105 transition-transform">
+              🍃
             </div>
-          </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 m-0">{t('header.title')}</h1>
+              <p className="text-[11px] font-medium text-slate-400 uppercase tracking-wider m-0 mt-0.5">{t('header.subtitle')}</p>
+            </div>
+          </Link>
           
-          {/* Cột Giữa: Menu điều hướng chính */}
-          <nav style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <Link href="/" style={{ color: '#374151', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+          {/* Cột Giữa: Menu điều hướng */}
+          <nav className="hidden lg:flex items-center gap-8">
+            <Link href="/" className="text-sm font-semibold text-slate-600 hover:text-amber-600 transition-colors no-underline">
               {t('header.nav.home')}
             </Link>
-            <Link href="/products" style={{ color: '#374151', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+            <Link href="/products" className="text-sm font-semibold text-slate-600 hover:text-amber-600 transition-colors no-underline">
               {t('header.nav.products')}
             </Link>
-            
-            {/* Nút danh mục sản phẩm với dropdown */}
             <CategoryDropdown />
-
-            {/* Nút mới dẫn đến trang Tạp chí/Blog */}
-            <Link href="/posts" style={{ color: '#374151', textDecoration: 'none', fontWeight: '600', fontSize: '14px' }}>
+            <Link href="/posts" className="text-sm font-semibold text-slate-600 hover:text-amber-600 transition-colors no-underline">
               {t('header.nav.posts')}
             </Link>
           </nav>
 
-          {/* Cột Phải: Ngôn ngữ & Nhóm đăng nhập / giỏ hàng */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+          {/* Cột Phải: Tool & User */}
+          <div className="flex items-center gap-4">
             <LanguageSwitcher />
+            <div className="w-px h-6 bg-slate-200 hidden sm:block"></div> {/* Dấu gạch dọc phân cách nhẹ nhàng */}
             <AuthGroup />
           </div>
 
         </div>
       </header>
 
-      {/* NỘI DUNG TRANG CON (Được bọc đồng bộ khung max-width ở các trang con) */}
-      <main style={{ flexGrow: 1 }}>
+      {/* NỘI DUNG CHÍNH */}
+      <main className="flex-grow">
         {children}
       </main>
 
       {/* FOOTER */}
-      <footer style={{ backgroundColor: '#fff', color: '#6b7280', padding: '24px 20px', textAlign: 'center', marginTop: 'auto', borderTop: '1px solid #e5e7eb', fontSize: '14px' }}>
-        <p style={{ margin: 0 }}>{t('footer')}</p>
+      <footer className="bg-white border-t border-slate-100 py-8 text-center text-sm text-slate-500">
+        <p className="m-0">{t('footer')}</p>
       </footer>
     </div>
   );

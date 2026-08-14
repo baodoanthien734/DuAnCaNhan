@@ -11,11 +11,13 @@ import {
   setDefaultAddress,
   updateProfile,
 } from '@/lib/user-api';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 type Profile = {
   id: number;
   email: string;
   name?: string | null;
+  image?: string | null;
 };
 
 type Address = {
@@ -63,6 +65,9 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [name, setName] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [removeAvatar, setRemoveAvatar] = useState(false);
   const [savingProfile, setSavingProfile] = useState(false);
 
   const [addresses, setAddresses] = useState<Address[]>([]);
@@ -83,6 +88,9 @@ export default function ProfilePage() {
       const [profileRes, addressRes] = await Promise.all([getProfile(), getAddresses()]);
       setProfile(profileRes);
       setName(profileRes?.name || '');
+      setAvatarPreview(null);
+      setAvatarFile(null);
+      setRemoveAvatar(false);
       setAddresses(Array.isArray(addressRes) ? addressRes : []);
     } catch (error: any) {
       setAlert({
@@ -98,15 +106,58 @@ export default function ProfilePage() {
     loadData();
   }, []);
 
+  const readFileAsDataUrl = (file: File) =>
+    new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ''));
+      reader.onerror = () => reject(new Error('Failed to read file'));
+      reader.readAsDataURL(file);
+    });
+
+  const handleAvatarFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const preview = await readFileAsDataUrl(file);
+      setAvatarPreview(preview);
+      setAvatarFile(file);
+      setRemoveAvatar(false);
+      setAlert(null);
+    } catch {
+      setAlert({ type: 'error', text: t('avatarUploadFailed') });
+    }
+  };
+
+  const handleRemoveAvatarPreview = () => {
+    if (avatarPreview) {
+      setAvatarPreview(null);
+      setAvatarFile(null);
+      return;
+    }
+
+    if (profile?.image) {
+      setRemoveAvatar(true);
+      setAvatarFile(null);
+    }
+  };
+
   const handleUpdateProfile = async (e: FormEvent) => {
     e.preventDefault();
     setSavingProfile(true);
     setAlert(null);
     try {
-      const res = await updateProfile({ name: name.trim() || undefined });
+      const res = await updateProfile({
+        name: name.trim() || undefined,
+        avatarFile,
+        removeAvatar,
+      });
       const nextProfile = res?.data || profile;
       setProfile(nextProfile);
       setName(nextProfile?.name || '');
+      setAvatarPreview(null);
+      setAvatarFile(null);
+      setRemoveAvatar(false);
       setAlert({ type: 'success', text: res?.message || t('profileUpdated') });
     } catch (error: any) {
       setAlert({
@@ -186,6 +237,10 @@ export default function ProfilePage() {
     );
   }
 
+  const currentAvatar =
+    avatarPreview ||
+    (!removeAvatar && profile?.image ? resolveProductImageUrl(profile.image) : '');
+
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', padding: '40px 20px', color: '#111827' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto' }}>
@@ -254,6 +309,36 @@ export default function ProfilePage() {
             }}
           >
             <div style={{ display: 'grid', gap: '14px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '6px' }}>{t('avatar')}</label>
+                <p style={{ margin: '0 0 10px', color: '#6b7280', fontSize: '13px' }}>{t('avatarHint')}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+                  <div className="h-20 w-20 overflow-hidden rounded-full border border-slate-200 bg-slate-100">
+                    {currentAvatar ? (
+                      <img src={currentAvatar} alt={t('avatar')} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-slate-500">
+                        {(name || profile?.email || '?').trim().charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                    <label className="inline-flex cursor-pointer items-center rounded-full bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-800">
+                      {t('changeAvatar')}
+                      <input type="file" accept="image/*" onChange={handleAvatarFileChange} className="hidden" />
+                    </label>
+                    {(avatarPreview || profile?.image) && (
+                      <button
+                        type="button"
+                        onClick={handleRemoveAvatarPreview}
+                        className="rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-100"
+                      >
+                        {t('removeAvatar')}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
               <div>
                 <label style={{ display: 'block', fontSize: '14px', fontWeight: 600, marginBottom: '6px' }}>{t('email')}</label>
                 <input

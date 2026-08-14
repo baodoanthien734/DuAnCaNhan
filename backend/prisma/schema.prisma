@@ -19,6 +19,7 @@ model User {
   id                 Int     @id @default(autoincrement())
   email              String  @unique
   name               String?
+  image              String?
   password           String? // Nullable để sẵn sàng cho Google OAuth
   hashedRefreshToken String? // Security: Thu hồi Token / Logout
   isActive           Boolean @default(true)

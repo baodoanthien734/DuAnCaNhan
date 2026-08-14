@@ -7,6 +7,7 @@ export interface Category {
   parentId?: number | null;
   position?: number | null;
   isActive?: boolean | null;
+  isSystem?: boolean | null;
   image?: string | null;
   metaTitle?: string | null;
   metaDesc?: string | null;

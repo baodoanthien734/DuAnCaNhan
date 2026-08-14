@@ -9,9 +9,6 @@ export default function AdminCategoriesPage() {
   return (
     <div style={{ display: 'grid', gap: '22px' }}>
       <div>
-        <p style={{ margin: 0, color: '#2563eb', textTransform: 'uppercase', letterSpacing: '0.12em', fontSize: '12px', fontWeight: 700 }}>
-          {t('page.eyebrow')}
-        </p>
         <h1 style={{ margin: '12px 0 0', fontSize: '32px', color: '#111827' }}>
           {t('page.title')}
         </h1>

@@ -9,12 +9,12 @@ import { useModal } from '@/hooks/useModal';
 export default function CategoryList() {
   const t = useTranslations('admin_categories');
   const modal = useModal();
+  
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const take = 20;
+  
   const [editing, setEditing] = useState<Category | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -24,11 +24,15 @@ export default function CategoryList() {
   const [showTree, setShowTree] = useState(true); 
   const [expandedIds, setExpandedIds] = useState<Record<number, boolean>>({});
 
+  // LOẠI BỎ HOÀN TOÀN PHÂN TRANG - LOAD MAX 1000 DANH MỤC
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await listCategories({ q: query || undefined, skip: (page - 1) * take, take });
+      const data = await listCategories({ 
+        q: query || undefined, 
+        take: 1000 // Lấy đủ nhiều để ôm trọn toàn bộ cây danh mục
+      });
       setCategories(data);
     } catch (err: any) {
       setError(err?.message || t('list.loadError'));
@@ -39,13 +43,11 @@ export default function CategoryList() {
 
   useEffect(() => {
     loadData();
-  }, [query, page, showForm]);
+  }, [query, showForm]);
 
-  // LOGIC SẮP XẾP TẦNG ROOT
   const handleMove = async (node: Category, direction: 'up' | 'down') => {
-    if (reordering || node.parentId) return; // Chỉ cho phép Root di chuyển
+    if (reordering || node.parentId) return;
     
-    // Lấy tất cả root và sắp xếp theo position hiện tại
     const roots = categories.filter(c => !c.parentId).sort((a, b) => (a.position || 0) - (b.position || 0));
     const idx = roots.findIndex(r => r.id === node.id);
     
@@ -55,20 +57,40 @@ export default function CategoryList() {
     const newRoots = [...roots];
     const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
     
-    // Hoán đổi vị trí trong mảng
     [newRoots[idx], newRoots[swapIdx]] = [newRoots[swapIdx], newRoots[idx]];
 
     setReordering(true);
     try {
-      // Gán lại position từ 1 đến N cho các root
       const updates = newRoots.map((r, i) => ({ id: r.id, position: i + 1 }));
       await reorderCategories(updates);
-      await loadData(); // Load lại data sau khi đổi xong
+      await loadData();
     } catch (err: any) {
       console.error(err);
-      alert('Failed to reorder categories');
+      alert(t('list.reorderError'));
     } finally {
       setReordering(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    // Sử dụng i18n cho Title và Message
+    const isConfirmed = await modal.confirm(
+      t('list.deleteConfirmMessage'),
+      t('list.deleteConfirmTitle')
+    );
+
+    if (isConfirmed) {
+      setDeletingId(id);
+      try {
+        await removeCategory(id);
+        setToast(t('list.deleteSuccess')); // Toast thành công
+        setTimeout(() => setToast(null), 3000);
+        await loadData();
+      } catch (err: any) {
+        alert(t('list.deleteError')); // Thông báo lỗi
+      } finally {
+        setDeletingId(null);
+      }
     }
   };
 
@@ -85,9 +107,7 @@ export default function CategoryList() {
               onChange={(e) => setQuery(e.target.value)}
               style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', width: 320, outline: 'none' }}
             />
-            <button style={{ padding: '10px 16px', borderRadius: 8, backgroundColor: '#2563eb', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 500 }}>
-              {t('list.searchButton')}
-            </button>
+            {/* Đã bỏ nút Search vì input change sẽ gọi lại loadData ngay lập tức nhờ useEffect */}
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
               <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
                 <input type="checkbox" checked={showTree} onChange={(e) => setShowTree(e.target.checked)} style={{ width: 16, height: 16 }} />
@@ -95,7 +115,7 @@ export default function CategoryList() {
               </label>
               <button 
                 onClick={() => { setEditing(null); setShowForm(true); }} 
-                style={{ padding: '10px 16px', borderRadius: 8, backgroundColor: '#10b981', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, boxShadow: '0 4px 6px rgba(16, 185, 129, 0.2)' }}
+                style={{ padding: '10px 16px', borderRadius: 8, backgroundColor: '#4592b6', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, boxShadow: '0 4px 6px rgba(16, 185, 129, 0.2)' }}
               >
                 + {t('list.createButton')}
               </button>
@@ -126,7 +146,6 @@ export default function CategoryList() {
                   ) : showTree ? (
                     (() => {
                       const map: Record<number, Category & { children?: Category[] }> = {} as any;
-                      // Đảm bảo sắp xếp các root theo position ngay từ đầu
                       const sortedCategories = [...categories].sort((a, b) => (a.position || 0) - (b.position || 0));
                       
                       sortedCategories.forEach((cat) => (map[cat.id] = { ...cat, children: [] }));
@@ -171,24 +190,31 @@ export default function CategoryList() {
                               </td>
                               <td style={{ padding: '12px 16px' }}>
                                 {node.isActive ? (
-                                  <span style={{ padding: '4px 10px', backgroundColor: '#dcfce3', color: '#166534', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>Active</span>
+                                  <span style={{ padding: '4px 10px', backgroundColor: '#dcfce3', color: '#166534', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>
+                                    {t('list.statusActive')}
+                                  </span>
                                 ) : (
-                                  <span style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#4b5563', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>Inactive</span>
+                                  <span style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#4b5563', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>
+                                    {t('list.statusInactive')}
+                                  </span>
                                 )}
                               </td>
                               <td style={{ padding: '12px 16px' }}>
                                 <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center' }}>
                                   
-                                  {/* CHỈ HIỆN MŨI TÊN KHI LÀ ROOT (DEPTH === 0) */}
-                                  {depth === 0 && (
+                                  {depth === 0 && !node.isSystem && (
                                     <div style={{ display: 'flex', border: '1px solid #e5e7eb', borderRadius: 6, overflow: 'hidden' }}>
                                       <button title={t('list.actions.moveUp')} onClick={() => handleMove(node, 'up')} disabled={reordering} style={{ background: '#f9fafb', border: 'none', borderRight: '1px solid #e5e7eb', cursor: reordering ? 'not-allowed' : 'pointer', padding: '4px 8px', color: '#6b7280' }}>↑</button>
                                       <button title={t('list.actions.moveDown')} onClick={() => handleMove(node, 'down')} disabled={reordering} style={{ background: '#f9fafb', border: 'none', cursor: reordering ? 'not-allowed' : 'pointer', padding: '4px 8px', color: '#6b7280' }}>↓</button>
                                     </div>
                                   )}
 
-                                  <button style={{ color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setEditing(node); setShowForm(true); }}>{t('list.actions.edit')}</button>
-                                  <button style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={async () => { /* Logic delete giữ nguyên */ }} disabled={deletingId === node.id}>{deletingId === node.id ? '...' : t('list.actions.delete')}</button>
+                                  {!node.isSystem && (
+                                    <>
+                                      <button style={{ color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setEditing(node); setShowForm(true); }}>{t('list.actions.edit')}</button>
+                                      <button style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => handleDelete(node.id)} disabled={deletingId === node.id}>{deletingId === node.id ? '...' : t('list.actions.delete')}</button>
+                                    </>
+                                  )}
                                 </div>
                               </td>
                             </tr>
@@ -218,8 +244,12 @@ export default function CategoryList() {
                         </td>
                         <td style={{ padding: '12px 16px' }}>
                           <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center' }}>
-                            <button style={{ color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setEditing(c); setShowForm(true); }}>{t('list.actions.edit')}</button>
-                            <button style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={async () => { /* Logic delete */ }}>{t('list.actions.delete')}</button>
+                            {!c.isSystem && (
+                              <>
+                                <button style={{ color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setEditing(c); setShowForm(true); }}>{t('list.actions.edit')}</button>
+                                <button style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => handleDelete(c.id)} disabled={deletingId === c.id}>{deletingId === c.id ? '...' : t('list.actions.delete')}</button>
+                              </>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -229,16 +259,7 @@ export default function CategoryList() {
               </table>
             </div>
           )}
-
-          <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20, paddingBottom: 20 }}>
-            <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #d1d5db', backgroundColor: '#fff', cursor: page === 1 ? 'not-allowed' : 'pointer', fontWeight: 500 }}>
-              {t('list.pagination.prev')}
-            </button>
-            <div style={{ alignSelf: 'center', fontWeight: 600, padding: '0 8px' }}>{page}</div>
-            <button onClick={() => setPage((p) => p + 1)} style={{ padding: '8px 14px', borderRadius: 8, border: '1px solid #d1d5db', backgroundColor: '#fff', cursor: 'pointer', fontWeight: 500 }}>
-              {t('list.pagination.next')}
-            </button>
-          </div>
+          {/* ĐÃ XÓA FOOTER PHÂN TRANG Ở ĐÂY */}
         </>
       ) : (
         <div style={{ backgroundColor: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: 24, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)' }}>
@@ -259,7 +280,8 @@ export default function CategoryList() {
             initial={editing ?? undefined}
             onSaved={(cat) => {
               setShowForm(false);
-              setToast(editing ? 'Category updated successfully!' : 'Category created successfully!');
+              // Đã dùng i18n thay cho text cứng
+              setToast(editing ? t('list.updateSuccess') : t('list.createSuccess')); 
               setTimeout(() => setToast(null), 3000);
             }}
             onCancel={() => setShowForm(false)}
