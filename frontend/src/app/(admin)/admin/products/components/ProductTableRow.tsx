@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link"; // Import thẻ Link của Next.js
+import { useTranslations } from "next-intl";
 import { updateProductStatus, deleteProduct } from "@/lib/products-api"; // Import API
 
 // Định nghĩa nhanh type dựa theo cấu trúc Prisma của bạn
@@ -11,6 +12,7 @@ interface ProductTableRowProps {
 }
 
 export default function ProductTableRow({ product, onRefresh }: ProductTableRowProps) {
+  const t = useTranslations("admin_products");
   const [isExpanded, setIsExpanded] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false); // Trạng thái loading khi đang xóa/sửa
 
@@ -23,7 +25,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
       onRefresh(); // Báo page.tsx tải lại dữ liệu
     } catch (error) {
       console.error("Lỗi cập nhật trạng thái:", error);
-      alert("Không thể cập nhật trạng thái. Vui lòng thử lại!");
+      alert(t("row.statusError"));
     } finally {
       setIsProcessing(false);
     }
@@ -31,7 +33,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
 
   // Hàm xử lý Xóa
   const handleDelete = async () => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xóa sản phẩm "${product.name}"? Dữ liệu sẽ được chuyển vào mục Lưu trữ.`)) {
+    if (!window.confirm(t("row.deleteConfirm", { name: product.name }))) {
       return;
     }
     
@@ -41,7 +43,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
       onRefresh(); // Báo page.tsx tải lại dữ liệu
     } catch (error) {
       console.error("Lỗi xóa sản phẩm:", error);
-      alert("Không thể xóa sản phẩm lúc này!");
+      alert(t("row.deleteError"));
     } finally {
       setIsProcessing(false);
     }
@@ -72,7 +74,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
               {product.images && product.images.length > 0 ? (
                 <img src={product.images[0]} alt={product.name} className="w-full h-full object-cover" />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">No img</div>
+                <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">{t("row.noImage")}</div>
               )}
             </div>
             <div className="flex flex-col justify-center">
@@ -80,7 +82,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
                 {product.name}
               </span>
               <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded text-[10px] font-medium w-fit">
-                {product.category?.name || "Chưa phân loại"}
+                {product.category?.name || t("row.uncategorized")}
               </span>
             </div>
           </div>
@@ -95,11 +97,11 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
             onClick={handleToggleStatus}
             disabled={isProcessing || product.status === 'ARCHIVED'} // Không cho toggle nếu đang bị archived
             className="focus:outline-none transition-opacity hover:opacity-80 disabled:opacity-50"
-            title="Nhấn để đổi trạng thái"
+            title={t("row.toggleStatusTitle")}
           >
-            {product.status === 'ACTIVE' && <span className="text-green-700 bg-green-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-green-200 cursor-pointer">Đang bán</span>}
-            {product.status === 'DRAFT' && <span className="text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md text-xs font-semibold border border-gray-200 cursor-pointer">Bản nháp</span>}
-            {product.status === 'ARCHIVED' && <span className="text-red-700 bg-red-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-red-200 cursor-not-allowed">Lưu trữ</span>}
+            {product.status === 'ACTIVE' && <span className="text-green-700 bg-green-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-green-200 cursor-pointer">{t("row.statuses.ACTIVE")}</span>}
+            {product.status === 'DRAFT' && <span className="text-gray-600 bg-gray-100 px-2.5 py-1 rounded-md text-xs font-semibold border border-gray-200 cursor-pointer">{t("row.statuses.DRAFT")}</span>}
+            {product.status === 'ARCHIVED' && <span className="text-red-700 bg-red-50 px-2.5 py-1 rounded-md text-xs font-semibold border border-red-200 cursor-not-allowed">{t("row.statuses.ARCHIVED")}</span>}
           </button>
         </td>
 
@@ -108,14 +110,14 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
             href={`/admin/products/${product.id}/edit`} 
             className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block"
           >
-            Sửa
+            {t("row.edit")}
           </Link>
           <button 
             onClick={handleDelete}
             disabled={isProcessing || product.status === 'ARCHIVED'}
             className="text-red-500 hover:text-red-700 font-medium text-sm disabled:opacity-30 disabled:cursor-not-allowed inline-block"
           >
-            Xóa
+            {t("row.delete")}
           </button>
         </td>
       </tr>
@@ -127,22 +129,22 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
               
               <div className="space-y-6">
                 <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Mô tả sản phẩm</h4>
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t("row.descriptionTitle")}</h4>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap bg-white p-3 rounded border border-gray-200">
-                    {product.description || <span className="italic text-gray-400">Không có mô tả</span>}
+                    {product.description || <span className="italic text-gray-400">{t("row.noDescription")}</span>}
                   </p>
                 </div>
 
                 {product.customizations && product.customizations.length > 0 && (
                   <div>
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Yêu cầu cá nhân hóa</h4>
+                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t("row.customizationTitle")}</h4>
                     <div className="bg-white rounded border border-gray-200 overflow-hidden">
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50">
                           <tr>
-                            <th className="px-3 py-2 text-left font-medium text-gray-600">Loại</th>
-                            <th className="px-3 py-2 text-left font-medium text-gray-600">Lựa chọn</th>
-                            <th className="px-3 py-2 text-right font-medium text-gray-600">Giá phụ</th>
+                            <th className="px-3 py-2 text-left font-medium text-gray-600">{t("row.typeLabel")}</th>
+                            <th className="px-3 py-2 text-left font-medium text-gray-600">{t("row.choiceLabel")}</th>
+                            <th className="px-3 py-2 text-right font-medium text-gray-600">{t("row.extraPriceLabel")}</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
@@ -150,7 +152,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
                             <tr key={cust.id}>
                               <td className="px-3 py-2 font-medium">{cust.name} {cust.isRequired && <span className="text-red-500">*</span>}</td>
                               <td className="px-3 py-2 text-gray-600">
-                                {cust.type === 'TEXT' ? `Nhập chữ (Max: ${cust.maxLength || '∞'} ký tự)` : cust.choices?.map((c:any) => c.label).join(', ')}
+                                {cust.type === 'TEXT' ? t("row.textInputWithMax", { max: cust.maxLength || t("row.unlimited") }) : cust.choices?.map((c:any) => c.label).join(', ')}
                               </td>
                               <td className="px-3 py-2 text-right text-gray-600">
                                 {cust.type === 'SELECT' && cust.choices?.map((c:any, i:number) => (
@@ -167,16 +169,16 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
               </div>
 
               <div>
-                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Phân loại & Tồn kho</h4>
+                <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">{t("row.variantTitle")}</h4>
                 {product.variants && product.variants.length > 0 ? (
                   <div className="bg-white rounded border border-gray-200 overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th className="px-3 py-2 text-left font-medium text-gray-600">Mẫu mã</th>
-                          <th className="px-3 py-2 text-left font-medium text-gray-600">SKU</th>
-                          <th className="px-3 py-2 text-right font-medium text-gray-600">Kho</th>
-                          <th className="px-3 py-2 text-right font-medium text-gray-600">Giá bán</th>
+                          <th className="px-3 py-2 text-left font-medium text-gray-600">{t("row.variantName")}</th>
+                          <th className="px-3 py-2 text-left font-medium text-gray-600">{t("row.variantSku")}</th>
+                          <th className="px-3 py-2 text-right font-medium text-gray-600">{t("row.variantStock")}</th>
+                          <th className="px-3 py-2 text-right font-medium text-gray-600">{t("row.variantPrice")}</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
@@ -196,7 +198,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
                     </table>
                   </div>
                 ) : (
-                  <p className="text-sm text-gray-500 bg-white p-3 rounded border border-gray-200 italic">Sản phẩm này không có biến thể.</p>
+                  <p className="text-sm text-gray-500 bg-white p-3 rounded border border-gray-200 italic">{t("row.noVariants")}</p>
                 )}
               </div>
 

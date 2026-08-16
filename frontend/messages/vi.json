@@ -1,0 +1,347 @@
+{
+  "public_pages": {
+    "layout": {
+      "lang": "vi"
+    },
+    "header": {
+      "title": "🍃 Handmade Studio",
+      "subtitle": "Đồ thủ công nhỏ xinh cho góc sống và quà tặng.",
+      "login": "Đăng nhập",
+      "register": "Đăng ký"
+    },
+    "hero": {
+      "eyebrow": "SHOP THỦ CÔNG",
+      "title": "Mỗi sản phẩm là một câu chuyện nhỏ.",
+      "description": "Khám phá bộ sưu tập đồ handmade độc đáo, làm bằng tay từng chi tiết và dành riêng cho những khoảnh khắc ấm áp.",
+      "primaryCta": "🛍️ Mua ngay",
+      "secondaryCta": "🎁 Tạo đơn hàng tùy chọn"
+    },
+    "categories": {
+      "title": "Danh mục nổi bật",
+      "all": "Tất cả",
+      "decor": "Trang trí",
+      "gifts": "Quà tặng",
+      "jewelry": "Trang sức",
+      "home": "Đồ gia dụng",
+      "cardsAndBags": "Thiệp & Túi"
+    },
+    "products": {
+      "title": "Sản phẩm thủ công",
+      "detail": "Xem chi tiết",
+      "empty": "Chưa có sản phẩm nào được tạo.",
+      "item1": {
+        "title": "Bình hoa gốm",
+        "description": "Bình cắm hoa thủ công với họa tiết vân đất ấm áp.",
+        "price": "220.000 VNĐ"
+      },
+      "item2": {
+        "title": "Túi vải thêu tay",
+        "description": "Túi canvas nhẹ với họa tiết hoa tinh tế.",
+        "price": "180.000 VNĐ"
+      },
+      "item3": {
+        "title": "Nến thơm handmade",
+        "description": "Nến lavender thơm dịu, đúc thủ công hoàn toàn.",
+        "price": "130.000 VNĐ"
+      },
+      "item4": {
+        "title": "Thiệp chúc mừng",
+        "description": "Thiệp giấy tay cùng nét chữ viết tay duyên dáng.",
+        "price": "95.000 VNĐ"
+      }
+    },
+    "story": {
+      "eyebrow": "CÂU CHUYỆN SHOP",
+      "title": "Tâm huyết handmade dành cho không gian của bạn.",
+      "description": "Mỗi món đồ được làm bằng tay, tỉ mỉ lựa chọn chất liệu và hoàn thiện cẩn thận. Shop nhỏ nhưng chứa đựng nhiều yêu thương.",
+      "items": [
+        "Thiết kế độc đáo",
+        "Chất liệu tự nhiên",
+        "Sản xuất theo yêu cầu",
+        "Đóng gói quà tặng"
+      ]
+    },
+    "product_list": {
+      "title": "Tất cả sản phẩm",
+      "searchPlaceholder": "Tìm kiếm sản phẩm...",
+      "empty": "Không tìm thấy sản phẩm nào phù hợp."
+    },
+    "product_detail": {
+      "variants": "Phân loại / Biến thể",
+      "customizations": "Tùy chọn cá nhân hóa",
+      "addToCart": "Thêm vào giỏ hàng",
+      "back": "← Quay lại danh sách",
+      "required": "Bắt buộc"
+    },
+    "category_page": {
+      "back": "← Quay lại danh sách",
+      "empty": "Chưa có sản phẩm nào trong danh mục này."
+    },
+    "footer": "© 2026 Handmade Studio. Đồ thủ công nhỏ, tinh tế và chân thành."
+  },
+  "auth": {
+    "login": {
+      "title": "🧶 Trạm Thủ Công",
+      "subtitle": "Mở cửa thế giới sáng tạo của bạn ✨",
+      "emailLabel": "💌 Địa chỉ Email",
+      "emailPlaceholder": "nhadothucong@gmail.com",
+      "passwordLabel": "🗝️ Chìa khóa (Mật khẩu)",
+      "passwordPlaceholder": "Nhập mật khẩu của bạn...",
+      "showPasswordTitle": "Hiện mật khẩu",
+      "hidePasswordTitle": "Ẩn mật khẩu",
+      "submitLoading": "🧶 Đang đan len...",
+      "submit": "✨ Bước Vào Tiệm",
+      "divider": "HOẶC",
+      "newUser": "Bạn là người mới?",
+      "registerLink": "🎀 Đăng Ký Ngay",
+      "backHome": "← Về lại trang chủ"
+    },
+    "register": {
+      "title": "🧶 Trạm Thủ Công",
+      "subtitle": "Tạo không gian sáng tạo của bạn ✨",
+      "stepLabel": "Bước {step}/3",
+      "step1": {
+        "emailLabel": "💌 Địa chỉ Email",
+        "emailPlaceholder": "nhadothucong@gmail.com",
+        "helperText": "Chúng tôi sẽ gửi một bức thư chứa mã xác nhận đến đây.",
+        "submitLoading": "🧶 Đang gửi thư...",
+        "submit": "📬 Gửi mã xác nhận"
+      },
+      "step2": {
+        "emailSent": "✉️ Thư đã được gửi đến:",
+        "changeEmail": "← Nhập nhầm hòm thư? Đổi lại",
+        "otpLabel": "🎫 Mã xác nhận (6 chữ số)",
+        "otpPlaceholder": "••••••",
+        "expiredTitle": "🥀 Mã xác nhận đã tan biến!",
+        "requestNew": "✨ Xin cấp mã mới",
+        "requestingNew": "🧶 Đang xin mã mới...",
+        "countdown": "⏱️ Mã sẽ mờ dần sau:",
+        "submitLoading": "🧶 Đang kiểm tra...",
+        "submit": "🌸 Mở khóa hòm thư"
+      },
+      "step3": {
+        "nameLabel": "👤 Tên gọi thân thương",
+        "namePlaceholder": "Bạn muốn chúng mình gọi là gì?",
+        "passwordLabel": "🗝️ Chìa khóa bảo vệ (Mật khẩu)",
+        "passwordPlaceholder": "Sáng tạo một mật khẩu thật vững chắc...",
+        "helperText": "Đan xen chữ hoa, chữ thường, số hoặc ký tự đặc biệt để mũi len được chắc chắn nhất nhé.",
+        "submitLoading": "🧶 Đang hoàn thiện...",
+        "submit": "✨ Hoàn tất & Bước vào tiệm"
+      },
+      "footer": {
+        "haveAccount": "Bạn đã có chìa khóa vào tiệm?",
+        "loginLink": "🎀 Đăng Nhập",
+        "backHome": "← Về lại trang chủ"
+      }
+    }
+  },
+  "admin_sidebar": {
+    "brand": "TinyHandMade",
+    "title": "Quản trị",
+    "greeting": "Xin chào, {name}",
+    "nav": {
+      "dashboard": "Bảng điều khiển",
+      "categories": "Danh mục",
+      "products": "Sản phẩm",
+      "posts": "Bài viết",
+      "orders": "Đơn hàng",
+      "reviews": "Đánh giá",
+      "customers": "Khách hàng"
+    }
+  },
+  "admin_categories": {
+    "page": {
+      "eyebrow": "Quản lý danh mục",
+      "title": "Danh mục sản phẩm",
+      "description": "Tạo, chỉnh sửa, xóa hoặc sắp xếp các danh mục trong cửa hàng handmade của bạn."
+    },
+    "list": {
+      "title": "Danh sách danh mục",
+      "description": "Hiện tại bạn có thể quản lý các danh mục như trang trí, quà tặng, thủ công mỹ nghệ và sản phẩm mới.",
+      "searchPlaceholder": "Tìm kiếm danh mục...",
+      "searchButton": "Tìm",
+      "showTree": "Hiển thị cây",
+      "createButton": "Tạo danh mục",
+      "loading": "Đang tải...",
+      "loadError": "Lỗi khi tải danh mục",
+      "empty": "Không có danh mục",
+      "columns": {
+        "image": "Ảnh",
+        "name": "Tên",
+        "slug": "Slug",
+        "position": "Vị trí",
+        "status": "Trạng thái",
+        "actions": "Hành động"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "inactive": "Tạm ẩn"
+      },
+      "actions": {
+        "edit": "Sửa",
+        "delete": "Xóa",
+        "deleteLoading": "Đang xóa...",
+        "moveUp": "Di chuyển lên",
+        "moveDown": "Di chuyển xuống",
+        "deleteConfirm": "Xóa danh mục \"{name}\"? Hành động này sẽ ẩn danh mục.",
+        "reorderSuccess": "Đã cập nhật vị trí",
+        "deleteSuccess": "Đã xóa danh mục",
+        "reorderError": "Lỗi khi sắp xếp",
+        "deleteError": "Lỗi khi xóa"
+      },
+      "pagination": {
+        "prev": "Trước",
+        "next": "Sau"
+      }
+    },
+    "form": {
+      "requiredName": "Tên danh mục là bắt buộc",
+      "nameLabel": "Tên *",
+      "slugLabel": "Slug",
+      "parentLabel": "Parent",
+      "noneOption": "-- Không --",
+      "positionLabel": "Vị trí",
+      "activeLabel": "Hoạt động",
+      "imageLabel": "Ảnh danh mục",
+      "imageHelp": "Hoặc dán URL hình ảnh bên dưới nếu bạn đã có sẵn.",
+      "imagePlaceholder": "URL hình ảnh",
+      "previewLabel": "Xem trước",
+      "uploading": "Đang tải ảnh...",
+      "metaTitleLabel": "Meta Title",
+      "metaDescriptionLabel": "Meta Description",
+      "saveButton": "Lưu",
+      "saving": "Đang lưu...",
+      "cancelButton": "Hủy",
+      "uploadError": "Không thể upload ảnh",
+      "saveError": "Lỗi khi lưu danh mục",
+      "createTitle": "Tạo danh mục mới",
+      "editTitle": "Sửa danh mục"
+    }
+  },
+  "admin_products": {
+    "list": {
+      "title": "Danh sách Sản phẩm",
+      "addButton": "+ Thêm sản phẩm",
+      "searchPlaceholder": "Tìm theo tên...",
+      "allCategories": "Tất cả danh mục",
+      "allStatuses": "Tất cả trạng thái",
+      "statuses": {
+        "ACTIVE": "Hoạt động (Active)",
+        "DRAFT": "Bản nháp (Draft)",
+        "ARCHIVED": "Lưu trữ (Archived)"
+      },
+      "columns": {
+        "product": "Sản phẩm",
+        "basePrice": "Giá cơ bản",
+        "status": "Trạng thái",
+        "actions": "Thao tác"
+      },
+      "loading": "Đang tải dữ liệu...",
+      "empty": "Không tìm thấy sản phẩm nào.",
+      "pagination": {
+        "showCount": "Hiển thị {count} / {total} sản phẩm",
+        "prev": "Trước",
+        "next": "Sau"
+      }
+    },
+    "row": {
+      "uncategorized": "Chưa phân loại",
+      "noImage": "Không ảnh",
+      "toggleStatusTitle": "Nhấn để đổi trạng thái",
+      "statuses": {
+        "ACTIVE": "Đang bán",
+        "DRAFT": "Bản nháp",
+        "ARCHIVED": "Lưu trữ"
+      },
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa sản phẩm \"{name}\"? Dữ liệu sẽ được chuyển vào mục Lưu trữ.",
+      "statusError": "Không thể cập nhật trạng thái. Vui lòng thử lại!",
+      "deleteError": "Không thể xóa sản phẩm lúc này!",
+      "descriptionTitle": "Mô tả sản phẩm",
+      "noDescription": "Không có mô tả",
+      "customizationTitle": "Yêu cầu cá nhân hóa",
+      "typeLabel": "Loại",
+      "choiceLabel": "Lựa chọn",
+      "extraPriceLabel": "Giá phụ",
+      "textInputWithMax": "Nhập chữ (Tối đa: {max} ký tự)",
+      "unlimited": "∞",
+      "variantTitle": "Phân loại & Tồn kho",
+      "noVariants": "Sản phẩm này không có biến thể.",
+      "variantName": "Mẫu mã",
+      "variantSku": "SKU",
+      "variantStock": "Kho",
+      "variantPrice": "Giá bán"
+    },
+    "form": {
+      "titleCreate": "Thêm Sản Phẩm Mới",
+      "titleEdit": "Cập nhật Sản Phẩm",
+      "description": "Nhập thông tin chi tiết và tùy chọn cho mặt hàng thủ công.",
+      "cancel": "Hủy",
+      "saving": "Đang lưu...",
+      "saveCreate": "Lưu Sản Phẩm",
+      "saveEdit": "Lưu thay đổi",
+      "sectionInfo": "1. Thông tin chung",
+      "sectionVariants": "2. Phân loại hàng / Tồn kho",
+      "sectionVariantsSubtitle": "Tạo các kích cỡ, màu sắc vật lý có sẵn trong kho.",
+      "sectionCustomizations": "3. Cá nhân hóa & Phụ kiện",
+      "sectionCustomizationsSubtitle": "Các tùy chọn thêu tên, đính kèm charm (không tính vào tồn kho).",
+      "nameLabel": "Tên sản phẩm",
+      "nameRequired": "Tên sản phẩm",
+      "namePlaceholder": "VD: Móc khóa len Capybara dễ thương",
+      "descriptionLabel": "Mô tả sản phẩm",
+      "descriptionPlaceholder": "Chất liệu, kích thước, công dụng...",
+      "addVariant": "+ Thêm Phân Loại",
+      "variantEmpty": "Sản phẩm chưa có phân loại nào.",
+      "variantNameLabel": "Tên phân loại (VD: Size S)",
+      "variantSkuLabel": "Mã SKU",
+      "variantPriceLabel": "Giá riêng (VNĐ)",
+      "variantStockLabel": "Số lượng tồn kho",
+      "variantRemoveTitle": "Xóa phân loại",
+      "addCustomization": "+ Thêm Tùy Chọn",
+      "customizationEmpty": "Chưa thiết lập cá nhân hóa cho sản phẩm này.",
+      "customizationNameLabel": "Tên hiển thị (VD: Tên muốn thêu, Chọn Charm)",
+      "customizationTypeLabel": "Kiểu hiển thị",
+      "customizationTypeText": "Khách nhập chữ",
+      "customizationTypeSelect": "Khách chọn List",
+      "customizationRequired": "Bắt buộc",
+      "customizationMaxLengthLabel": "Giới hạn số ký tự tối đa",
+      "maxLengthPlaceholder": "VD: 15",
+      "customizationChoicesLabel": "Các lựa chọn & Phụ phí:",
+      "addChoice": "+ Thêm lựa chọn",
+      "choicePlaceholder": "VD: Nơ đỏ",
+      "choiceExtraPricePlaceholder": "+ Phí",
+      "choiceRemoveTitle": "Xóa lựa chọn",
+      "customizationRemoveTitle": "Xóa tùy chọn",
+      "choiceEmpty": "Vui lòng thêm ít nhất 1 lựa chọn.",
+      "salesSetupTitle": "Thiết lập bán hàng",
+      "basePriceLabel": "Giá cơ bản (VNĐ)",
+      "basePriceHint": "Giá hiển thị mặc định nếu không chọn phân loại.",
+      "categoryLabel": "Danh mục",
+      "loadingCategories": "Đang tải danh mục...",
+      "statusLabel": "Trạng thái đăng bán",
+      "statusActive": "Hiển thị (Active)",
+      "statusDraft": "Lưu nháp (Draft)",
+      "statusArchived": "Lưu trữ ẩn (Archived)",
+      "privateLabel": "Link Private",
+      "privateHint": "Chỉ người có link mới xem được.",
+      "imageTitle": "Hình ảnh sản phẩm",
+      "addImage": "Thêm ảnh",
+      "imageHint": "Định dạng: JPG, PNG, WEBP.",
+      "imageCount": "{count}/5 ảnh",
+      "imageAlt": "Ảnh sản phẩm {index}",
+      "imageUploadLoading": "Đang tải...",
+      "imageUploadError": "Không thể tải ảnh lên. Vui lòng thử lại!",
+      "removeImageTitle": "Xóa ảnh này",
+      "loadingProduct": "Đang tải dữ liệu sản phẩm...",
+      "createSuccess": "Tạo sản phẩm thành công!",
+      "createAuthError": "Phiên đăng nhập đã hết hạn hoặc bạn không đủ quyền!",
+      "createValidationError": "Lỗi validate:\n{message}",
+      "createGenericError": "Có lỗi xảy ra, vui lòng thử lại sau!",
+      "updateSuccess": "Cập nhật sản phẩm thành công!",
+      "updateValidationError": "Lỗi dữ liệu từ Backend:\n{message}",
+      "updateError": "Đã xảy ra lỗi khi cập nhật sản phẩm. Vui lòng mở F12 để xem chi tiết!",
+      "detailsLoadError": "Sản phẩm không tồn tại hoặc đã bị xóa."
+    }
+  }
+}

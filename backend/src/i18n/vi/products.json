@@ -1,0 +1,10 @@
+{
+  "success": {
+    "product_created": "Tạo sản phẩm và các tùy chọn thành công vào Database"
+  },
+  "error": {
+    "product_not_found": "Sản phẩm không tồn tại",
+    "product_not_found_with_id": "Không tìm thấy sản phẩm với ID: {id}",
+    "product_save_failed": "Lỗi hệ thống khi lưu sản phẩm, vui lòng thử lại"
+  }
+}

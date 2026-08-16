@@ -1,4 +1,5 @@
 import { Injectable, Logger, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { I18nService } from 'nestjs-i18n';
 import { CreateProductDto } from '../dto/core/create-product.dto';
 import { FilterProductDto } from '../dto/core/filter-product.dto';
 import { PrismaService } from '../../prisma/prisma.service'; 
@@ -15,6 +16,7 @@ export class ProductsService {
     private readonly prisma: PrismaService,
     private variantsService: ProductVariantsService,
     private customizationsService: ProductCustomizationsService,
+    private readonly i18n: I18nService,
   ) {}
 
   // Hàm helper tự động tạo slug tiếng Việt không dấu
@@ -101,13 +103,13 @@ export class ProductsService {
 
       return {
         success: true,
-        message: 'Tạo sản phẩm và các tùy chọn thành công vào Database',
+        message: this.i18n.t('products.success.product_created'),
         data: newProduct,
       };
 
     } catch (error) {
       this.logger.error('Lỗi Database khi tạo sản phẩm:', error);
-      throw new InternalServerErrorException('Lỗi hệ thống khi lưu sản phẩm, vui lòng thử lại');
+      throw new InternalServerErrorException(this.i18n.t('products.error.product_save_failed'));
     }
   }
 
@@ -155,7 +157,7 @@ export class ProductsService {
   // Cập nhật trạng thái nhanh (Toggle Active/Draft)
   async updateStatus(id: number, status: any) {
     const product = await this.prisma.product.findUnique({ where: { id } });
-    if (!product) throw new NotFoundException('Sản phẩm không tồn tại');
+    if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
     
     return this.prisma.product.update({
       where: { id },
@@ -166,7 +168,7 @@ export class ProductsService {
   // Xóa mềm (Chuyển thành ARCHIVED)
   async remove(id: number) {
     const product = await this.prisma.product.findUnique({ where: { id } });
-    if (!product) throw new NotFoundException('Sản phẩm không tồn tại');
+    if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
 
     return this.prisma.product.update({
       where: { id },
@@ -189,7 +191,7 @@ export class ProductsService {
     });
 
     if (!product) {
-      throw new NotFoundException(`Không tìm thấy sản phẩm với ID: ${id}`);
+      throw new NotFoundException(this.i18n.t('products.error.product_not_found_with_id', { args: { id } }));
     }
 
     return product;
@@ -219,5 +221,61 @@ export class ProductsService {
 
     // 5. Trả về dữ liệu mới nhất, đầy đủ nhất sau khi đã cập nhật xong
     return this.findOne(id);
+  }
+
+  // Lấy danh sách sản phẩm công khai (chỉ lấy sản phẩm ACTIVE)
+  async findAllPublic(query: { q?: string; categoryId?: string; skip?: number; take?: number }) {
+    const { q, categoryId, skip, take } = query;
+    const where: any = { status: 'ACTIVE' };
+
+    if (q) {
+      where.OR = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { slug: { contains: q, mode: 'insensitive' } },
+      ];
+    }
+
+    if (categoryId) {
+      where.categoryId = Number(categoryId);
+    }
+
+    const [items, total] = await this.prisma.$transaction([
+      this.prisma.product.findMany({
+        where,
+        skip: skip ? Number(skip) : 0,
+        take: take ? Number(take) : 12,
+        orderBy: { createdAt: 'desc' },
+        include: {
+          category: true,
+          variants: true,
+          customizations: {
+            include: { choices: true },
+          },
+        },
+      }),
+      this.prisma.product.count({ where }),
+    ]);
+
+    return { items, total };
+  }
+
+  // Lấy chi tiết sản phẩm theo slug (dành cho trang chi tiết public)
+  async findOneBySlug(slug: string) {
+    const product = await this.prisma.product.findFirst({
+      where: { slug, status: 'ACTIVE' },
+      include: {
+        category: true,
+        variants: true,
+        customizations: {
+          include: { choices: true },
+        },
+      },
+    });
+
+    if (!product) {
+      throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
+    }
+
+    return product;
   }
 }

@@ -1,11 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { I18nService } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()
 export class CategoriesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly i18n: I18nService,
+  ) {}
 
   async findAll(query: { q?: string; parentId?: number; skip?: number; take?: number }) {
     const where: any = { isActive: true };
@@ -26,7 +30,7 @@ export class CategoriesService {
 
   async findOne(id: number) {
     const cat = await this.prisma.category.findUnique({ where: { id }, include: { children: true } });
-    if (!cat) throw new NotFoundException('Category not found');
+    if (!cat) throw new NotFoundException(this.i18n.t('categories.error.category_not_found'));
     return cat;
   }
 
@@ -63,5 +67,33 @@ export class CategoriesService {
       .replace(/\s+/g, '-')
       .replace(/[^a-z0-9\-]/g, '')
       .replace(/\-+/g, '-');
+  }
+
+  // Lấy danh sách danh mục công khai (chỉ lấy các danh mục đang hoạt động)
+  async findAllPublic() {
+    return this.prisma.category.findMany({
+      where: { isActive: true },
+      orderBy: { position: 'asc' },
+      include: {
+        children: {
+          where: { isActive: true },
+          orderBy: { position: 'asc' },
+        },
+      },
+    });
+  }
+
+  // Lấy chi tiết một danh mục đang hoạt động dựa vào slug (Dành cho Public)
+  async findOneBySlugPublic(slug: string) {
+    const cat = await this.prisma.category.findFirst({
+      where: { slug, isActive: true },
+      // Nếu sau này danh mục có banner hay mô tả, nó sẽ được lấy ra tại đây
+    });
+
+    if (!cat) {
+      throw new NotFoundException(this.i18n.t('categories.error.category_not_found'));
+    }
+
+    return cat;
   }
 }

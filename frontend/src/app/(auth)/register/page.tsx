@@ -2,10 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { apiClient } from '@/lib/api-client';
+import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 
 export default function RegisterPage() {
   const router = useRouter();
+  const t = useTranslations('auth.register');
 
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [loading, setLoading] = useState(false);
@@ -229,8 +232,12 @@ export default function RegisterPage() {
       background: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)',
       fontFamily: '"Nunito", "Segoe UI", sans-serif',
       paddingTop: '20px', 
-      paddingBottom: '20px' 
+      paddingBottom: '20px',
+      position: 'relative' 
     }}>
+      <div style={{ position: 'absolute', top: '20px', right: '20px' }}>
+        <LanguageSwitcher />
+      </div>
       {/* Main Container */}
       <div style={{ 
         width: '100%', 
@@ -249,9 +256,9 @@ export default function RegisterPage() {
             color: '#845ec2', 
             fontWeight: '700'
           }}>
-            🧶 Trạm Thủ Công
+            {t('title')}
           </h1>
-          <p style={{ margin: '0 0 15px 0', color: '#9b89b3', fontSize: '14px' }}>Tạo không gian sáng tạo của bạn ✨</p>
+          <p style={{ margin: '0 0 15px 0', color: '#9b89b3', fontSize: '14px' }}>{t('subtitle')}</p>
 
           {/* Progress Bar */}
           <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
@@ -268,7 +275,7 @@ export default function RegisterPage() {
               />
             ))}
           </div>
-          <p style={{ margin: '10px 0 0 0', color: '#c2a9db', fontSize: '12px', fontWeight: '600' }}>Bước {step}/3</p>
+          <p style={{ margin: '10px 0 0 0', color: '#c2a9db', fontSize: '12px', fontWeight: '600' }}>{t('stepLabel', { step })}</p>
         </div>
 
         {/* Error Message */}
@@ -294,14 +301,14 @@ export default function RegisterPage() {
           <form onSubmit={handleSendOtp}>
             <div style={{ marginBottom: '25px' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
-                💌 Địa chỉ Email
+                {t('step1.emailLabel')}
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="nhadothucong@gmail.com"
+                placeholder={t('step1.emailPlaceholder')}
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -324,7 +331,7 @@ export default function RegisterPage() {
                 }}
               />
               <p style={{ fontSize: '12px', color: '#c2a9db', margin: '8px 0 0 0' }}>
-                Chúng tôi sẽ gửi một bức thư chứa mã xác nhận đến đây.
+                {t('step1.helperText')}
               </p>
             </div>
 
@@ -348,7 +355,7 @@ export default function RegisterPage() {
               onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
               onMouseLeave={(e) => !loading && (e.currentTarget.style.transform = 'translateY(0)')}
             >
-              {loading ? '🧶 Đang gửi thư...' : '📬 Gửi mã xác nhận'}
+              {loading ? t('step1.submitLoading') : t('step1.submit')}
             </button>
           </form>
         )}
@@ -358,7 +365,7 @@ export default function RegisterPage() {
           <form onSubmit={handleVerifyOtp}>
             <div style={{ backgroundColor: '#fdf8ff', border: '1px solid #f3e8ff', padding: '15px', borderRadius: '14px', marginBottom: '25px', fontSize: '13px', textAlign: 'center' }}>
               <p style={{ margin: '0 0 8px 0', color: '#9b89b3' }}>
-                ✉️ Thư đã được gửi đến:
+                {t('step2.emailSent')}
               </p>
               <p style={{ margin: '0', fontWeight: 'bold', color: '#845ec2', fontSize: '14px' }}>{email}</p>
               <button
@@ -376,13 +383,13 @@ export default function RegisterPage() {
                   fontWeight: '600'
                 }}
               >
-                ← Nhập nhầm hòm thư? Đổi lại
+                {t('step2.changeEmail')}
               </button>
             </div>
 
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px', textAlign: 'center' }}>
-                🎫 Mã xác nhận (6 chữ số)
+                {t('step2.otpLabel')}
               </label>
               <input
                 type="text"
@@ -390,7 +397,7 @@ export default function RegisterPage() {
                 maxLength={6}
                 value={otpCode}
                 onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="••••••"
+                placeholder={t('step2.otpPlaceholder')}
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -420,11 +427,11 @@ export default function RegisterPage() {
             <div style={{ marginBottom: '25px', textAlign: 'center', padding: '12px 15px', borderRadius: '12px' }}>
               {countdown > 0 ? (
                 <p style={{ fontSize: '13px', color: '#9b89b3', margin: 0 }}>
-                  ⏱️ Mã sẽ mờ dần sau: <b style={{ color: '#d65db1' }}>{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</b>
+                  {t('step2.countdown')} <b style={{ color: '#d65db1' }}>{Math.floor(countdown / 60)}:{(countdown % 60).toString().padStart(2, '0')}</b>
                 </p>
               ) : (
                 <div>
-                  <p style={{ fontSize: '13px', color: '#ff4d6d', margin: '0 0 8px 0', fontWeight: '500' }}>🥀 Mã xác nhận đã tan biến!</p>
+                  <p style={{ fontSize: '13px', color: '#ff4d6d', margin: '0 0 8px 0', fontWeight: '500' }}>{t('step2.expiredTitle')}</p>
                   <button
                     type="button"
                     onClick={() => handleSendOtp()}
@@ -441,7 +448,7 @@ export default function RegisterPage() {
                       opacity: loading ? 0.6 : 1
                     }}
                   >
-                    {loading ? '🧶 Đang xin mã mới...' : '✨ Xin cấp mã mới'}
+                    {loading ? t('step2.requestingNew') : t('step2.requestNew')}
                   </button>
                 </div>
               )}
@@ -467,7 +474,7 @@ export default function RegisterPage() {
               onMouseEnter={(e) => !(loading || countdown === 0) && (e.currentTarget.style.transform = 'translateY(-2px)')}
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
             >
-              {loading ? '🧶 Đang kiểm tra...' : '🌸 Mở khóa hòm thư'}
+              {loading ? t('step2.submitLoading') : t('step2.submit')}
             </button>
           </form>
         )}
@@ -477,14 +484,14 @@ export default function RegisterPage() {
           <form onSubmit={handleRegister}>
             <div style={{ marginBottom: '20px' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
-                👤 Tên gọi thân thương
+                {t('step3.nameLabel')}
               </label>
               <input
                 type="text"
                 required
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Bạn muốn chúng mình gọi là gì?"
+                placeholder={t('step3.namePlaceholder')}
                 style={{
                   width: '100%',
                   padding: '14px 16px',
@@ -510,7 +517,7 @@ export default function RegisterPage() {
 
             <div style={{ marginBottom: '30px' }}>
               <label style={{ display: 'block', marginBottom: '8px', color: '#5b4c6e', fontWeight: '600', fontSize: '13px' }}>
-                🗝️ Chìa khóa bảo vệ (Mật khẩu)
+                {t('step3.passwordLabel')}
               </label>
               <div style={{ position: 'relative' }}>
                 <input
@@ -518,7 +525,7 @@ export default function RegisterPage() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Sáng tạo một mật khẩu thật vững chắc..."
+                  placeholder={t('step3.passwordPlaceholder')}
                   style={{
                     width: '100%',
                     padding: '14px 16px',
@@ -556,13 +563,13 @@ export default function RegisterPage() {
                     padding: '5px',
                     color: '#9b89b3'
                   }}
-                  title={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  title={showPassword ? t('step2.submit') : t('step2.submit')}
                 >
                   {showPassword ? '🌸' : '💮'}
                 </button>
               </div>
               <p style={{ fontSize: '11px', color: '#c2a9db', margin: '8px 0 0 0', lineHeight: '1.4' }}>
-                Đan xen chữ hoa, chữ thường, số hoặc ký tự đặc biệt để mũi len được chắc chắn nhất nhé.
+                {t('step3.helperText')}
               </p>
             </div>
 
@@ -586,7 +593,7 @@ export default function RegisterPage() {
               onMouseEnter={(e) => !loading && (e.currentTarget.style.transform = 'translateY(-2px)')}
               onMouseLeave={(e) => (e.currentTarget.style.transform = 'translateY(0)')}
             >
-              {loading ? '🧶 Đang hoàn thiện...' : '✨ Hoàn tất & Bước vào tiệm'}
+              {loading ? t('step3.submitLoading') : t('step3.submit')}
             </button>
           </form>
         )}
@@ -595,7 +602,7 @@ export default function RegisterPage() {
         {step === 1 && (
           <div style={{ marginTop: '30px', textAlign: 'center' }}>
             <p style={{ margin: '0 0 12px 0', color: '#9b89b3', fontSize: '13px' }}>
-              Bạn đã có chìa khóa vào tiệm?
+              {t('footer.haveAccount')}
             </p>
             <a
               href="/login"
@@ -621,7 +628,7 @@ export default function RegisterPage() {
                 e.currentTarget.style.borderColor = '#fbc2eb';
               }}
             >
-              🎀 Đăng Nhập
+              {t('footer.loginLink')}
             </a>
           </div>
         )}
@@ -640,7 +647,7 @@ export default function RegisterPage() {
             onMouseEnter={(e) => e.currentTarget.style.color = '#845ec2'}
             onMouseLeave={(e) => e.currentTarget.style.color = '#c2a9db'}
           >
-            ← Về lại trang chủ
+            {t('footer.backHome')}
           </a>
         </div>
       </div>

@@ -10,14 +10,20 @@ export const apiClient = axios.create({
   },
 });
 
-// Interceptor: Tự động đính kèm Access Token vào mọi Request gửi đi
 apiClient.interceptors.request.use(
   (config) => {
     if (typeof window === 'undefined') return config;
+
     const token = Cookies.get('accessToken');
     if (token && config && config.headers) {
       (config.headers as any).Authorization = `Bearer ${token}`;
     }
+
+    const locale = Cookies.get('NEXT_LOCALE') || 'vi';
+    if (config && config.headers) {
+      (config.headers as any)['Accept-Language'] = locale;
+    }
+
     return config;
   },
   (error) => Promise.reject(error),

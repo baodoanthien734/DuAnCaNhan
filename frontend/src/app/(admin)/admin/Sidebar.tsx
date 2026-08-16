@@ -1,26 +1,30 @@
 'use client';
 
 import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 
 type SidebarProps = {
   user: { name?: string };
+  brand?: string;
+  title?: string;
 };
 
-const navItems = [
-  { label: 'Dashboard', href: '/admin' },
-  { label: 'Danh mục', href: '/admin/categories' },
-  { label: 'Sản phẩm', href: '/admin/products' },
-  { label: 'Bài viết', href: '/admin/posts' },
-  { label: 'Đơn hàng', href: '/admin/orders' },
-  { label: 'Đánh giá', href: '/admin/reviews' },
-  { label: 'Khách hàng', href: '/admin/customers' },
-];
-
-export default function Sidebar({ user }: SidebarProps) {
+export default function Sidebar({ user, brand, title }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const pathname = usePathname(); // Lấy URL hiện tại để active chuẩn xác
+  const pathname = usePathname();
+  const t = useTranslations('admin_sidebar');
+
+  const navItems = [
+    { label: t('nav.dashboard'), href: '/admin' },
+    { label: t('nav.categories'), href: '/admin/categories' },
+    { label: t('nav.products'), href: '/admin/products' },
+    { label: t('nav.posts'), href: '/admin/posts' },
+    { label: t('nav.orders'), href: '/admin/orders' },
+    { label: t('nav.reviews'), href: '/admin/reviews' },
+    { label: t('nav.customers'), href: '/admin/customers' },
+  ];
 
   return (
     <aside
@@ -46,10 +50,10 @@ export default function Sidebar({ user }: SidebarProps) {
     >
       <div style={{ display: 'flex', justifyContent: collapsed ? 'center' : 'space-between', alignItems: 'center', gap: '12px', marginBottom: '28px' }}>
         <div style={{ display: 'grid', gap: '6px', alignItems: 'center', width: '100%', opacity: collapsed ? 0 : 1, transition: 'opacity 0.2s ease' }}>
-          <p style={{ margin: 0, color: '#0c4a6e', fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase' }}>TinyHandMade</p>
-          <h2 style={{ margin: 0, fontSize: '24px', color: '#0f172a', lineHeight: 1.1 }}>Admin</h2>
+          <p style={{ margin: 0, color: '#0c4a6e', fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase' }}>{brand ?? t('brand')}</p>
+          <h2 style={{ margin: 0, fontSize: '24px', color: '#0f172a', lineHeight: 1.1 }}>{title ?? t('title')}</h2>
           <p style={{ margin: '10px 0 0', color: '#475569', fontSize: '13px' }}>
-            Xin chào, <strong>{user.name ?? 'Admin'}</strong>
+            {t('greeting', { name: user.name ?? 'Admin' })}
           </p>
         </div>
 

@@ -1,10 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 import { listCategories, Category, removeCategory, reorderCategories } from '../../../../lib/categories-api';
 import CategoryForm from './CategoryForm';
 
 export default function CategoryList() {
+  const t = useTranslations('admin_categories');
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export default function CategoryList() {
         if (mounted) setCategories(data);
       } catch (err: any) {
         console.error('Failed to load categories', err);
-        if (mounted) setError(err?.message || 'Lỗi khi tải danh mục');
+        if (mounted) setError(err?.message || t('list.loadError'));
       } finally {
         if (mounted) setLoading(false);
       }
@@ -44,41 +46,42 @@ export default function CategoryList() {
     <div style={{ marginTop: 18 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'center', marginBottom: 12 }}>
         <input
-          placeholder="Tìm kiếm danh mục..."
+          placeholder={t('list.searchPlaceholder')}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #e5e7eb', width: 320 }}
         />
-        <button style={{ padding: '8px 12px', borderRadius: 8, backgroundColor: '#2563eb', color: '#fff', border: 'none' }}>Tìm</button>
+        <button style={{ padding: '8px 12px', borderRadius: 8, backgroundColor: '#2563eb', color: '#fff', border: 'none' }}>{t('list.searchButton')}</button>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
           <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <input type="checkbox" checked={showTree} onChange={(e) => setShowTree(e.target.checked)} />
-            <span style={{ color: '#374151' }}>Hiển thị cây</span>
+            <span style={{ color: '#374151' }}>{t('list.showTree')}</span>
           </label>
-          <button onClick={() => { setEditing(null); setShowForm(true); }} style={{ padding: '8px 12px', borderRadius: 8, backgroundColor: '#10b981', color: '#fff', border: 'none' }}>Tạo danh mục</button>
+          <button onClick={() => { setEditing(null); setShowForm(true); }} style={{ padding: '8px 12px', borderRadius: 8, backgroundColor: '#10b981', color: '#fff', border: 'none' }}>{t('list.createButton')}</button>
         </div>
       </div>
 
-      {loading && <div>Đang tải...</div>}
+      {loading && <div>{t('list.loading')}</div>}
       {error && <div style={{ color: 'red' }}>{error}</div>}
+      {toast && <div style={{ marginBottom: 12, padding: 8, backgroundColor: '#e0f2fe', color: '#0369a1', borderRadius: 8 }}>{toast}</div>}
 
       {!loading && !error && (
         <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: 12 }}>
           <thead>
             <tr style={{ textAlign: 'left', borderBottom: '1px solid #e5e7eb' }}>
-              <th style={{ padding: '12px 8px' }}>Ảnh</th>
-              <th style={{ padding: '12px 8px' }}>Tên</th>
-              <th style={{ padding: '12px 8px' }}>Slug</th>
-              <th style={{ padding: '12px 8px' }}>Vị trí</th>
-              <th style={{ padding: '12px 8px' }}>Trạng thái</th>
-              <th style={{ padding: '12px 8px' }}>Hành động</th>
+              <th style={{ padding: '12px 8px' }}>{t('list.columns.image')}</th>
+              <th style={{ padding: '12px 8px' }}>{t('list.columns.name')}</th>
+              <th style={{ padding: '12px 8px' }}>{t('list.columns.slug')}</th>
+              <th style={{ padding: '12px 8px' }}>{t('list.columns.position')}</th>
+              <th style={{ padding: '12px 8px' }}>{t('list.columns.status')}</th>
+              <th style={{ padding: '12px 8px' }}>{t('list.columns.actions')}</th>
             </tr>
           </thead>
           <tbody>
             {categories.length === 0 ? (
               <tr>
                 <td colSpan={6} style={{ padding: 16, color: '#6b7280' }}>
-                  Không có danh mục
+                  {t('list.empty')}
                 </td>
               </tr>
             ) : showTree ? (
@@ -118,11 +121,11 @@ export default function CategoryList() {
                         </td>
                         <td style={{ padding: '12px 8px', color: '#6b7280' }}>{node.slug || '—'}</td>
                         <td style={{ padding: '12px 8px' }}>{node.position ?? '—'}</td>
-                        <td style={{ padding: '12px 8px' }}>{node.isActive ? 'Hoạt động' : 'Tạm ẩn'}</td>
+                        <td style={{ padding: '12px 8px' }}>{node.isActive ? t('list.status.active') : t('list.status.inactive')}</td>
                         <td style={{ padding: '12px 8px' }}>
-                          <button style={{ marginRight: 8 }} onClick={() => { setEditing(node); setShowForm(true); }}>Sửa</button>
+                          <button style={{ marginRight: 8 }} onClick={() => { setEditing(node); setShowForm(true); }}>{t('list.actions.edit')}</button>
                           <button
-                            title="Di chuyển lên"
+                            title={t('list.actions.moveUp')}
                             onClick={async () => {
                               const flat = categories.slice();
                               const idx = flat.findIndex((x) => x.id === node.id);
@@ -136,11 +139,11 @@ export default function CategoryList() {
                                 setReordering(true);
                                 await reorderCategories(updates);
                                 setCategories(newCats.map((cat, i) => ({ ...cat, position: i + 1 })));
-                                setToast('Đã cập nhật vị trí');
+                                setToast(t('list.actions.reorderSuccess')); // ĐÃ SỬA
                                 setTimeout(() => setToast(null), 2500);
                               } catch (err: any) {
                                 console.error(err);
-                                setToast(err?.message || 'Lỗi khi sắp xếp');
+                                setToast(err?.message || t('list.actions.reorderError')); // ĐÃ SỬA
                                 setTimeout(() => setToast(null), 4000);
                               } finally {
                                 setReordering(false);
@@ -152,7 +155,7 @@ export default function CategoryList() {
                             ↑
                           </button>
                           <button
-                            title="Di chuyển xuống"
+                            title={t('list.actions.moveDown')}
                             onClick={async () => {
                               const flat = categories.slice();
                               const idx = flat.findIndex((x) => x.id === node.id);
@@ -166,11 +169,11 @@ export default function CategoryList() {
                                 setReordering(true);
                                 await reorderCategories(updates);
                                 setCategories(newCats.map((cat, i) => ({ ...cat, position: i + 1 })));
-                                setToast('Đã cập nhật vị trí');
+                                setToast(t('list.actions.reorderSuccess')); // ĐÃ SỬA
                                 setTimeout(() => setToast(null), 2500);
                               } catch (err: any) {
                                 console.error(err);
-                                setToast(err?.message || 'Lỗi khi sắp xếp');
+                                setToast(err?.message || t('list.actions.reorderError')); // ĐÃ SỬA
                                 setTimeout(() => setToast(null), 4000);
                               } finally {
                                 setReordering(false);
@@ -183,17 +186,17 @@ export default function CategoryList() {
                           </button>
                           <button
                             onClick={async () => {
-                              const ok = confirm(`Xóa danh mục "${node.name}"? Hành động này sẽ ẩn danh mục.`);
+                              const ok = window.confirm(t('list.actions.deleteConfirm', { name: node.name }));
                               if (!ok) return;
                               try {
                                 setDeletingId(node.id);
                                 await removeCategory(node.id);
                                 setCategories((prev) => prev.filter((p) => p.id !== node.id));
-                                setToast('Đã xóa danh mục');
+                                setToast(t('list.actions.deleteSuccess'));
                                 setTimeout(() => setToast(null), 3000);
                               } catch (err: any) {
                                 console.error(err);
-                                setToast(err?.message || 'Lỗi khi xóa');
+                                setToast(err?.message || t('list.actions.deleteError'));
                                 setTimeout(() => setToast(null), 4000);
                               } finally {
                                 setDeletingId(null);
@@ -201,7 +204,7 @@ export default function CategoryList() {
                             }}
                             disabled={deletingId === node.id}
                           >
-                            {deletingId === node.id ? 'Đang xóa...' : 'Xóa'}
+                            {deletingId === node.id ? t('list.actions.deleteLoading') : t('list.actions.delete')}
                           </button>
                         </td>
                       </tr>
@@ -225,11 +228,11 @@ export default function CategoryList() {
                   <td style={{ padding: '12px 8px' }}>{c.name}</td>
                   <td style={{ padding: '12px 8px', color: '#6b7280' }}>{c.slug || '—'}</td>
                   <td style={{ padding: '12px 8px' }}>{c.position ?? '—'}</td>
-                  <td style={{ padding: '12px 8px' }}>{c.isActive ? 'Hoạt động' : 'Tạm ẩn'}</td>
+                  <td style={{ padding: '12px 8px' }}>{c.isActive ? t('list.status.active') : t('list.status.inactive')}</td>
                   <td style={{ padding: '12px 8px' }}>
-                    <button style={{ marginRight: 8 }} onClick={() => { setEditing(c); setShowForm(true); }}>Sửa</button>
+                    <button style={{ marginRight: 8 }} onClick={() => { setEditing(c); setShowForm(true); }}>{t('list.actions.edit')}</button>
                     <button
-                      title="Di chuyển lên"
+                      title={t('list.actions.moveUp')}
                       onClick={async () => {
                         const idx = categories.findIndex((x) => x.id === c.id);
                         if (idx <= 0) return;
@@ -237,18 +240,16 @@ export default function CategoryList() {
                         const tmp = newCats[idx - 1];
                         newCats[idx - 1] = newCats[idx];
                         newCats[idx] = tmp;
-                        // assign positions as index+1
                         const updates = newCats.map((cat, i) => ({ id: cat.id, position: i + 1 }));
                         try {
                           setReordering(true);
                           await reorderCategories(updates);
-                          // update local list with new positions
                           setCategories(newCats.map((cat, i) => ({ ...cat, position: i + 1 })));
-                          setToast('Đã cập nhật vị trí');
+                          setToast(t('list.actions.reorderSuccess')); // ĐÃ SỬA
                           setTimeout(() => setToast(null), 2500);
                         } catch (err: any) {
                           console.error(err);
-                          setToast(err?.message || 'Lỗi khi sắp xếp');
+                          setToast(err?.message || t('list.actions.reorderError')); // ĐÃ SỬA
                           setTimeout(() => setToast(null), 4000);
                         } finally {
                           setReordering(false);
@@ -260,7 +261,7 @@ export default function CategoryList() {
                       ↑
                     </button>
                     <button
-                      title="Di chuyển xuống"
+                      title={t('list.actions.moveDown')}
                       onClick={async () => {
                         const idx = categories.findIndex((x) => x.id === c.id);
                         if (idx === -1 || idx >= categories.length - 1) return;
@@ -273,11 +274,11 @@ export default function CategoryList() {
                           setReordering(true);
                           await reorderCategories(updates);
                           setCategories(newCats.map((cat, i) => ({ ...cat, position: i + 1 })));
-                          setToast('Đã cập nhật vị trí');
+                          setToast(t('list.actions.reorderSuccess')); // ĐÃ SỬA
                           setTimeout(() => setToast(null), 2500);
                         } catch (err: any) {
                           console.error(err);
-                          setToast(err?.message || 'Lỗi khi sắp xếp');
+                          setToast(err?.message || t('list.actions.reorderError')); // ĐÃ SỬA
                           setTimeout(() => setToast(null), 4000);
                         } finally {
                           setReordering(false);
@@ -290,17 +291,17 @@ export default function CategoryList() {
                     </button>
                     <button
                       onClick={async () => {
-                        const ok = confirm(`Xóa danh mục "${c.name}"? Hành động này sẽ ẩn danh mục.`);
+                        const ok = window.confirm(t('list.actions.deleteConfirm', { name: c.name }));
                         if (!ok) return;
                         try {
                           setDeletingId(c.id);
                           await removeCategory(c.id);
                           setCategories((prev) => prev.filter((p) => p.id !== c.id));
-                          setToast('Đã xóa danh mục');
+                          setToast(t('list.actions.deleteSuccess'));
                           setTimeout(() => setToast(null), 3000);
                         } catch (err: any) {
                           console.error(err);
-                          setToast(err?.message || 'Lỗi khi xóa');
+                          setToast(err?.message || t('list.actions.deleteError'));
                           setTimeout(() => setToast(null), 4000);
                         } finally {
                           setDeletingId(null);
@@ -308,7 +309,7 @@ export default function CategoryList() {
                       }}
                       disabled={deletingId === c.id}
                     >
-                      {deletingId === c.id ? 'Đang xóa...' : 'Xóa'}
+                      {deletingId === c.id ? t('list.actions.deleteLoading') : t('list.actions.delete')}
                     </button>
                   </td>
                 </tr>
@@ -320,22 +321,20 @@ export default function CategoryList() {
 
       {showForm && (
         <div style={{ marginTop: 16, padding: 16, borderRadius: 12, background: '#f9fafb' }}>
-          <h3 style={{ marginTop: 0 }}>{editing ? 'Chỉnh sửa danh mục' : 'Tạo danh mục mới'}</h3>
+          <h3 style={{ marginTop: 0 }}>{editing ? t('form.editTitle') : t('form.createTitle')}</h3>
           <CategoryForm
             initial={editing ?? undefined}
             onSaved={(cat) => {
               setShowForm(false);
-              // reload list
               setPage(1);
               setQuery('');
-              // quick refresh
               (async () => {
                 setLoading(true);
                 try {
                   const data = await listCategories({ take });
                   setCategories(data);
                 } catch (err: any) {
-                  setError(err?.message || 'Lỗi khi tải danh mục');
+                  setError(err?.message || t('list.loadError'));
                 } finally {
                   setLoading(false);
                 }
@@ -348,11 +347,11 @@ export default function CategoryList() {
 
       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 12 }}>
         <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} style={{ padding: '6px 10px' }}>
-          Prev
+          {t('list.pagination.prev')}
         </button>
         <div style={{ alignSelf: 'center' }}>{page}</div>
         <button onClick={() => setPage((p) => p + 1)} style={{ padding: '6px 10px' }}>
-          Next
+          {t('list.pagination.next')}
         </button>
       </div>
     </div>

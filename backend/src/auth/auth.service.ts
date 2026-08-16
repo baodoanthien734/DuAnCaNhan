@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { I18nService } from 'nestjs-i18n';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { MailService } from '../mail/mail.service';
@@ -14,6 +15,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly mailService: MailService,
     private readonly jwtService: JwtService,
+    private readonly i18n: I18nService,
   ) {}
 
   // 1. API Send OTP
@@ -25,7 +27,7 @@ export class AuthService {
         where: { email },
       });
     if (existingUser) {
-    throw new BadRequestException('Email này đã được đăng ký. Vui lòng đăng nhập!');
+      throw new BadRequestException(this.i18n.t('auth.error.email_already_registered_login'));
     }
     // Tạo mã OTP 6 chữ số ngẫu nhiên
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -50,9 +52,9 @@ export class AuthService {
   await this.mailService.sendOtpEmail(email, otpCode);
 
   // Trả về expiresAt chuẩn để Frontend đồng bộ
-  return { 
-    message: 'Gửi mã OTP thành công!', 
-    expiresAt: expiresAt.toISOString() 
+  return {
+    message: this.i18n.t('auth.success.otp_sent'),
+    expiresAt: expiresAt.toISOString(),
   };
 }
 
@@ -63,14 +65,14 @@ export class AuthService {
     const otpRecord = await this.prisma.otp.findUnique({ where: { email } });
 
     if (!otpRecord || otpRecord.code !== code) {
-      throw new BadRequestException('Mã OTP không hợp lệ!');
+      throw new BadRequestException(this.i18n.t('auth.error.otp_invalid'));
     }
 
     if (new Date() > otpRecord.expiresAt) {
-      throw new BadRequestException('Mã OTP đã hết hạn!');
+      throw new BadRequestException(this.i18n.t('auth.error.otp_expired'));
     }
 
-    return { message: 'Xác thực OTP thành công.' };
+    return { message: this.i18n.t('auth.success.otp_verified') };
   }
 
   // 3. API Register
@@ -83,13 +85,13 @@ export class AuthService {
     // Kiểm tra xem email đã tồn tại chưa
     const existingUser = await this.prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      throw new BadRequestException('Email này đã được đăng ký tài khoản!');
+      throw new BadRequestException(this.i18n.t('auth.error.email_already_registered'));
     }
 
     // Lấy Role CUSTOMER mặc định trong DB
     const customerRole = await this.prisma.role.findUnique({ where: { name: 'CUSTOMER' } });
     if (!customerRole) {
-      throw new BadRequestException('Hệ thống chưa khởi tạo Role CUSTOMER!');
+      throw new BadRequestException(this.i18n.t('auth.error.role_not_initialized'));
     }
 
     // Hash password
@@ -120,7 +122,7 @@ export class AuthService {
     await this.prisma.otp.delete({ where: { email } });
 
     return {
-      message: 'Đăng ký tài khoản thành công!',
+      message: this.i18n.t('auth.success.register_success'),
       userId: newUser.id,
     };
   }
@@ -136,23 +138,23 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Email hoặc mật khẩu không chính xác!');
+      throw new UnauthorizedException(this.i18n.t('auth.error.invalid_credentials'));
     }
 
     // Kiểm tra Password
     const passwordHash = user.password;
     if (!passwordHash) {
-      throw new UnauthorizedException('Tài khoản chưa được thiết lập mật khẩu!');
-    } 
+      throw new UnauthorizedException(this.i18n.t('auth.error.password_not_set'));
+    }
 
     const isPasswordValid = await bcrypt.compare(password, passwordHash);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Email hoặc mật khẩu không chính xác!');
+      throw new UnauthorizedException(this.i18n.t('auth.error.invalid_credentials'));
     }
 
     const userRole = user.roles?.[0]?.name;
     if (!userRole) {
-      throw new UnauthorizedException('Tài khoản chưa được gán quyền hợp lệ!');
+      throw new UnauthorizedException(this.i18n.t('auth.error.invalid_role'));
     }
 
     // Tạo cặp AccessToken và RefreshToken
@@ -176,7 +178,7 @@ export class AuthService {
     });
 
     return {
-      message: 'Đăng nhập thành công!',
+      message: this.i18n.t('auth.success.login_success'),
       accessToken,
       refreshToken,
       user: {
@@ -195,13 +197,13 @@ export class AuthService {
     });
 
     if (!user || !user.hashedRefreshToken) {
-      throw new UnauthorizedException('Truy cập bị từ chối!');
+      throw new UnauthorizedException(this.i18n.t('auth.error.access_denied'));
     }
 
     // Kiểm tra Refresh Token gửi lên có khớp với Hash trong DB không
     const isRefreshTokenValid = await bcrypt.compare(refreshToken, user.hashedRefreshToken);
     if (!isRefreshTokenValid) {
-      throw new UnauthorizedException('Refresh Token không hợp lệ hoặc đã hết hạn!');
+      throw new UnauthorizedException(this.i18n.t('auth.error.refresh_token_invalid'));
     }
 
     // Cấp lại cặp Token mới
@@ -239,6 +241,6 @@ export class AuthService {
       data: { hashedRefreshToken: null },
     });
 
-    return { message: 'Đăng xuất thành công!' };
+    return { message: this.i18n.t('auth.success.logout_success') };
   }
 }

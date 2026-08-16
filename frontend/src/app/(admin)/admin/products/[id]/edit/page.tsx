@@ -2,10 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { getProduct, updateProduct } from "@/lib/products-api";
 import ProductForm, { ProductFormValues } from "../../components/ProductForm";
 
 export default function EditProductPage() {
+  const t = useTranslations("admin_products");
   const router = useRouter();
   const params = useParams(); // Lấy ID từ URL
   const id = Number(params.id);
@@ -42,7 +44,7 @@ export default function EditProductPage() {
         setInitialData(formattedData);
       } catch (error) {
         console.error("Lỗi tải chi tiết sản phẩm:", error);
-        alert("Sản phẩm không tồn tại hoặc đã bị xóa.");
+        alert(t("form.detailsLoadError"));
         router.push("/admin/products");
       } finally {
         setIsLoading(false);
@@ -50,7 +52,7 @@ export default function EditProductPage() {
     };
 
     fetchProductDetail();
-  }, [id, router]);
+  }, [id, router, t]);
 
   // Hàm xử lý khi người dùng bấm "Cập nhật sản phẩm"
   const handleUpdate = async (data: any) => {
@@ -91,16 +93,16 @@ export default function EditProductPage() {
       };
 
       await updateProduct(id, payload);
-      alert("Cập nhật sản phẩm thành công!");
+      alert(t("form.updateSuccess"));
       router.push("/admin/products");
       
     } catch (error: any) {
       console.error("Lỗi khi cập nhật:", error);
       const resData = error.response?.data;
       if (resData?.message) {
-        alert("Lỗi dữ liệu từ Backend:\n" + JSON.stringify(resData.message, null, 2));
+        alert(t("form.updateValidationError", { message: JSON.stringify(resData.message, null, 2) }));
       } else {
-        alert("Đã xảy ra lỗi khi cập nhật sản phẩm. Vui lòng mở F12 để xem chi tiết!");
+        alert(t("form.updateError"));
       }
     } finally {
       setIsSubmitting(false);
@@ -112,7 +114,7 @@ export default function EditProductPage() {
     return (
       <div className="flex flex-col justify-center items-center min-h-[60vh]">
         <div className="w-10 h-10 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-        <p className="text-gray-500 font-medium">Đang tải dữ liệu sản phẩm...</p>
+        <p className="text-gray-500 font-medium">{t("form.loadingProduct")}</p>
       </div>
     );
   }
