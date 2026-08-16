@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { listCategories, Category, removeCategory, reorderCategories } from '../../../../lib/categories-api';
+import { listCategories, Category, removeCategory, reorderCategories, resolveCategoryImageUrl } from '../../../../lib/categories-api';
 import CategoryForm from './CategoryForm';
 import { useModal } from '@/hooks/useModal';
 
@@ -106,7 +106,7 @@ export default function CategoryList() {
                       <tr style={{ borderBottom: '1px solid #f3f4f6' }}>
                         <td style={{ padding: '12px 8px' }}>
                           {node.image ? (
-                            <img src={node.image} alt={node.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }} />
+                            <img src={resolveCategoryImageUrl(node.image)} alt={node.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }} />
                           ) : (
                             <div style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#f3f4f6' }} />
                           )}
@@ -222,7 +222,7 @@ export default function CategoryList() {
                 <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6' }}>
                   <td style={{ padding: '12px 8px' }}>
                     {c.image ? (
-                      <img src={c.image} alt={c.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }} />
+                      <img src={resolveCategoryImageUrl(c.image)} alt={c.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8 }} />
                     ) : (
                       <div style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#f3f4f6' }} />
                     )}

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { getPublicProductsByCategorySlug } from '@/lib/public-api';
 import { notFound } from 'next/navigation';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 interface PageProps {
   params: Promise<{
@@ -57,7 +58,7 @@ export default async function CategoryPage({ params }: PageProps) {
             gap: '22px'
           }}>
             {products.map((item) => {
-              const imageUrl = item.images && item.images.length > 0 ? item.images[0] : null;
+              const imageUrl = item.images && item.images.length > 0 ? resolveProductImageUrl(item.images[0]) : null;
 
               return (
                 <div key={item.id} style={{ backgroundColor: '#ffffff', borderRadius: '28px', overflow: 'hidden', boxShadow: '0 18px 45px rgba(15, 23, 42, 0.08)', transition: 'transform 0.25s' }}>
