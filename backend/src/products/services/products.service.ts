@@ -26,21 +26,42 @@ export class ProductsService {
     private readonly i18n: I18nService,
   ) {}
 
-  private generateSlug(text: string): string {
-    const baseSlug = text
+  // 1. Hàm chuẩn hóa chuỗi tiếng Việt
+  private slugify(text: string) {
+    return text
       .toString()
-      .toLowerCase()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd')
-      .replace(/Đ/g, 'D')
+      .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+      .toLowerCase()
+      .trim()
       .replace(/\s+/g, '-')
-      .replace(/[^\w\-]+/g, '')
-      .replace(/\-\-+/g, '-')
-      .replace(/^-+/, '')
-      .replace(/-+$/, '');
+      .replace(/[^a-z0-9\-]/g, '')
+      .replace(/\-+/g, '-');
+  }
 
-    return `${baseSlug}-${Date.now()}`;
+  // 2. Hàm tự động sinh Slug (thêm -1, -2 nếu trùng)
+  private async generateAutoSlug(name: string, currentId?: number): Promise<string> {
+    const baseSlug = this.slugify(name);
+    let slug = baseSlug;
+    let counter = 1;
+
+    while (true) {
+      const existing = await this.prisma.product.findFirst({ where: { slug } });
+      if (!existing || existing.id === currentId) {
+        return slug;
+      }
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+  }
+
+  // 3. Hàm kiểm tra Admin nhập tay
+  private async checkManualSlug(slug: string, currentId?: number): Promise<void> {
+    const existing = await this.prisma.product.findFirst({ where: { slug } });
+    if (existing && existing.id !== currentId) {
+      throw new BadRequestException(this.i18n.t('products.error.duplicate_slug'));
+    }
   }
 
   private toNumber(value: unknown): number {
@@ -280,12 +301,23 @@ export class ProductsService {
     this.assertVariantPrices(basePrice, createProductDto.variants);
 
     try {
-      const productSlug = this.generateSlug(createProductDto.name);
+      // ==========================================
+      // LOGIC XỬ LÝ SLUG CHO CREATE
+      // ==========================================
+      let finalSlug = '';
+      if (!createProductDto.slug) {
+        // Admin bỏ trống -> Tự sinh
+        finalSlug = await this.generateAutoSlug(createProductDto.name);
+      } else {
+        // Admin nhập tay -> Chuẩn hóa và kiểm tra trùng
+        finalSlug = this.slugify(createProductDto.slug);
+        await this.checkManualSlug(finalSlug);
+      }
 
       const product = await this.prisma.product.create({
         data: {
           name: createProductDto.name,
-          slug: productSlug,
+          slug: finalSlug, // Dùng Slug mới thay vì cái cũ
           categoryId: createProductDto.categoryId,
           description: createProductDto.description,
           basePrice: createProductDto.basePrice,
@@ -437,7 +469,35 @@ export class ProductsService {
       this.assertVariantPrices(nextBasePrice, dto.variants);
     }
 
-    const { variants, customizations, images, ...productData } = dto as any;
+    // Tách riêng `slug` ra khỏi productData để xử lý
+    const { variants, customizations, images, slug, ...productData } = dto as any;
+
+    // ==========================================
+    // LOGIC XỬ LÝ SLUG THÔNG MINH CHO UPDATE
+    // ==========================================
+    let finalSlug = existing.slug;
+    
+    if (slug !== undefined) {
+      if (slug === existing.slug) {
+        // Admin không đụng vào ô Slug, nhưng nếu đổi Tên thì tự động đổi Slug theo
+        if (dto.name && dto.name !== existing.name) {
+          finalSlug = await this.generateAutoSlug(dto.name, id);
+        }
+      } else if (slug.trim() === '') {
+        // Admin cố tình xóa trắng ô Slug -> Lấy Tên sinh lại
+        const targetName = dto.name || existing.name;
+        finalSlug = await this.generateAutoSlug(targetName, id);
+      } else {
+        // Admin chủ ý gõ một Slug mới hoàn toàn
+        finalSlug = this.slugify(slug);
+        await this.checkManualSlug(finalSlug, id);
+      }
+    } else {
+      // Đề phòng trường hợp Frontend không gửi trường slug lên, vẫn tự động bám theo tên
+      if (dto.name && dto.name !== existing.name) {
+        finalSlug = await this.generateAutoSlug(dto.name, id);
+      }
+    }
 
     const incomingImages = images !== undefined ? images : existing.images;
     const finalProductImages = await Promise.all(
@@ -450,6 +510,7 @@ export class ProductsService {
       where: { id },
       data: {
         ...productData,
+        slug: finalSlug, // Truyền Slug đã được xử lý thông minh vào DB
         images: finalProductImages,
       },
     });
@@ -479,7 +540,9 @@ export class ProductsService {
     }
 
     if (categoryId) {
-      where.categoryId = Number(categoryId);
+    // Tạm thời sửa thành: nếu categoryId chứa dấu phẩy (vd: '1,2,3'), thì tách thành mảng
+    const ids = categoryId.split(',').map(id => Number(id));
+    where.categoryId = { in: ids }; 
     }
 
     const [items, total] = await this.prisma.$transaction([

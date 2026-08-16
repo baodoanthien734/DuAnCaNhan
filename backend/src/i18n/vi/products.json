@@ -7,6 +7,7 @@
     "product_not_found_with_id": "Không tìm thấy sản phẩm với ID: {id}",
     "product_save_failed": "Lỗi hệ thống khi lưu sản phẩm, vui lòng thử lại",
     "variant_price_must_be_greater_or_equal_base": "Giá biến thể phải lớn hơn hoặc bằng giá cơ bản ({basePrice}).",
-    "product_images_limit_exceeded": "Tối đa chỉ được phép 5 ảnh chính cho một sản phẩm."
+    "product_images_limit_exceeded": "Tối đa chỉ được phép 5 ảnh chính cho một sản phẩm.",
+    "duplicate_slug": "Tên sản phẩm hoặc đường dẫn (slug) này đã tồn tại trong hệ thống."
   }
 }

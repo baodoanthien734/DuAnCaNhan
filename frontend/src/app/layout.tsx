@@ -11,7 +11,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang={t('layout.lang')}>
-      <body>
+      <body suppressHydrationWarning> 
+        {/* enhanced: suppressHydrationWarning để tránh cảnh báo khi render trên client khi dữ liệu từ server khác với dữ liệu trên client vì extension */}
         {/* THÊM MỚI: Bọc Provider này để "bơm" từ điển xuống cho các Client Component (như trang Login) */}
         <NextIntlClientProvider messages={messages}>
           <GlobalModalProvider>{children}</GlobalModalProvider>

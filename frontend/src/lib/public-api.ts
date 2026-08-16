@@ -36,17 +36,19 @@ export async function getPublicCategoryBySlug(slug: string) {
 
 // 5. Lấy danh mục kèm theo danh sách sản phẩm thuộc danh mục đó
 export async function getPublicProductsByCategorySlug(slug: string, params?: { skip?: number; take?: number }) {
-  // Bước 5.1: Lấy thông tin chi tiết danh mục để có ID
-  const category = await getPublicCategoryBySlug(slug);
+  // Bước 5.1: Gọi API mới nâng cấp, lấy một cục data to đùng
+  const categoryData = await getPublicCategoryBySlug(slug);
   
-  // Bước 5.2: Dùng ID đó gọi lấy danh sách sản phẩm thông qua api products đã có sẵn
+  // Bước 5.2: Truyền chuỗi các ID (ví dụ: '1,5,8') sang API tìm Sản phẩm
   const productsData = await getPublicProducts({
-    categoryId: category.id,
+    categoryId: categoryData.allSubCategoryIds.join(','), 
     ...params,
   });
 
   return {
-    category,
+    category: categoryData.category,
+    breadcrumbs: categoryData.breadcrumbs,
+    children: categoryData.children,
     products: Array.isArray(productsData) ? productsData : productsData.items || [],
     total: productsData.total || 0,
   };

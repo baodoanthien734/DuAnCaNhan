@@ -26,6 +26,7 @@ export interface ProductCustomization {
 
 export interface CreateProductDto {
   name: string;
+  slug?: string;
   categoryId: number;
   description: string;
   basePrice: number;

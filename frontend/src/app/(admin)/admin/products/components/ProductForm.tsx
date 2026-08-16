@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { listCategories } from "@/lib/categories-api";
@@ -10,6 +10,7 @@ import { useModal } from '@/hooks/useModal';
 // --- TYPE DEFINITIONS ---
 export type ProductFormValues = {
   name: string;
+  slug: string;
   categoryId: number;
   description: string;
   basePrice: number;
@@ -33,6 +34,12 @@ export type ProductFormValues = {
     choices: { label: string; extraPrice: number }[];
   }[];
 };
+
+interface CategoryItem {
+  id: number;
+  name: string;
+  parentId?: number | null;
+}
 
 // --- COMPONENT XỬ LÝ MẢNG CHOICES LỒNG NHAU ---
 const CustomizationChoices = ({ nestIndex, control, register, t }: any) => {
@@ -98,12 +105,17 @@ interface ProductFormProps {
 export default function ProductForm({ initialData, onSubmitData, isLoading }: ProductFormProps) {
   const t = useTranslations("admin_products");
   const modal = useModal();
-  const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
+  const [leafCategories, setLeafCategories] = useState<{id: number, name: string, path: string}[]>([]);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [uploadingVariantIndex, setUploadingVariantIndex] = useState<number | null>(null);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [variantImagePreviews, setVariantImagePreviews] = useState<Record<number, string>>({});
 
+  // Thêm state và ref cho Custom Dropdown Category
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+  
   const {
     register,
     control,
@@ -115,6 +127,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   } = useForm<ProductFormValues>({
     defaultValues: initialData || {
       name: "",
+      slug: "",
       categoryId: 1,
       description: "",
       basePrice: 0,
@@ -130,11 +143,21 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   useEffect(() => {
     if (initialData) {
       reset(initialData);
-      // Lấp đầy mảng bằng chuỗi rỗng tương ứng với số ảnh đang có để không bị lệch Index
       setImagePreviews(new Array(initialData.images?.length || 0).fill(""));
       setVariantImagePreviews({});
     }
   }, [initialData, reset]);
+
+  // Click outside logic cho Dropdown Category
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryOpen(false);
+      }
+    };
+    if (isCategoryOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isCategoryOpen]);
 
   const readFileAsDataUrl = (file: File) => {
     return new Promise<string>((resolve, reject) => {
@@ -159,6 +182,9 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   const imagesWatch = watch("images") || [];
   const variantsWatch = watch("variants") || [];
   const basePriceWatch = Number(watch("basePrice") || 0);
+  const categoryIdWatch = watch("categoryId"); 
+
+  const selectedCategory = leafCategories.find(c => c.id === categoryIdWatch);
 
   const variantPriceErrorMap = variantsWatch.map((variant) => {
     const variantPrice = Number(variant?.price ?? 0);
@@ -167,8 +193,34 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   const hasVariantPriceError = variantPriceErrorMap.some(Boolean);
 
   useEffect(() => {
-    listCategories().then(setCategories).catch(console.error);
-  }, []);
+    listCategories().then((rawCategories: CategoryItem[]) => {
+      setCategories(rawCategories);
+      const parentIds = new Set(rawCategories.map(c => c.parentId).filter(id => id != null));
+      const leaves = rawCategories.filter(c => !parentIds.has(c.id));
+
+      const buildPath = (categoryId: number): string => {
+        const cat = rawCategories.find(c => c.id === categoryId);
+        if (!cat) return "";
+        if (cat.parentId) {
+          const parentPath = buildPath(cat.parentId);
+          return parentPath ? `${parentPath} > ${cat.name}` : cat.name;
+        }
+        return cat.name;
+      };
+
+      const formattedLeaves = leaves.map(leaf => ({
+        id: leaf.id,
+        name: leaf.name,
+        path: buildPath(leaf.id)
+      }));
+
+      setLeafCategories(formattedLeaves);
+      
+      if (!initialData && formattedLeaves.length > 0) {
+         setValue("categoryId", formattedLeaves[0].id);
+      }
+    }).catch(console.error);
+  }, [initialData, setValue]);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -210,12 +262,9 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
   const removeVariantImage = async (index: number) => {
     const urlToRemove = variantsWatch[index]?.image;
-
-    // Nếu đây là ảnh tạm (vừa upload) thì gọi API dọn rác trên server
     if (urlToRemove && urlToRemove.includes('/uploads/tmp/')) {
       await deleteTempProductImage(urlToRemove);
     }
-
     setValue(`variants.${index}.image`, "", { shouldValidate: true, shouldDirty: true });
     setVariantImagePreviews((current) => {
       const next = { ...current };
@@ -226,18 +275,13 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
   const removeImage = async (indexToRemove: number) => {
     const urlToRemove = imagesWatch[indexToRemove];
-    
-    // Nếu đây là ảnh tạm (vừa upload) thì gọi API dọn rác trên server
     if (urlToRemove && urlToRemove.includes('/uploads/tmp/')) {
       await deleteTempProductImage(urlToRemove);
     }
-
     const newImages = imagesWatch.filter((_, index) => index !== indexToRemove);
     setValue("images", newImages, { shouldValidate: true });
     setImagePreviews((current) => current.filter((_, index) => index !== indexToRemove));
   };
-
-  
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
@@ -297,6 +341,19 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                     placeholder={t("form.namePlaceholder")}
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t("form.slugLabel")}</label>
+                  <input
+                    {...register("slug")}
+                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                    placeholder="vd: ly-su-capybara"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">
+                    {t("form.slugHelp")}
+                  </p>
+                </div>
+
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">{t("form.descriptionLabel")}</label>
                   <textarea
@@ -335,8 +392,17 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                         <input {...register(`variants.${index}.name` as const, { required: true })} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" />
                       </div>
                       <div>
-                        <label className="text-xs font-medium text-gray-600">{t("form.variantSkuLabel")}</label>
-                        <input {...register(`variants.${index}.sku` as const)} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" />
+                        <label className="text-xs font-medium text-gray-600">
+                          {t("form.variantSkuLabel")}
+                        </label>
+                        <input 
+                          {...register(`variants.${index}.sku` as const)} 
+                          placeholder={t("form.variantSkuPlaceholder")} 
+                          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" 
+                        />
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          {t("form.variantSkuHint")}
+                        </p>
                       </div>
                       <div>
                         <label className="text-xs font-medium text-gray-600">{t("form.variantPriceLabel")}</label>
@@ -360,7 +426,6 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                         {variantsWatch[index]?.image || variantImagePreviews[index] ? (
                           <div className="relative rounded-lg overflow-hidden border border-gray-200 aspect-square bg-white">
                             <img
-                              // Ưu tiên hiển thị Base64 (không bọc resolve), nếu không có mới dùng resolve cho URL của Backend
                               src={variantImagePreviews[index] || resolveProductImageUrl(variantsWatch[index]?.image)}
                               alt={t("form.variantImageAlt", { index: index + 1 })}
                               className="w-full h-full object-cover"
@@ -462,7 +527,6 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                         </button>
                       </div>
 
-                      {/* Hiển thị linh hoạt dựa vào TYPE */}
                       {currentType === "TEXT" && (
                         <div className="mt-3 flex gap-4 w-2/3">
                           <div className="flex-1">
@@ -521,19 +585,65 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">{t("form.categoryLabel")}</label>
-                 <select 
-                    {...register("categoryId", { valueAsNumber: true })} 
-                    className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                {/* --- CUSTOM DROPDOWN DANH MỤC --- */}
+                <div className="bg-blue-50/50 p-4 rounded-lg border border-blue-100 relative" ref={categoryDropdownRef}>
+                  <label className="block text-sm font-bold text-gray-800 mb-2">
+                    {t("form.categoryLabel")} <span className="text-red-500">*</span>
+                  </label>
+                  
+                  {/* Ô hiển thị chính (Trigger Button) */}
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+                    className="w-full p-2.5 border border-blue-200 rounded-lg bg-white text-left flex justify-between items-center shadow-sm focus:ring-2 focus:ring-blue-500 outline-none transition"
                   >
-                    {categories.length === 0 && <option value="">{t("form.loadingCategories")}</option>}
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>
-                        {category.name}
-                      </option>
-                    ))}
-                  </select>
+                    <div>
+                      <div className="text-sm font-semibold text-gray-900">
+                        {selectedCategory ? selectedCategory.name : t("form.loadingCategories")}
+                      </div>
+                      {selectedCategory && (
+                        <div className="text-[11px] text-gray-400 mt-0.5 truncate max-w-[240px]">
+                          {selectedCategory.path}
+                        </div>
+                      )}
+                    </div>
+                    <svg className={`w-5 h-5 text-gray-400 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+
+                  {/* Danh sách thả xuống (Dropdown List) */}
+                  {isCategoryOpen && (
+                    <div className="absolute left-4 right-4 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                      {leafCategories.map((cat) => {
+                        const isSelected = cat.id === categoryIdWatch;
+                        return (
+                          <div
+                            key={cat.id}
+                            onClick={() => {
+                              setValue("categoryId", cat.id, { shouldValidate: true, shouldDirty: true });
+                              setIsCategoryOpen(false);
+                            }}
+                            className={`p-3 cursor-pointer transition hover:bg-blue-50 border-b border-gray-50 last:border-none ${
+                              isSelected ? 'bg-blue-50/80' : ''
+                            }`}
+                          >
+                            <div className="text-sm font-semibold text-gray-900">{cat.name}</div>
+                            <div className="text-[11px] text-gray-400 mt-0.5">{cat.path}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  <div className="mt-3 flex items-start gap-2">
+                    <svg className="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-[11px] text-gray-600 leading-relaxed">
+                      {t("form.categoryNote")}
+                    </p>
+                  </div>
                 </div>
 
                 <div>
