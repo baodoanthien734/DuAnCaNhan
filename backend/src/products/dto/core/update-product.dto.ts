@@ -1,17 +1,21 @@
-import { PartialType, OmitType } from '@nestjs/mapped-types'; // Lưu ý: dùng @nestjs/swagger nếu có tích hợp Swagger
+import { PartialType, OmitType } from '@nestjs/mapped-types'; // Hoặc @nestjs/swagger
 import { CreateProductDto } from './create-product.dto';
-import { IsOptional, IsArray } from 'class-validator';
+import { IsOptional, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
+import { CreateCustomizationDto } from '../nested/customization.dto'; // Nhớ kiểm tra lại đường dẫn import cho đúng
 
-// 1. Dùng OmitType để "loại bỏ" sự khắt khe của 2 mảng này từ CreateProductDto
 export class UpdateProductDto extends PartialType(
   OmitType(CreateProductDto, ['variants', 'customizations'] as const)
 ) {
-  // 2. Khai báo lại chúng dưới dạng mảng tự do, giúp NestJS vui vẻ chấp nhận trường 'id'
+  // 1. Variants tạm giữ nguyên any[] nếu bạn chưa thêm 'id?: number' vào CreateVariantDto
   @IsOptional()
   @IsArray()
   variants?: any[];
 
+  // 2. 👇 TRẢ LẠI SỰ TRONG SẠCH CHO CUSTOMIZATIONS
   @IsOptional()
   @IsArray()
-  customizations?: any[];
+  @ValidateNested({ each: true })
+  @Type(() => CreateCustomizationDto)
+  customizations?: CreateCustomizationDto[];
 }

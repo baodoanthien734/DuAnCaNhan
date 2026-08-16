@@ -9,7 +9,7 @@ interface AddToCartFormProps {
 }
 
 export default function AddToCartForm({ product }: AddToCartFormProps) {
-  const t = useTranslations('cart'); // Sử dụng từ điển cart chúng ta vừa cấu hình ở Bước 1
+  const t = useTranslations('cart');
 
   // State lưu trữ biến thể đang chọn
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
@@ -21,10 +21,10 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
-  // Xử lý khi chọn Variant (Phân loại)
   const handleSelectVariant = (variantId: number) => {
-    setSelectedVariant(variantId);
-    setMessage(null);
+  // Bấm lần 2 thì set về null (hủy chọn)
+  setSelectedVariant(prev => prev === variantId ? null : variantId);
+  setMessage(null);
   };
 
   // Xử lý khi nhập/chọn Customizations (Cá nhân hóa)
@@ -32,6 +32,8 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
     setMessage(null);
     setCustomValues((prev) => {
       const existingIndex = prev.findIndex((c) => c.name === customName);
+      
+      // Nếu value rỗng (Xóa text hoặc Hủy chọn) -> Xóa khỏi danh sách customValues
       if (value === '') {
         return prev.filter((c) => c.name !== customName);
       }
@@ -169,16 +171,25 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
           {product.customizations.map((c: any) => (
             <div key={c.id} style={{ marginBottom: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>
-                <span>{c.name}</span>
+                <span>
+                  {c.name}
+                  {/* Bổ sung: Hiển thị tiền phụ phí cho type TEXT */}
+                  {c.type === 'TEXT' && c.extraPrice > 0 && (
+                    <span style={{ color: '#ea580c', marginLeft: '6px' }}>
+                      (+{Number(c.extraPrice).toLocaleString()} {t('currency')})
+                    </span>
+                  )}
+                </span>
                 {c.isRequired && <span style={{ color: '#ef4444', fontSize: '11px' }}>{t('required')}</span>}
               </div>
 
+              {/* Bổ sung: Cập nhật hàm onChange truyền thêm c.extraPrice */}
               {c.type === 'TEXT' && (
                 <input
                   type="text"
                   maxLength={c.maxLength || 50}
                   placeholder={t('text_input_placeholder', { name: c.name.toLowerCase() })}
-                  onChange={(e) => handleCustomChange(c.name, e.target.value)}
+                  onChange={(e) => handleCustomChange(c.name, e.target.value, Number(c.extraPrice || 0))}
                   style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                 />
               )}
@@ -190,7 +201,14 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
                     return (
                       <button
                         key={choice.id}
-                        onClick={() => handleCustomChange(c.name, choice.label, Number(choice.extraPrice))}
+                        onClick={() => {
+                          if (isActive) {
+                            // Đã xóa cái chốt chặn ở đây!
+                            handleCustomChange(c.name, ''); // Gửi value rỗng để hủy chọn
+                          } else {
+                            handleCustomChange(c.name, choice.label, Number(choice.extraPrice));
+                          }
+                        }}
                         style={{
                           fontSize: '12px',
                           padding: '6px 12px',

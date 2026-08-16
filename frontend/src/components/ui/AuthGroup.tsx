@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
+import Cookies from 'js-cookie';
 import AuthModal from '@/components/ui/AuthModal';
 import CartDrawer from '@/components/ui/CartDrawer';
 import { logout } from '@/lib/auth';
@@ -27,12 +28,26 @@ export default function AuthGroup() {
 
   useEffect(() => {
     setIsClient(true);
+
+    const refreshToken = Cookies.get('refreshToken');
     const userInfo = localStorage.getItem('user_info');
+
+    // Tránh trạng thái "đăng nhập giả": có user_info nhưng không còn refresh token hợp lệ.
+    if (userInfo && !refreshToken) {
+      localStorage.removeItem('user_info');
+      Cookies.remove('accessToken');
+      Cookies.remove('userId');
+      setUser(null);
+      return;
+    }
+
     if (userInfo) {
       try {
         setUser(JSON.parse(userInfo));
       } catch (error) {
         console.error('Lỗi khi đọc thông tin user', error);
+        localStorage.removeItem('user_info');
+        setUser(null);
       }
     }
   }, []);

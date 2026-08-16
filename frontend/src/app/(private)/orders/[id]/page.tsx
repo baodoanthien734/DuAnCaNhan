@@ -5,22 +5,55 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { getMyOrderById } from '@/lib/orders-api';
+import { deleteReview } from '@/lib/reviews-api';
+import ReviewModal from '@/components/ui/ReviewModal';
+import { useModal } from '@/hooks/useModal';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 const STEPS = ['PENDING', 'PROCESSING', 'SHIPPING', 'DELIVERED'];
 
 export default function MyOrderDetailPage() {
   const t = useTranslations('my_orders');
+  const tReview = useTranslations('user_reviews'); 
+  const modal = useModal();
+  
   const params = useParams();
   const orderId = Number(params.id);
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
+  // State mở Modal: Bổ sung thêm existingReview để truyền dữ liệu khi sửa
+  const [reviewData, setReviewData] = useState<{ 
+    isOpen: boolean; 
+    productId: number; 
+    productName: string;
+    existingReview?: {
+      id: number;
+      rating: number;
+      comment: string | null;
+      images: string[];
+    } | null;
+  } | null>(null);
+  
+  // State lưu trữ những ID sản phẩm đã được đánh giá thành công hoặc thông tin review của chúng
+  const [reviewedMap, setReviewedMap] = useState<{ [productId: number]: any }>({});
+
   useEffect(() => {
     const fetchOrder = async () => {
       try {
         const data = await getMyOrderById(orderId);
         setOrder(data);
+
+        // Map dữ liệu đánh giá từ Backend trả về vào state reviewedMap
+        if (data.reviews && Array.isArray(data.reviews)) {
+          const map: { [productId: number]: any } = {};
+          data.reviews.forEach((r: any) => {
+            // Lưu review ứng với productId tương ứng trong đơn hàng này
+            map[r.productId] = r;
+          });
+          setReviewedMap(map);
+        }
       } catch (error) {
         console.error(error);
       } finally {
@@ -35,14 +68,62 @@ export default function MyOrderDetailPage() {
 
   const currentStepIndex = STEPS.indexOf(order.status);
 
+  // =================================================================
+  // THUẬT TOÁN GOM NHÓM THEO SẢN PHẨM (PRODUCT ID)
+  // =================================================================
+  const groupedItems = order.items.reduce((acc: any, item: any) => {
+    if (!acc[item.productId]) {
+      acc[item.productId] = {
+        productId: item.productId,
+        productName: item.productName,
+        productSlug: item.productSlug,
+        imageUrl: item.imageUrl,
+        totalAmount: 0,
+        purchasedDetails: [], 
+      };
+    }
+    
+    acc[item.productId].purchasedDetails.push({
+      id: item.id,
+      variantName: item.variantName,
+      customizations: item.customizations,
+      quantity: item.quantity,
+      price: item.price
+    });
+    
+    acc[item.productId].totalAmount += Number(item.price) * item.quantity;
+    return acc;
+  }, {});
+
+  const groupedProducts = Object.values(groupedItems);
+
+  // Hàm xử lý Xóa đánh giá
+  const handleDeleteReview = async (reviewId: number, productId: number) => {
+    if (!(await modal.confirm(tReview('confirm_delete')))) return;
+    try {
+      await deleteReview(reviewId);
+      await modal.alert(tReview('success_delete'));
+      
+      // Xóa khỏi state để nút bấm chuyển lại thành "Đánh giá sản phẩm"
+      setReviewedMap(prev => {
+        const copy = { ...prev };
+        delete copy[productId];
+        return copy;
+      });
+    } catch (error: any) {
+      console.error(error);
+      await modal.alert(error.response?.data?.message || tReview('err_action'));
+    }
+  };
+
   return (
     <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui' }}>
       <div style={{ maxWidth: '800px', margin: '0 auto' }}>
         
+        {/* Nút quay lại & Tiêu đề */}
         <Link href="/orders" style={{ fontSize: '14px', color: '#4b5563', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
           {t('detail.back')}
         </Link>
-        
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: '0 0 24px' }}>
           {t('detail.title')} #{order.code}
         </h1>
@@ -55,7 +136,6 @@ export default function MyOrderDetailPage() {
         ) : (
           <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '16px', marginBottom: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
-              {/* Đường Line chìm */}
               <div style={{ position: 'absolute', top: '14px', left: '10%', right: '10%', height: '2px', backgroundColor: '#e5e7eb', zIndex: 0 }} />
               
               {STEPS.map((step, index) => {
@@ -75,6 +155,7 @@ export default function MyOrderDetailPage() {
           </div>
         )}
 
+        {/* Thông tin Giao hàng & Thanh toán */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
           <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 12px' }}>{t('detail.shipping_info')}</h3>
@@ -101,52 +182,135 @@ export default function MyOrderDetailPage() {
           </div>
         </div>
 
+        {/* Danh sách Sản phẩm (Đã gom nhóm) */}
         <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
           <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 16px' }}>{t('detail.products')}</h3>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {order.items.map((item: any) => (
-              <div key={item.id} style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #f3f4f6', paddingBottom: '16px' }}>
-                {/* Ảnh có gắn Link */}
-                <Link href={item.productSlug ? `/products/${item.productSlug}` : '#'} style={{ flexShrink: 0 }}>
-                  <div style={{ width: '80px', height: '80px', borderRadius: '8px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    ) : (
-                      <span style={{ fontSize: '24px' }}>📦</span>
-                    )}
-                  </div>
-                </Link>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            {groupedProducts.map((group: any) => {
+              
+              // Kiểm tra xem sản phẩm này đã được đánh giá chưa dựa trên reviewedMap
+              const existingReview = reviewedMap[group.productId];
 
-                <div style={{ flexGrow: 1 }}>
-                  {/* Tên sản phẩm có gắn Link */}
-                  <Link href={item.productSlug ? `/products/${item.productSlug}` : '#'} style={{ fontWeight: '600', color: '#111827', fontSize: '15px', textDecoration: 'none', display: 'block', marginBottom: '4px' }}>
-                    {item.productName}
+              return (
+                <div key={group.productId} style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #f3f4f6', paddingBottom: '20px' }}>
+                  
+                  {/* Ảnh sản phẩm */}
+                  <Link href={group.productSlug ? `/products/${group.productSlug}` : '#'} style={{ flexShrink: 0 }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '8px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {group.imageUrl ? (
+                        <img src={resolveProductImageUrl(group.imageUrl)} alt={group.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <span style={{ fontSize: '24px' }}>📦</span>
+                      )}
+                    </div>
                   </Link>
-                  
-                  {item.variantName && <div style={{ fontSize: '13px', color: '#6b7280' }}>{item.variantName}</div>}
-                  
-                  {item.customizations && Array.isArray(item.customizations) && (
-                    <div style={{ marginTop: '6px' }}>
-                      {item.customizations.map((c: any, idx: number) => (
-                        <div key={idx} style={{ fontSize: '12px', color: '#4b5563', backgroundColor: '#f3f4f6', display: 'inline-block', padding: '2px 8px', borderRadius: '4px', marginRight: '6px', marginBottom: '4px' }}>
-                          {c.name}: <strong>{c.value}</strong> {c.extraPrice > 0 ? `(+${c.extraPrice.toLocaleString()}đ)` : ''}
+
+                  <div style={{ flexGrow: 1 }}>
+                    {/* Tên Sản phẩm */}
+                    <Link href={group.productSlug ? `/products/${group.productSlug}` : '#'} style={{ fontWeight: '700', color: '#111827', fontSize: '16px', textDecoration: 'none', display: 'block', marginBottom: '8px' }}>
+                      {group.productName}
+                    </Link>
+                    
+                    {/* Cây Biến thể & Tùy chọn */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingLeft: '12px', borderLeft: '2px solid #e5e7eb' }}>
+                      {group.purchasedDetails.map((detail: any, idx: number) => (
+                        <div key={idx} style={{ fontSize: '13px', color: '#4b5563' }}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                            <span style={{ fontWeight: '500', color: '#374151' }}>
+                              {detail.variantName || 'Mặc định'} (x{detail.quantity})
+                            </span>
+                            <span style={{ color: '#6b7280' }}>{(Number(detail.price) * detail.quantity).toLocaleString()} đ</span>
+                          </div>
+                          
+                          {/* Customizations */}
+                          {detail.customizations && Array.isArray(detail.customizations) && (
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                              {detail.customizations.map((c: any, cIdx: number) => (
+                                <div key={cIdx} style={{ fontSize: '11px', backgroundColor: '#f3f4f6', padding: '2px 8px', borderRadius: '4px' }}>
+                                  <span style={{ color: '#6b7280' }}>{c.name}:</span> <strong style={{ color: '#111827' }}>{c.value}</strong>
+                                  {c.extraPrice > 0 ? ` (+${c.extraPrice.toLocaleString()}đ)` : ''}
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
-                  )}
-                </div>
+                  </div>
 
-                <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div style={{ fontWeight: 'bold', color: '#b45309', fontSize: '15px' }}>
-                    {Number(item.price).toLocaleString()} đ
-                  </div>
-                  <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>
-                    {t('detail.qty')}: {item.quantity}
+                  {/* Tổng tiền & Nút hành động (Đánh giá hoặc Sửa/Xóa) */}
+                  <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between' }}>
+                    <div style={{ fontWeight: 'bold', color: '#b45309', fontSize: '16px' }}>
+                      {group.totalAmount.toLocaleString()} đ
+                    </div>
+                    
+                    {order.status === 'DELIVERED' && (
+                      existingReview ? (
+                        <div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}>
+                          <button
+                            onClick={() => setReviewData({ 
+                              isOpen: true, 
+                              productId: group.productId, 
+                              productName: group.productName,
+                              existingReview: existingReview 
+                            })}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              color: '#374151',
+                              backgroundColor: '#f3f4f6',
+                              border: '1px solid #d1d5db',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {tReview('btn_edit')}
+                          </button>
+                          <button
+                            onClick={() => handleDeleteReview(existingReview.id, group.productId)}
+                            style={{
+                              padding: '6px 12px',
+                              fontSize: '12px',
+                              fontWeight: '600',
+                              color: '#b91c1c',
+                              backgroundColor: '#fee2e2',
+                              border: '1px solid #fecaca',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            {tReview('btn_delete')}
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setReviewData({ 
+                            isOpen: true, 
+                            productId: group.productId, 
+                            productName: group.productName,
+                            existingReview: null 
+                          })}
+                          style={{
+                            padding: '8px 16px',
+                            fontSize: '13px',
+                            fontWeight: '600',
+                            color: '#2563eb',
+                            backgroundColor: '#eff6ff',
+                            border: '1px solid #bfdbfe',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {tReview('btn_review')}
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '16px' }}>
@@ -158,6 +322,37 @@ export default function MyOrderDetailPage() {
         </div>
 
       </div>
+
+      {/* COMPONENT MODAL ĐÁNH GIÁ (DÙNG CHUNG CHO CẢ TẠO MỚI VÀ SỬA) */}
+      {reviewData && (
+        <ReviewModal
+          isOpen={reviewData.isOpen}
+          onClose={() => setReviewData(null)}
+          productId={reviewData.productId}
+          orderId={order.id}
+          productName={reviewData.productName}
+          existingReview={reviewData.existingReview}
+          onSuccess={(savedReview) => {
+            // Cập nhật lại state bằng dữ liệu thật từ backend để tránh id giả hoặc ảnh sai trạng thái.
+            const fallbackReview = reviewData.existingReview
+              ? {
+                  ...reviewData.existingReview,
+                  rating: savedReview?.rating ?? reviewData.existingReview.rating,
+                  comment: savedReview?.comment ?? reviewData.existingReview.comment,
+                  images: savedReview?.images ?? reviewData.existingReview.images,
+                }
+              : null;
+
+            const nextReview = savedReview || fallbackReview;
+            if (!nextReview) return;
+
+            setReviewedMap(prev => ({
+              ...prev,
+              [reviewData.productId]: nextReview
+            }));
+          }}
+        />
+      )}
     </div>
   );
 }

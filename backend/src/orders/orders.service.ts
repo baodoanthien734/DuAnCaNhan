@@ -163,7 +163,8 @@ export class OrdersService {
       },
       include: {
         address: true,
-        items: true
+        items: true,
+        reviews: true,
       }
     });
 

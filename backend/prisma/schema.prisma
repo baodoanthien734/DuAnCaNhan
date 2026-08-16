@@ -193,6 +193,7 @@ model ProductCustomization {
 
   // Dành riêng cho type = TEXT
   maxLength Int? // Giới hạn số lượng ký tự
+  extraPrice  Decimal           @default(0) @db.Decimal(12, 2)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -333,6 +334,7 @@ model Review {
   rating     Int // Từ 1 -> 5 sao
   comment    String?  @db.Text
   images     String[] // Ảnh thực tế từ người dùng
+  adminReply String? @db.Text // Câu trả lời của Admin
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

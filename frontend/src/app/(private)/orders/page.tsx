@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { getMyOrders } from '@/lib/orders-api';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 export default function MyOrdersPage() {
   const t = useTranslations('my_orders');
@@ -69,7 +70,7 @@ export default function MyOrdersPage() {
                     {order.items.slice(0, 2).map((item: any, idx: number) => (
                       <div key={idx} style={{ width: '60px', height: '60px', borderRadius: '8px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {item.imageUrl ? (
-                          <img src={item.imageUrl} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img src={resolveProductImageUrl(item.imageUrl)} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <span style={{ fontSize: '20px' }}>📦</span>
                         )}

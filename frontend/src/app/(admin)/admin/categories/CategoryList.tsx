@@ -4,9 +4,11 @@ import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { listCategories, Category, removeCategory, reorderCategories } from '../../../../lib/categories-api';
 import CategoryForm from './CategoryForm';
+import { useModal } from '@/hooks/useModal';
 
 export default function CategoryList() {
   const t = useTranslations('admin_categories');
+  const modal = useModal();
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -186,7 +188,7 @@ export default function CategoryList() {
                           </button>
                           <button
                             onClick={async () => {
-                              const ok = window.confirm(t('list.actions.deleteConfirm', { name: node.name }));
+                              const ok = await modal.confirm(t('list.actions.deleteConfirm', { name: node.name }));
                               if (!ok) return;
                               try {
                                 setDeletingId(node.id);
@@ -291,7 +293,7 @@ export default function CategoryList() {
                     </button>
                     <button
                       onClick={async () => {
-                        const ok = window.confirm(t('list.actions.deleteConfirm', { name: c.name }));
+                        const ok = await modal.confirm(t('list.actions.deleteConfirm', { name: c.name }));
                         if (!ok) return;
                         try {
                           setDeletingId(c.id);

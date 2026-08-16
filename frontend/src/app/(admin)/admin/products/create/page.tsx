@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { createProduct } from "@/lib/products-api";
 import ProductForm, { ProductFormValues } from "../components/ProductForm";
+import { useModal } from '@/hooks/useModal';
 
 export default function CreateProductPage() {
   const t = useTranslations("admin_products");
+  const modal = useModal();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -15,17 +17,17 @@ export default function CreateProductPage() {
     setIsLoading(true);
     try {
       await createProduct(data);
-      alert(t("form.createSuccess"));
+      await modal.alert(t("form.createSuccess"));
       router.push('/admin/products');
     } catch (error: any) {
       console.error("Lỗi kết nối:", error);
       const resData = error.response?.data;
       if (error.response?.status === 401 || error.response?.status === 403) {
-        alert(t("form.createAuthError"));
+        await modal.alert(t("form.createAuthError"));
       } else if (resData?.message) {
-        alert(t("form.createValidationError", { message: JSON.stringify(resData.message, null, 2) }));
+        await modal.alert(t("form.createValidationError", { message: JSON.stringify(resData.message, null, 2) }));
       } else {
-        alert(t("form.createGenericError"));
+        await modal.alert(t("form.createGenericError"));
       }
     } finally {
       setIsLoading(false);

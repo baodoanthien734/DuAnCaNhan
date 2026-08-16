@@ -5,9 +5,11 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { getAdminOrderById, updateOrderStatus } from '@/lib/admin-orders-api';
+import { useModal } from '@/hooks/useModal';
 
 export default function AdminOrderDetailPage() {
   const t = useTranslations('admin_orders');
+  const modal = useModal();
   const params = useParams();
   const orderId = Number(params.id);
 
@@ -43,9 +45,9 @@ export default function AdminOrderDetailPage() {
     try {
       await updateOrderStatus(orderId, newStatus);
       setOrder({ ...order, status: newStatus });
-      alert(t('detail.success_update'));
+      await modal.alert(t('detail.success_update'));
     } catch (error) {
-      alert(t('detail.error_update'));
+      await modal.alert(t('detail.error_update'));
     } finally {
       setUpdating(false);
     }

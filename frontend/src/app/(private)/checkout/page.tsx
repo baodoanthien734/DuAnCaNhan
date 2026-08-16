@@ -7,9 +7,11 @@ import { getCart } from '@/lib/cart-api';
 import { checkout } from '@/lib/orders-api';
 import { getAddresses, createAddress } from '@/lib/user-api'; 
 import AddressModal from '@/components/ui/AddressModal'; // Component Modal nhỏ gọn
+import { useModal } from '@/hooks/useModal';
 
 export default function CheckoutPage() {
   const router = useRouter();
+  const modal = useModal();
 
   const [cart, setCart] = useState<any>(null);
   const [addresses, setAddresses] = useState<any[]>([]); 
@@ -76,7 +78,7 @@ export default function CheckoutPage() {
         setSelectedAddressId(updatedAddresses[updatedAddresses.length - 1].id);
       }
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Có lỗi khi thêm địa chỉ');
+      await modal.alert(error.response?.data?.message || 'Có lỗi khi thêm địa chỉ');
     }
   }
 
@@ -99,7 +101,7 @@ export default function CheckoutPage() {
         note: note || undefined,
       });
 
-      alert('Đặt hàng thành công! Đã lưu vào hệ thống.');
+      await modal.alert('Đặt hàng thành công! Đã lưu vào hệ thống.');
       router.push('/');
     } catch (err: any) {
       setErrorMsg(err.response?.data?.message || 'Có lỗi xảy ra khi đặt hàng.');

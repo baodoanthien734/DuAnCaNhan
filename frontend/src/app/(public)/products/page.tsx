@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { getPublicProducts, getPublicCategories } from '@/lib/public-api';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 interface SearchParams {
   q?: string;
@@ -142,7 +143,7 @@ export default async function ProductsPage({
                 <div key={item.id} style={{ backgroundColor: '#ffffff', borderRadius: '28px', overflow: 'hidden', boxShadow: '0 18px 45px rgba(15, 23, 42, 0.08)' }}>
                   <div style={{ height: '170px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fef3c7', overflow: 'hidden' }}>
                     {imageUrl ? (
-                      <img src={imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      <img src={resolveProductImageUrl(imageUrl)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     ) : (
                       <span style={{ fontSize: '40px' }}>📦</span>
                     )}

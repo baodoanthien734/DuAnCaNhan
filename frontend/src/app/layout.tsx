@@ -1,5 +1,6 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
+import { GlobalModalProvider } from '@/components/providers/ModalContext';
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Giữ nguyên logic của bạn: Dùng để lấy chữ cho các thẻ meta/html ở Server
@@ -13,7 +14,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body>
         {/* THÊM MỚI: Bọc Provider này để "bơm" từ điển xuống cho các Client Component (như trang Login) */}
         <NextIntlClientProvider messages={messages}>
-          {children}
+          <GlobalModalProvider>{children}</GlobalModalProvider>
         </NextIntlClientProvider>
       </body>
     </html>

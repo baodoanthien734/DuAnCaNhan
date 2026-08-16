@@ -24,6 +24,8 @@ export class ProductCustomizationsService {
 
     // 3. THÊM MỚI & CẬP NHẬT Từng Customization
     for (const custom of customizationsData) {
+
+      console.log(`[DEBUG] Đang xử lý Customization: ${custom.name} | Loại: ${custom.type} | ExtraPrice nhận được:`, custom.extraPrice);
       const choicesData = custom.choices || [];
       
       // Phân tách mảng Choices ra làm 2 loại: Mới và Cũ
@@ -40,6 +42,7 @@ export class ProductCustomizationsService {
             type: custom.type,
             isRequired: custom.isRequired,
             maxLength: custom.maxLength,
+            extraPrice: custom.extraPrice || 0, // <--- BỔ SUNG LƯU TIỀN KHI UPDATE
             // Sử dụng Nested Writes của Prisma để đồng bộ luôn mảng Choices (Tầng 2)
             choices: {
               deleteMany: { id: { notIn: incomingChoiceIds.length > 0 ? incomingChoiceIds : [0] } },
@@ -60,6 +63,7 @@ export class ProductCustomizationsService {
             type: custom.type,
             isRequired: custom.isRequired,
             maxLength: custom.maxLength,
+            extraPrice: custom.extraPrice || 0, // <--- BỔ SUNG LƯU TIỀN KHI TẠO MỚI THÊM
             choices: {
               create: choicesData.map((c: any) => ({ label: c.label, extraPrice: c.extraPrice })),
             },

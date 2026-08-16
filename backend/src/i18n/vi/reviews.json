@@ -1,0 +1,14 @@
+{
+  "error": {
+    "not_eligible": "Bạn không thể đánh giá sản phẩm này hoặc đơn hàng chưa hoàn thành.",
+    "already_reviewed": "Bạn đã đánh giá sản phẩm này trong đơn hàng này rồi.",
+    "not_found": "Không tìm thấy đánh giá này.",
+    "unauthorized": "Bạn không có quyền chỉnh sửa đánh giá này."
+  },
+  "success": {
+    "created": "Đánh giá sản phẩm thành công.",
+    "replied": "Đã lưu phản hồi thành công.",
+    "deleted": "Đã xóa đánh giá.",
+    "updated": "Cập nhật đánh giá thành công."
+  }
+}

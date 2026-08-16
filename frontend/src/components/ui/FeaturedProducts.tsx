@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 interface FeaturedProductsProps {
   categories: any[];
@@ -83,7 +84,7 @@ export default function FeaturedProducts({ categories, products, dict }: Feature
               <div key={item.id} style={{ backgroundColor: '#ffffff', borderRadius: '28px', overflow: 'hidden', boxShadow: '0 18px 45px rgba(15, 23, 42, 0.08)', transition: 'transform 0.25s' }}>
                 <div style={{ height: '170px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fef3c7', overflow: 'hidden' }}>
                   {imageUrl ? (
-                    <img src={imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={resolveProductImageUrl(imageUrl)} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
                     <span style={{ fontSize: '40px' }}>📦</span>
                   )}
