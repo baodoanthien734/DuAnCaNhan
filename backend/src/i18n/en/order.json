@@ -1,0 +1,12 @@
+{
+  "error": {
+    "empty_cart": "Your cart is empty. Cannot proceed to checkout.",
+    "out_of_stock": "The product {productName} is currently out of stock or insufficient in quantity.",
+    "order_not_found": "Order details not found.",
+    "invalid_status": "Invalid order status for this update."
+  },
+  "success": {
+    "order_placed": "Your order has been placed successfully!",
+    "status_updated": "Order status updated successfully."
+  }
+}

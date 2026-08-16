@@ -63,7 +63,7 @@ apiClient.interceptors.response.use(
         Cookies.remove('accessToken');
         Cookies.remove('refreshToken');
         localStorage.removeItem('user_info');
-        window.location.href = '/login';
+        window.location.href = '/';
         return Promise.reject(error);
       }
 
@@ -101,7 +101,7 @@ apiClient.interceptors.response.use(
         Cookies.remove('accessToken');
         Cookies.remove('refreshToken');
         localStorage.removeItem('user_info');
-        window.location.href = '/login';
+        window.location.href = '/';
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

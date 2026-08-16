@@ -1,0 +1,13 @@
+{
+  "error": {
+    "cart_not_found": "Your cart was not found.",
+    "product_not_found": "The product does not exist or has been discontinued.",
+    "invalid_quantity": "Invalid product quantity.",
+    "item_not_found": "Item not found in your cart."
+  },
+  "success": {
+    "item_added": "Item added to cart successfully.",
+    "item_updated": "Quantity updated successfully.",
+    "item_removed": "Item removed from cart."
+  }
+}

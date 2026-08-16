@@ -1,0 +1,36 @@
+{
+  "validation": {
+    "name_string": "Name must be a string",
+    "name_max_length": "Name must not exceed 100 characters",
+    "recipient_name_string": "Recipient name must be a string",
+    "recipient_name_required": "Recipient name is required",
+    "recipient_name_max_length": "Recipient name must not exceed 120 characters",
+    "phone_string": "Phone number must be a string",
+    "phone_required": "Phone number is required",
+    "phone_max_length": "Phone number must not exceed 20 characters",
+    "street_string": "Street must be a string",
+    "street_required": "Street is required",
+    "street_max_length": "Street must not exceed 255 characters",
+    "ward_string": "Ward must be a string",
+    "ward_required": "Ward is required",
+    "ward_max_length": "Ward must not exceed 120 characters",
+    "district_string": "District must be a string",
+    "district_required": "District is required",
+    "district_max_length": "District must not exceed 120 characters",
+    "city_string": "City must be a string",
+    "city_required": "City is required",
+    "city_max_length": "City must not exceed 120 characters",
+    "is_default_boolean": "isDefault must be a boolean"
+  },
+  "error": {
+    "user_not_found": "User not found",
+    "address_not_found": "Address not found",
+    "address_forbidden": "You do not have permission to access this address"
+  },
+  "success": {
+    "profile_updated": "Profile updated successfully",
+    "address_created": "Address created successfully",
+    "address_removed": "Address removed successfully",
+    "default_address_updated": "Default address updated successfully"
+  }
+}

@@ -7,7 +7,10 @@
       "title": "🍃 Handmade Studio",
       "subtitle": "Đồ thủ công nhỏ xinh cho góc sống và quà tặng.",
       "login": "Đăng nhập",
-      "register": "Đăng ký"
+      "register": "Đăng ký",
+      "profile": "Hồ sơ",
+      "adminPanel": "Vào trang Quản trị",
+      "logout": "Đăng xuất"
     },
     "hero": {
       "eyebrow": "SHOP THỦ CÔNG",
@@ -81,57 +84,42 @@
   },
   "auth": {
     "login": {
-      "title": "🧶 Trạm Thủ Công",
-      "subtitle": "Mở cửa thế giới sáng tạo của bạn ✨",
-      "emailLabel": "💌 Địa chỉ Email",
-      "emailPlaceholder": "nhadothucong@gmail.com",
-      "passwordLabel": "🗝️ Chìa khóa (Mật khẩu)",
-      "passwordPlaceholder": "Nhập mật khẩu của bạn...",
-      "showPasswordTitle": "Hiện mật khẩu",
-      "hidePasswordTitle": "Ẩn mật khẩu",
-      "submitLoading": "🧶 Đang đan len...",
-      "submit": "✨ Bước Vào Tiệm",
-      "divider": "HOẶC",
-      "newUser": "Bạn là người mới?",
-      "registerLink": "🎀 Đăng Ký Ngay",
-      "backHome": "← Về lại trang chủ"
+      "title": "Đăng nhập",
+      "subtitle": "Chào mừng bạn quay trở lại",
+      "emailLabel": "Email của bạn",
+      "emailPlaceholder": "nhapemail@domain.com",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "Nhập mật khẩu",
+      "submit": "Đăng nhập ngay",
+      "submitLoading": "Đang xử lý...",
+      "divider": "Hoặc",
+      "newUser": "Bạn chưa có tài khoản?",
+      "registerLink": "Đăng ký"
     },
     "register": {
-      "title": "🧶 Trạm Thủ Công",
-      "subtitle": "Tạo không gian sáng tạo của bạn ✨",
-      "stepLabel": "Bước {step}/3",
+      "title": "Tạo tài khoản mới",
+      "subtitle": "Tham gia cùng chúng tôi ngay hôm nay",
       "step1": {
-        "emailLabel": "💌 Địa chỉ Email",
-        "emailPlaceholder": "nhadothucong@gmail.com",
-        "helperText": "Chúng tôi sẽ gửi một bức thư chứa mã xác nhận đến đây.",
-        "submitLoading": "🧶 Đang gửi thư...",
-        "submit": "📬 Gửi mã xác nhận"
+        "emailLabel": "Email của bạn",
+        "emailPlaceholder": "nhapemail@domain.com",
+        "submit": "Tiếp tục",
+        "submitLoading": "Đang gửi..."
       },
       "step2": {
-        "emailSent": "✉️ Thư đã được gửi đến:",
-        "changeEmail": "← Nhập nhầm hòm thư? Đổi lại",
-        "otpLabel": "🎫 Mã xác nhận (6 chữ số)",
-        "otpPlaceholder": "••••••",
-        "expiredTitle": "🥀 Mã xác nhận đã tan biến!",
-        "requestNew": "✨ Xin cấp mã mới",
-        "requestingNew": "🧶 Đang xin mã mới...",
-        "countdown": "⏱️ Mã sẽ mờ dần sau:",
-        "submitLoading": "🧶 Đang kiểm tra...",
-        "submit": "🌸 Mở khóa hòm thư"
+        "emailSent": "Mã xác nhận đã được gửi đến",
+        "changeEmail": "Thay đổi email",
+        "submit": "Xác nhận OTP",
+        "submitLoading": "Đang kiểm tra..."
       },
       "step3": {
-        "nameLabel": "👤 Tên gọi thân thương",
-        "namePlaceholder": "Bạn muốn chúng mình gọi là gì?",
-        "passwordLabel": "🗝️ Chìa khóa bảo vệ (Mật khẩu)",
-        "passwordPlaceholder": "Sáng tạo một mật khẩu thật vững chắc...",
-        "helperText": "Đan xen chữ hoa, chữ thường, số hoặc ký tự đặc biệt để mũi len được chắc chắn nhất nhé.",
-        "submitLoading": "🧶 Đang hoàn thiện...",
-        "submit": "✨ Hoàn tất & Bước vào tiệm"
+        "namePlaceholder": "Họ và tên",
+        "passwordPlaceholder": "Mật khẩu",
+        "submit": "Hoàn tất đăng ký",
+        "submitLoading": "Đang lưu..."
       },
       "footer": {
-        "haveAccount": "Bạn đã có chìa khóa vào tiệm?",
-        "loginLink": "🎀 Đăng Nhập",
-        "backHome": "← Về lại trang chủ"
+        "haveAccount": "Đã có tài khoản?",
+        "loginLink": "Đăng nhập"
       }
     }
   },
@@ -435,5 +423,55 @@
       "toastGenericError": "Không thể cập nhật bài viết lúc này. Vui lòng thử lại sau.",
       "toastFetchError": "Không thể tải dữ liệu bài viết cũ. Vui lòng kiểm tra lại."
     }
+  },
+  "cart": {
+    "title": "Giỏ hàng của bạn",
+    "empty": "Giỏ hàng đang trống",
+    "guest_hint": "Vui lòng đăng nhập để đồng bộ và thanh toán giỏ hàng.",
+    "login_to_checkout": "Đăng nhập để thanh toán",
+    "total": "Tổng tiền",
+    "checkout_button": "Tiến hành thanh toán",
+    "success_add": "Đã thêm vào giỏ hàng thành công!",
+    "success_update": "Cập nhật số lượng thành công!",
+    "success_remove": "Đã xóa sản phẩm khỏi giỏ.",
+    "error_add": "Không thể thêm vào giỏ hàng. Vui lòng thử lại.",
+    "error_fetch": "Lỗi khi lấy dữ liệu giỏ hàng.",
+    "required_variant": "Vui lòng chọn một phân loại.",
+    "required_customization": "Vui lòng hoàn thành các tùy chọn bắt buộc."
+  },
+  "checkout": {
+    "title": "Thanh toán",
+    "success_order": "Đặt hàng thành công! Cảm ơn bạn.",
+    "error_order": "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.",
+    "submit_button": "Chốt đơn",
+    "submitting": "Đang xử lý..."
+  },
+  "profile": {
+    "title": "Hồ sơ của tôi",
+    "subtitle": "Quản lý thông tin cá nhân và sổ địa chỉ giao hàng",
+    "personalInfo": "Thông tin cá nhân",
+    "fullName": "Họ và tên",
+    "email": "Email",
+    "saveProfile": "Lưu thông tin",
+    "saving": "Đang lưu...",
+    "addressBook": "Sổ địa chỉ",
+    "addNewAddress": "Thêm địa chỉ mới",
+    "recipientName": "Người nhận",
+    "phone": "Số điện thoại",
+    "street": "Địa chỉ cụ thể",
+    "ward": "Phường/Xã",
+    "district": "Quận/Huyện",
+    "city": "Tỉnh/Thành phố",
+    "isDefault": "Đặt làm mặc định",
+    "setDefault": "Đặt mặc định",
+    "defaultBadge": "Mặc định",
+    "delete": "Xóa",
+    "cancel": "Hủy",
+    "saveAddress": "Lưu địa chỉ",
+    "noAddresses": "Bạn chưa có địa chỉ giao hàng nào.",
+    "addressDeleted": "Đã xóa địa chỉ thành công",
+    "addressCreated": "Đã thêm địa chỉ thành công",
+    "profileUpdated": "Đã cập nhật hồ sơ thành công",
+    "defaultAddressUpdated": "Đã cập nhật địa chỉ mặc định"
   }
 }

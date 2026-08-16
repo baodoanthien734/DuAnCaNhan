@@ -54,5 +54,5 @@ export const logout = async () => {
   localStorage.removeItem('user_info');
 
   // Điều hướng về trang Login
-  window.location.href = '/login';
+  window.location.href = '/';
 };

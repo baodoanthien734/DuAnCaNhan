@@ -20,14 +20,15 @@ export default async function AdminPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('accessToken')?.value;
 
-  if (!token) redirect('/login');
+  if (!token) redirect('/');
 
   const user = await getProfile(token);
-  if (!user) redirect('/login');
+  if (!user) redirect('/');
 
   const roles: string[] = Array.isArray(user.roles) ? user.roles : [];
   if (!roles.includes('ADMIN')) {
-    redirect('/home');
+    // Chặn User thường, đá về Landing Page
+    redirect('/'); 
   }
 
   return (

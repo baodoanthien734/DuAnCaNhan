@@ -3,6 +3,7 @@ import { getTranslations } from 'next-intl/server';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
 import { getPublicProductBySlug } from '@/lib/public-api';
 import { notFound } from 'next/navigation';
+import AddToCartForm from '@/components/ui/AddToCartForm'; // 👈 Import component mới
 
 interface PageProps {
   params: Promise<{
@@ -13,7 +14,6 @@ interface PageProps {
 export default async function ProductDetailPage({ params }: PageProps) {
   const t = await getTranslations('public_pages');
   
-  // Await params theo chuẩn Next.js App Router mới nhất
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
@@ -22,7 +22,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
   try {
     product = await getPublicProductBySlug(slug);
   } catch (error) {
-    // Nếu không tìm thấy sản phẩm ở Backend, ném ra trang 404
     notFound();
   }
 
@@ -34,7 +33,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
 
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', color: '#111827' }}>
-      {/* Header nhỏ gọn */}
       <header style={{ backgroundColor: '#fff', padding: '18px 20px', boxShadow: '0 4px 20px rgba(15, 23, 42, 0.04)' }}>
         <div style={{ maxWidth: '1200px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
           <Link href="/" style={{ fontSize: '22px', fontWeight: 'bold', color: '#111827', textDecoration: 'none' }}>
@@ -50,7 +48,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
       </header>
 
       <main style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 20px' }}>
-        {/* Nút quay lại */}
         <Link href="/products" style={{ color: '#4b5563', textDecoration: 'none', fontSize: '14px', fontWeight: '500', display: 'inline-block', marginBottom: '24px' }}>
           {t('product_detail.back')}
         </Link>
@@ -67,7 +64,6 @@ export default async function ProductDetailPage({ params }: PageProps) {
               )}
             </div>
 
-            {/* Danh sách ảnh phụ (nếu có từ 2 ảnh trở lên) */}
             {product.images && product.images.length > 1 && (
               <div style={{ display: 'flex', gap: '10px', marginTop: '12px', overflowX: 'auto' }}>
                 {product.images.map((img: string, idx: number) => (
@@ -77,7 +73,7 @@ export default async function ProductDetailPage({ params }: PageProps) {
             )}
           </div>
 
-          {/* Cột thông tin chi tiết */}
+          {/* Cột thông tin chi tiết & Tương tác giỏ hàng */}
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
             <div>
               {product.category && (
@@ -87,77 +83,11 @@ export default async function ProductDetailPage({ params }: PageProps) {
               )}
               <h1 style={{ fontSize: '28px', margin: '8px 0 12px', color: '#111827' }}>{product.name}</h1>
               
-              <div style={{ fontSize: '24px', fontWeight: '700', color: '#b45309', marginBottom: '16px' }}>
-                {Number(product.basePrice).toLocaleString()} đ
-              </div>
-
-              <p style={{ color: '#4b5563', lineHeight: '1.7', marginBottom: '24px' }}>
-                {product.description || 'Không có mô tả chi tiết cho sản phẩm này.'}
-              </p>
-
-              {/* Hiển thị Biến thể (Variants) nếu có */}
-              {product.variants && product.variants.length > 0 && (
-                <div style={{ marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '10px', color: '#374151' }}>
-                    {t('product_detail.variants')}
-                  </h3>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                    {product.variants.map((v: any) => (
-                      <div key={v.id} style={{ padding: '8px 14px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '13px', backgroundColor: '#f9fafb' }}>
-                        <div style={{ fontWeight: '600' }}>{v.name}</div>
-                        <div style={{ color: '#b45309' }}>{Number(v.price).toLocaleString()} đ</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Hiển thị Tùy chọn cá nhân hóa (Customizations) nếu có */}
-              {product.customizations && product.customizations.length > 0 && (
-                <div style={{ marginBottom: '20px' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '10px', color: '#374151' }}>
-                    {t('product_detail.customizations')}
-                  </h3>
-                  {product.customizations.map((c: any) => (
-                    <div key={c.id} style={{ marginBottom: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', marginBottom: '6px' }}>
-                        <span>{c.name}</span>
-                        {c.isRequired && <span style={{ color: '#ef4444', fontSize: '11px' }}>{t('product_detail.required')}</span>}
-                      </div>
-                      {c.choices && c.choices.length > 0 && (
-                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                          {c.choices.map((choice: any) => (
-                            <span key={choice.id} style={{ fontSize: '12px', padding: '4px 10px', backgroundColor: '#fff', border: '1px solid #d1d5db', borderRadius: '6px' }}>
-                              {choice.label} {choice.extraPrice > 0 ? `(+${Number(choice.extraPrice).toLocaleString()} đ)` : ''}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+              {/* Gọi Client Component quản lý toàn bộ logic chọn biến thể, cá nhân hóa và nút submit */}
+              <AddToCartForm product={product} />
             </div>
-
-            {/* Nút thêm vào giỏ hàng (Giao diện tĩnh tạm thời) */}
-            <button 
-              style={{
-                width: '100%',
-                padding: '14px',
-                backgroundColor: '#111827',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '999px',
-                fontWeight: '600',
-                fontSize: '15px',
-                cursor: 'pointer',
-                marginTop: '12px'
-              }}
-            >
-              🛒 {t('product_detail.addToCart')}
-            </button>
-
           </div>
+
         </div>
       </main>
     </div>
