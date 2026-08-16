@@ -1,0 +1,18 @@
+{
+  "validation": {
+    "title_required": "Post title is required",
+    "summary_string": "Post summary must be a string",
+    "content_required": "Post content is required",
+    "is_published_boolean": "Publish status must be true or false"
+  },
+  "success": {
+    "post_created": "Post created successfully",
+    "post_updated": "Post updated successfully"
+  },
+  "error": {
+    "post_create_failed": "Unable to create post. Please try again",
+    "post_not_found": "Post not found",
+    "post_not_found_with_id": "Post with ID {id} was not found",
+    "post_update_failed": "Failed to update post. Please try again."
+  }
+}

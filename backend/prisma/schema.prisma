@@ -16,33 +16,34 @@ datasource db {
 // 1. BẢNG USER & AUTHENTICATION
 // ------------------------------------------------------
 model User {
-  id                 Int      @id @default(autoincrement())
-  email              String   @unique
+  id                 Int     @id @default(autoincrement())
+  email              String  @unique
   name               String?
-  password           String?  // Nullable để sẵn sàng cho Google OAuth
-  hashedRefreshToken String?  // Security: Thu hồi Token / Logout
-  isActive           Boolean  @default(true)
-  
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
+  password           String? // Nullable để sẵn sàng cho Google OAuth
+  hashedRefreshToken String? // Security: Thu hồi Token / Logout
+  isActive           Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Quan hệ (Relations)
-  roles     Role[]     // Một User có thể có nhiều Role
-  accounts  Account[]  // Dành cho đăng nhập Google/Facebook
-  logs      AuditLog[] // Nhật ký thao tác
+  roles    Role[] // Một User có thể có nhiều Role
+  accounts Account[] // Dành cho đăng nhập Google/Facebook
+  logs     AuditLog[] // Nhật ký thao tác
 
   // Quan hệ E-commerce
-  addresses          Address[]
-  orders             Order[]
-  reviews            Review[]
-  cart               Cart?
+  addresses Address[]
+  orders    Order[]
+  reviews   Review[]
+  cart      Cart?
+  posts     Post[] // Bổ sung dòng này
 }
 
 // Bảng lưu OTP xác thực Đăng ký / Quên mật khẩu
 model Otp {
   id        Int      @id @default(autoincrement())
   email     String   @unique
-  code      String   // Mã OTP (VD: 123456)
+  code      String // Mã OTP (VD: 123456)
   expiresAt DateTime // Thời gian hết hạn
   createdAt DateTime @default(now())
 }
@@ -57,7 +58,7 @@ model Role {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  users       User[]       // N-N với User
+  users       User[] // N-N với User
   permissions Permission[] // N-N với Permission
 }
 
@@ -68,63 +69,63 @@ model Permission {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  roles       Role[]
+  roles Role[]
 }
 
 // ------------------------------------------------------
 // 3. TÍCH HỢP GOOGLE & AUDIT LOG
 // ------------------------------------------------------
 model Account {
-  id                Int      @id @default(autoincrement())
+  id                Int     @id @default(autoincrement())
   userId            Int
-  provider          String   
+  provider          String
   providerAccountId String
-  access_token      String?  @db.Text
-  refresh_token     String?  @db.Text
+  access_token      String? @db.Text
+  refresh_token     String? @db.Text
   expires_at        Int?
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
 
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
 
 model AuditLog {
-  id          Int      @id @default(autoincrement())
-  userId      Int?
-  action      String   // VD: 'REGISTER_SUCCESS', 'ROLE_ASSIGNED', 'GRANT_PERMISSION'
-  resource    String?
-  details     Json?
-  ipAddress   String?
-  createdAt   DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  userId    Int?
+  action    String // VD: 'REGISTER_SUCCESS', 'ROLE_ASSIGNED', 'GRANT_PERMISSION'
+  resource  String?
+  details   Json?
+  ipAddress String?
+  createdAt DateTime @default(now())
 
-  user        User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 // ======================================================
 // 4. DANH MỤC & SẢN PHẨM
 // ======================================================
 model Category {
-  id          Int        @id @default(autoincrement())
+  id          Int     @id @default(autoincrement())
   name        String
-  slug        String     @unique
+  slug        String  @unique
   description String?
   parentId    Int?
-  
-  // Administrative fields
-  isActive    Boolean    @default(true)
-  position    Int        @default(0)
-  image       String?
-  metaTitle   String?
-  metaDesc    String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
 
-  parent      Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
-  children    Category[] @relation("CategoryToCategory")
-  products    Product[]
+  // Administrative fields
+  isActive  Boolean  @default(true)
+  position  Int      @default(0)
+  image     String?
+  metaTitle String?
+  metaDesc  String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  parent   Category?  @relation("CategoryToCategory", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryToCategory")
+  products Product[]
 
   @@index([parentId, position])
 }
@@ -136,116 +137,117 @@ enum ProductStatus {
 }
 
 model Product {
-  id               Int            @id @default(autoincrement())
-  categoryId       Int
-  name             String
-  slug             String         @unique
-  description      String?        @db.Text
-  basePrice        Decimal        @db.Decimal(12, 2)
-  images           String[]       // Danh sách URL ảnh sản phẩm
-  
+  id          Int      @id @default(autoincrement())
+  categoryId  Int
+  name        String
+  slug        String   @unique
+  description String?  @db.Text
+  basePrice   Decimal  @db.Decimal(12, 2)
+  images      String[] // Danh sách URL ảnh sản phẩm
+
   // Link thanh toán Private cho 1 khách hàng cụ thể (nếu cần)
-  isPrivate        Boolean        @default(false) 
+  isPrivate        Boolean @default(false)
   privateForUserId Int?
 
-  status           ProductStatus  @default(ACTIVE)
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  status    ProductStatus @default(ACTIVE)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   // Quan hệ
-  category         Category       @relation(fields: [categoryId], references: [id])
-  variants         ProductVariant[]
-  reviews          Review[]
-  cartItems        CartItem[]
-  customizations   ProductCustomization[]
+  category       Category               @relation(fields: [categoryId], references: [id])
+  variants       ProductVariant[]
+  reviews        Review[]
+  cartItems      CartItem[]
+  customizations ProductCustomization[]
 }
 
 model ProductVariant {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   productId Int
-  name      String   // VD: "Màu Đỏ / Size L"
-  sku       String?  @unique
-  price     Decimal  @db.Decimal(12, 2)
-  stock     Int      @default(0) // Quản lý tồn kho
+  name      String // VD: "Màu Đỏ / Size L"
+  sku       String? @unique
+  price     Decimal @db.Decimal(12, 2)
+  stock     Int     @default(0) // Quản lý tồn kho
   image     String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product   Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
   cartItems CartItem[]
 }
 
 // Enum để phân loại tùy chọn
 enum CustomizationType {
   SELECT // Khách chọn 1 trong danh sách (Ví dụ: Loại vải, Charm)
-  TEXT   // Khách tự nhập chữ (Ví dụ: Tên muốn thêu)
+  TEXT // Khách tự nhập chữ (Ví dụ: Tên muốn thêu)
 }
 
 // Bảng lưu Cấu hình Cá nhân hóa của một sản phẩm
 model ProductCustomization {
-  id          Int               @id @default(autoincrement())
-  productId   Int
-  name        String            // Tên tùy chọn (VD: "Tên muốn thêu", "Chọn Charm")
-  type        CustomizationType // Phân loại
-  isRequired  Boolean           @default(false) // Bắt buộc phải chọn/nhập không?
-  
-  // Dành riêng cho type = TEXT
-  maxLength   Int?              // Giới hạn số lượng ký tự
+  id         Int               @id @default(autoincrement())
+  productId  Int
+  name       String // Tên tùy chọn (VD: "Tên muốn thêu", "Chọn Charm")
+  type       CustomizationType // Phân loại
+  isRequired Boolean           @default(false) // Bắt buộc phải chọn/nhập không?
 
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
-  
-  product     Product           @relation(fields: [productId], references: [id], onDelete: Cascade)
-  choices     CustomizationChoice[]
+  // Dành riêng cho type = TEXT
+  maxLength Int? // Giới hạn số lượng ký tự
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product Product               @relation(fields: [productId], references: [id], onDelete: Cascade)
+  choices CustomizationChoice[]
 }
 
 // Bảng lưu Các lựa chọn con (nếu type = SELECT)
 model CustomizationChoice {
-  id                 Int      @id @default(autoincrement())
-  customizationId    Int
-  label              String   // VD: "Thỏ bông", "Gấu bông"
-  extraPrice         Decimal  @default(0) @db.Decimal(12, 2) // Tiền cộng thêm nếu chọn
+  id              Int     @id @default(autoincrement())
+  customizationId Int
+  label           String // VD: "Thỏ bông", "Gấu bông"
+  extraPrice      Decimal @default(0) @db.Decimal(12, 2) // Tiền cộng thêm nếu chọn
 
-  customization      ProductCustomization @relation(fields: [customizationId], references: [id], onDelete: Cascade)
+  customization ProductCustomization @relation(fields: [customizationId], references: [id], onDelete: Cascade)
 }
+
 // ======================================================
 // 5. GIỎ HÀNG (CART)
 // ======================================================
 model Cart {
-  id        Int        @id @default(autoincrement())
-  userId    Int        @unique
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  items     CartItem[]
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
 }
 
 model CartItem {
-  id        Int             @id @default(autoincrement())
+  id        Int  @id @default(autoincrement())
   cartId    Int
   productId Int
   variantId Int?
-  quantity  Int             @default(1)
+  quantity  Int  @default(1)
 
   // MỚI: Lưu trữ lựa chọn cá nhân hóa của user dưới dạng JSON
   // Cấu trúc dự kiến: [{"name": "Tên thêu", "value": "Anya", "price": 0}, {"name": "Charm", "value": "Thỏ bông", "price": 10000}]
   customizations Json?
 
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  cart      Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
-  product   Product         @relation(fields: [productId], references: [id])
-  variant   ProductVariant? @relation(fields: [variantId], references: [id])
+  cart    Cart            @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id])
+  variant ProductVariant? @relation(fields: [variantId], references: [id])
 }
 
 // ======================================================
 // 6. ĐỊA CHỈ, ĐƠN HÀNG & THANH TOÁN
 // ======================================================
 model Address {
-  id            Int      @id @default(autoincrement())
+  id            Int     @id @default(autoincrement())
   userId        Int
   recipientName String
   phone         String
@@ -253,18 +255,18 @@ model Address {
   ward          String
   district      String
   city          String
-  isDefault     Boolean  @default(false)
+  isDefault     Boolean @default(false)
 
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  orders        Order[]
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orders Order[]
 }
 
 enum OrderStatus {
-  PENDING    // Chờ xác nhận
+  PENDING // Chờ xác nhận
   PROCESSING // Đang chuẩn bị hàng
-  SHIPPING   // Đang giao
-  DELIVERED  // Đã giao (Hoàn thành)
-  CANCELLED  // Đã hủy
+  SHIPPING // Đang giao
+  DELIVERED // Đã giao (Hoàn thành)
+  CANCELLED // Đã hủy
 }
 
 enum PaymentMethod {
@@ -275,49 +277,49 @@ enum PaymentMethod {
 
 enum PaymentStatus {
   UNPAID
-  PAID       // Giao dịch Online thành công
-  REFUNDED   // Hoàn tiền
+  PAID // Giao dịch Online thành công
+  REFUNDED // Hoàn tiền
 }
 
 model Order {
-  id            Int           @id @default(autoincrement())
-  code          String        @unique // Mã đơn: ORD-XXXX
-  customerId    Int
-  addressId     Int
-  totalAmount   Decimal       @db.Decimal(12, 2)
-  
+  id          Int     @id @default(autoincrement())
+  code        String  @unique // Mã đơn: ORD-XXXX
+  customerId  Int
+  addressId   Int
+  totalAmount Decimal @db.Decimal(12, 2)
+
   status        OrderStatus   @default(PENDING)
   paymentMethod PaymentMethod @default(COD)
   paymentStatus PaymentStatus @default(UNPAID)
   note          String?
 
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  customer      User          @relation(fields: [customerId], references: [id])
-  address       Address       @relation(fields: [addressId], references: [id])
-  items         OrderItem[]
-  reviews       Review[]
+  customer User        @relation(fields: [customerId], references: [id])
+  address  Address     @relation(fields: [addressId], references: [id])
+  items    OrderItem[]
+  reviews  Review[]
 }
 
 model OrderItem {
-  id          Int      @id @default(autoincrement())
-  orderId     Int
-  productId   Int
-  variantId   Int?
-  
+  id        Int  @id @default(autoincrement())
+  orderId   Int
+  productId Int
+  variantId Int?
+
   // Snapshot thông tin tại thời điểm mua (tránh bị ảnh hưởng khi giá/tên sản phẩm thay đổi)
   productName String
   variantName String?
-  price       Decimal  @db.Decimal(12, 2)
+  price       Decimal @db.Decimal(12, 2)
   quantity    Int
 
   // MỚI: Lưu cứng lại các lựa chọn cá nhân hóa tại thời điểm đặt hàng
   customizations Json?
 
-  createdAt   DateTime @default(now())
+  createdAt DateTime @default(now())
 
-  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
 
 // ======================================================
@@ -327,15 +329,35 @@ model Review {
   id         Int      @id @default(autoincrement())
   customerId Int
   productId  Int
-  orderId    Int      // Đảm bảo chỉ khách đã mua mới được đánh giá
-  rating     Int      // Từ 1 -> 5 sao
+  orderId    Int // Đảm bảo chỉ khách đã mua mới được đánh giá
+  rating     Int // Từ 1 -> 5 sao
   comment    String?  @db.Text
   images     String[] // Ảnh thực tế từ người dùng
 
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  customer   User     @relation(fields: [customerId], references: [id])
-  product    Product  @relation(fields: [productId], references: [id])
-  order      Order    @relation(fields: [orderId], references: [id])
+  customer User    @relation(fields: [customerId], references: [id])
+  product  Product @relation(fields: [productId], references: [id])
+  order    Order   @relation(fields: [orderId], references: [id])
+}
+
+// ======================================================
+// 8. BÀI VIẾT (BLOG / POSTS)
+// ======================================================
+model Post {
+  id          Int     @id @default(autoincrement())
+  title       String
+  slug        String  @unique
+  summary     String? @db.Text
+  content     String  @db.Text // Lưu nguyên cục HTML hoặc JSON từ Rich Text Editor
+  thumbnail   String? // URL ảnh bìa của bài viết
+  isPublished Boolean @default(false) // Trạng thái: Nháp (false) / Xuất bản (true)
+
+  authorId Int // Người viết bài
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  author User @relation(fields: [authorId], references: [id])
 }

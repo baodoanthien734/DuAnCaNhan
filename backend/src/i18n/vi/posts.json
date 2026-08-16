@@ -1,0 +1,18 @@
+{
+  "validation": {
+    "title_required": "Tiêu đề bài viết không được để trống",
+    "summary_string": "Tóm tắt bài viết phải là chuỗi ký tự",
+    "content_required": "Nội dung bài viết không được để trống",
+    "is_published_boolean": "Trạng thái xuất bản phải là true hoặc false"
+  },
+  "success": {
+    "post_created": "Tạo bài viết thành công",
+    "post_updated": "Cập nhật bài viết thành công"
+  },
+  "error": {
+    "post_create_failed": "Không thể tạo bài viết. Vui lòng thử lại",
+    "post_not_found": "Bài viết không tồn tại",
+    "post_not_found_with_id": "Không tìm thấy bài viết với ID: {id}",
+    "post_update_failed": "Cập nhật bài viết thất bại. Vui lòng thử lại."
+  }
+}
