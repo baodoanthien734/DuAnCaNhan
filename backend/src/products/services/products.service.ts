@@ -530,7 +530,14 @@ export class ProductsService {
 
   async findAllPublic(query: { q?: string; categoryId?: string; skip?: number; take?: number }) {
     const { q, categoryId, skip, take } = query;
-    const where: any = { status: 'ACTIVE' };
+    
+    // 1. Khóa chặt ĐIỀU KIỆN GỐC: Chỉ lấy sản phẩm ACTIVE và KHÔNG NẰM TRONG danh mục hệ thống
+    const where: any = { 
+      status: 'ACTIVE',
+      category: {
+        isSystem: false 
+      }
+    };
 
     if (q) {
       where.OR = [
@@ -539,12 +546,40 @@ export class ProductsService {
       ];
     }
 
-    if (categoryId) {
-    // Tạm thời sửa thành: nếu categoryId chứa dấu phẩy (vd: '1,2,3'), thì tách thành mảng
-    const ids = categoryId.split(',').map(id => Number(id));
-    where.categoryId = { in: ids }; 
-    }
+    // 2. Logic gom nhóm ID (Cha + Tất cả các Lá)
+    if (categoryId && typeof categoryId === 'string' && categoryId.trim() !== '') {
+      
+      // Tách chuỗi, ép kiểu sang số và vứt bỏ các giá trị lỗi NaN
+      const targetIds = categoryId.split(',').map(id => Number(id)).filter(id => !isNaN(id));
 
+      if (targetIds.length > 0) {
+        const allCategories = await this.prisma.category.findMany({
+          where: { isSystem: false }
+        });
+
+        const getSubCategoryIds = (parentId: number, allCats: any[]): number[] => {
+          const children = allCats.filter(c => c.parentId === parentId);
+          const subIds = children.map(c => c.id);
+          children.forEach(child => {
+            subIds.push(...getSubCategoryIds(child.id, allCats));
+          });
+          return subIds;
+        };
+
+        const validCategoryIds = new Set<number>();
+        
+        // Quét đệ quy cho từng ID được truyền xuống
+        targetIds.forEach(targetId => {
+          validCategoryIds.add(targetId);
+          const subIds = getSubCategoryIds(targetId, allCategories);
+          subIds.forEach(subId => validCategoryIds.add(subId));
+        });
+        
+        // Nhồi mảng ID an toàn vào bộ lọc
+        where.categoryId = { in: Array.from(validCategoryIds) };
+      }
+    }
+    
     const [items, total] = await this.prisma.$transaction([
       this.prisma.product.findMany({
         where,

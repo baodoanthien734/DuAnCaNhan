@@ -38,6 +38,8 @@ export type ProductFormValues = {
 interface CategoryItem {
   id: number;
   name: string;
+  slug?: string | null;      
+  isSystem?: boolean | null; 
   parentId?: number | null;
 }
 
@@ -211,13 +213,23 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
       const formattedLeaves = leaves.map(leaf => ({
         id: leaf.id,
         name: leaf.name,
+        slug: leaf.slug, // Truyền thêm slug xuống
+        isSystem: leaf.isSystem, // Truyền thêm isSystem xuống (nếu có)
         path: buildPath(leaf.id)
       }));
 
       setLeafCategories(formattedLeaves);
       
+      // --- LOGIC GÁN DANH MỤC MẶC ĐỊNH (KHI TẠO MỚI) ---
       if (!initialData && formattedLeaves.length > 0) {
-         setValue("categoryId", formattedLeaves[0].id);
+         // Cố gắng tìm danh mục hệ thống bằng isSystem hoặc slug
+         const defaultCat = formattedLeaves.find(c => c.isSystem || c.slug === 'chua-phan-loai');
+         
+         if (defaultCat) {
+           setValue("categoryId", defaultCat.id); // Ép vào rổ Chưa phân loại
+         } else {
+           setValue("categoryId", formattedLeaves[0].id); // Backup nếu không tìm thấy
+         }
       }
     }).catch(console.error);
   }, [initialData, setValue]);

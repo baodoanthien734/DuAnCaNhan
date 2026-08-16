@@ -13,9 +13,17 @@ export class AdminOrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
   @Get()
-  async findAll(@Query('status') status?: OrderStatus, @Query('skip') skip?: string, @Query('take') take?: string) {
+  async findAll(
+    @Query('status') status?: OrderStatus, 
+    @Query('skip') skip?: string, 
+    @Query('take') take?: string,
+    @Query('q') q?: string,                  
+    @Query('dateRange') dateRange?: string    
+  ) {
     return this.ordersService.findAllForAdmin({
       status,
+      q,                                      
+      dateRange,                              
       skip: skip ? Number(skip) : undefined,
       take: take ? Number(take) : undefined,
     });

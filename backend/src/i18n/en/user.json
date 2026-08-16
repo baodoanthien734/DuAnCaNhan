@@ -2,6 +2,7 @@
   "validation": {
     "name_string": "Name must be a string",
     "name_max_length": "Name must not exceed 100 characters",
+    "remove_avatar_boolean": "removeAvatar must be a boolean",
     "recipient_name_string": "Recipient name must be a string",
     "recipient_name_required": "Recipient name is required",
     "recipient_name_max_length": "Recipient name must not exceed 120 characters",
@@ -25,7 +26,10 @@
   "error": {
     "user_not_found": "User not found",
     "address_not_found": "Address not found",
-    "address_forbidden": "You do not have permission to access this address"
+    "address_forbidden": "You do not have permission to access this address",
+    "avatar_invalid_file_type": "Only image files are allowed for avatar upload",
+    "avatar_upload_failed": "Failed to upload avatar",
+    "avatar_delete_failed": "Failed to delete old avatar"
   },
   "success": {
     "profile_updated": "Profile updated successfully",

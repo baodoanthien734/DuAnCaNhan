@@ -5,9 +5,10 @@ import { useTranslations, useLocale } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { logout } from '@/lib/auth';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 type SidebarProps = {
-  user: { name?: string };
+  user: { name?: string; email?: string; image?: string | null };
   brand?: string;
   title?: string;
 };
@@ -16,12 +17,32 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
+  // STATE MỚI: Quản lý thông tin user phía Client để lấy ảnh từ localStorage
+  const [clientUser, setClientUser] = useState(user);
+
   const pathname = usePathname();
   const router = useRouter();
   const locale = useLocale();
   const t = useTranslations('admin_sidebar');
   
   const popupRef = useRef<HTMLDivElement>(null);
+
+  // LOGIC ĐỒNG BỘ DỮ LIỆU TỪ LOCALSTORAGE
+  useEffect(() => {
+    const userInfo = localStorage.getItem('user_info');
+    if (userInfo) {
+      try {
+        const parsedUser = JSON.parse(userInfo);
+        setClientUser({
+          name: parsedUser.name || user.name,
+          email: parsedUser.email || user.email,
+          image: parsedUser.image !== undefined ? parsedUser.image : user.image
+        });
+      } catch (error) {
+        // Bỏ qua nếu lỗi parse JSON
+      }
+    }
+  }, [user]);
 
   // LOGIC ĐỔI NGÔN NGỮ ĐÃ ĐƯỢC NÂNG CẤP
   const handleLanguageChange = (newLocale: string) => {
@@ -78,8 +99,8 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
         position: 'sticky',
         top: 0,
         left: 0,
-        backgroundColor: '#4592b6', // MÀU XANH NHẠT HƠN (Sky Blue 500)
-        borderRight: '1px solid #3b7f9e', // Viền đậm hơn 1 tông để tạo khối
+        backgroundColor: '#4592b6', 
+        borderRight: '1px solid #29617a',
         zIndex: 30,
         flexShrink: 0,
         display: 'flex',
@@ -107,7 +128,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
           borderRadius: '50%',
           backgroundColor: '#ffffff',
           border: '1px solid #e0f2fe',
-          color: '#0ea5e9', // Đổi màu icon mũi tên theo tông nền mới
+          color: '#4592b6', 
           cursor: 'pointer',
           display: 'flex',
           justifyContent: 'center',
@@ -125,19 +146,82 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
 
       {/* Header Sidebar */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: collapsed ? 'center' : 'flex-start', marginBottom: '32px', overflow: 'hidden' }}>
-        <p style={{ margin: 0, color: '#e0f2fe', fontSize: '12px', letterSpacing: '0.14em', textTransform: 'uppercase', whiteSpace: 'nowrap' }}>
-          {collapsed ? (brand ?? t('brand')).charAt(0) : brand ?? t('brand')}
-        </p>
-        {!collapsed && (
-          <>
-            <h2 style={{ margin: '4px 0 0', fontSize: '20px', color: '#ffffff', lineHeight: 1.1, whiteSpace: 'nowrap', fontWeight: 'bold' }}>
-              {title ?? t('title')}
-            </h2>
-            <p style={{ margin: '10px 0 0', color: '#f0f9ff', fontSize: '13px', whiteSpace: 'nowrap' }}>
-              {t('greeting', { name: user.name ?? 'Admin' })}
-            </p>
-          </>
-        )}
+        
+        {/* LOGO & BRAND NAME */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
+          <span style={{ fontSize: collapsed ? '24px' : '20px' }}>🍃</span>
+          {!collapsed && (
+            <h1 style={{ 
+              margin: 0, 
+              color: '#ffffff', 
+              fontSize: '22px', 
+              fontWeight: '800', 
+              letterSpacing: '0.5px',
+              whiteSpace: 'nowrap'
+            }}>
+              {brand ?? t('brand')}
+            </h1>
+          )}
+        </div>
+
+        {/* AVATAR KHU VỰC ADMIN */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          gap: '12px', 
+          width: '100%',
+          padding: collapsed ? '0' : '10px',
+          backgroundColor: collapsed ? 'transparent' : 'rgba(255,255,255,0.1)', 
+          borderRadius: '12px',
+          transition: 'all 0.3s ease'
+        }}>
+          {/* Vòng tròn Avatar - SỬ DỤNG clientUser */}
+          <div style={{ 
+            flexShrink: 0,
+            width: '36px', 
+            height: '36px', 
+            borderRadius: '50%', 
+            backgroundColor: '#ffffff', 
+            color: '#4592b6', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            fontWeight: 'bold', 
+            fontSize: '16px',
+            overflow: 'hidden',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}>
+            {clientUser.image ? (
+              <img 
+                src={resolveProductImageUrl(clientUser.image)} 
+                alt="Avatar" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+              />
+            ) : (
+              (clientUser.name || clientUser.email || 'A').charAt(0).toUpperCase()
+            )}
+          </div>
+          
+          {/* Tên Admin và Chức vụ - SỬ DỤNG clientUser */}
+          {!collapsed && (
+            <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <span style={{ 
+                color: '#ffffff', 
+                fontSize: '14px', 
+                fontWeight: '700', 
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden'
+              }}>
+                {clientUser.name || clientUser.email?.split('@')[0] || 'Admin'}
+              </span>
+              <span style={{ color: '#bae6fd', fontSize: '11px', fontWeight: '500' }}>
+                Administrator
+              </span>
+            </div>
+          )}
+        </div>
+
       </div>
 
       {/* Danh sách Menu Chính */}
@@ -159,7 +243,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
                 borderRadius: '12px',
                 textDecoration: 'none',
                 backgroundColor: isActive ? '#ffffff' : 'transparent',
-                color: isActive ? '#0ea5e9' : '#f0f9ff', // Cập nhật màu chữ khi Active
+                color: isActive ? '#4592b6' : '#f0f9ff', 
                 fontWeight: isActive ? '700' : '500',
                 whiteSpace: 'nowrap',
                 transition: 'all 0.2s ease',
@@ -210,7 +294,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
               <span>{t('nav.store')}</span>
             </Link>
 
-            {/* 2. Ngôn ngữ (ĐÃ UPDATE LOGIC) */}
+            {/* 2. Ngôn ngữ */}
             <div style={{
               display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 14px', borderRadius: '10px',
               color: '#334155', fontSize: '14px', fontWeight: '500'
@@ -223,13 +307,13 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', backgroundColor: '#f1f5f9', padding: '4px 6px', borderRadius: '8px' }}>
                 <button 
                   onClick={() => handleLanguageChange('vi')}
-                  style={{ background: locale === 'vi' ? '#ffffff' : 'transparent', border: 'none', color: locale === 'vi' ? '#0ea5e9' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', padding: '2px 6px', borderRadius: '6px', boxShadow: locale === 'vi' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none' }}
+                  style={{ background: locale === 'vi' ? '#ffffff' : 'transparent', border: 'none', color: locale === 'vi' ? '#4592b6' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', padding: '2px 6px', borderRadius: '6px', boxShadow: locale === 'vi' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none' }}
                 >
                   VI
                 </button>
                 <button 
                   onClick={() => handleLanguageChange('en')}
-                  style={{ background: locale === 'en' ? '#ffffff' : 'transparent', border: 'none', color: locale === 'en' ? '#0ea5e9' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', padding: '2px 6px', borderRadius: '6px', boxShadow: locale === 'en' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none' }}
+                  style={{ background: locale === 'en' ? '#ffffff' : 'transparent', border: 'none', color: locale === 'en' ? '#4592b6' : '#94a3b8', fontWeight: 'bold', cursor: 'pointer', padding: '2px 6px', borderRadius: '6px', boxShadow: locale === 'en' ? '0 1px 2px rgba(0,0,0,0.1)' : 'none' }}
                 >
                   EN
                 </button>
@@ -241,8 +325,8 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
             {/* 3. Đăng Xuất */}
             <button
               onClick={async () => {
-                setShowSettings(false); // Đóng pop-up cho mượt trước khi out
-                await logout(); // Gọi hàm logout thần thánh từ auth.ts
+                setShowSettings(false); 
+                await logout(); 
               }}
               style={{
                 display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: '10px',
@@ -269,7 +353,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
             padding: '12px 14px',
             borderRadius: '12px',
             border: 'none',
-            backgroundColor: showSettings ? '#0284c7' : 'transparent', // Nền xanh đậm hơn để phân biệt khi bấm
+            backgroundColor: showSettings ? '#0284c7' : 'transparent', 
             color: showSettings ? '#ffffff' : '#f0f9ff',
             fontWeight: '600',
             cursor: 'pointer',

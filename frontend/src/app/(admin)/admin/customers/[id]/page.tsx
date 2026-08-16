@@ -141,7 +141,7 @@ export default function AdminCustomerDetailPage() {
     if (!customer) return;
 
     const confirmed = customer.isActive
-      ? await modal.confirm(t('confirm_lock', { name: customer.name || customer.email }))
+      ? await modal.confirm(t('confirm_lock', { name: customer.name || customer.email }), 'Xác nhận')
       : true;
 
     if (!confirmed) return;
@@ -233,7 +233,7 @@ export default function AdminCustomerDetailPage() {
 
   if (loading) {
     return (
-      <div className="w-full max-w-7xl mx-auto p-6 md:p-8 text-sm text-slate-500">
+      <div className="w-full max-w-7xl mx-auto p-6 text-sm text-gray-500">
         {t('detail.loading')}
       </div>
     );
@@ -241,11 +241,11 @@ export default function AdminCustomerDetailPage() {
 
   if (!customer) {
     return (
-      <div className="w-full max-w-7xl mx-auto p-6 md:p-8">
-        <Link href="/admin/customers" className="text-sm text-blue-600 hover:underline">
-          {t('detail.back')}
+      <div className="w-full max-w-7xl mx-auto p-6">
+        <Link href="/admin/customers" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition">
+          <span>←</span> {t('detail.back')}
         </Link>
-        <div className="mt-4 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm">
+        <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm">
           {t('detail.not_found')}
         </div>
       </div>
@@ -255,29 +255,36 @@ export default function AdminCustomerDetailPage() {
   const displayName = customer.name || customer.email;
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-6 md:p-8 space-y-6">
+    <div className="w-full max-w-7xl mx-auto p-6 space-y-6">
+      
+      {/* Header & Back Link */}
       <div className="flex items-center justify-between">
-        <Link href="/admin/customers" className="text-sm text-blue-600 hover:underline">
-          {t('detail.back')}
+        <Link href="/admin/customers" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition">
+          <span></span> {t('detail.back')}
         </Link>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      {/* Profile Card */}
+      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="h-16 w-16 rounded-full bg-blue-100 text-blue-700 text-2xl font-bold flex items-center justify-center">
+          <div className="flex items-center gap-5">
+            <div className="h-16 w-16 rounded-xl bg-blue-50 text-blue-600 border border-blue-100 text-2xl font-bold flex items-center justify-center shadow-sm">
               {displayName.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">{displayName}</h1>
-              <p className="text-sm text-slate-500">{customer.email}</p>
-              <span
-                className={`mt-2 inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
-                  customer.isActive ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
-                }`}
-              >
-                {customer.isActive ? t('status.active') : t('status.locked')}
-              </span>
+              <h1 className="text-2xl font-bold text-gray-900">{displayName}</h1>
+              <p className="text-sm text-gray-500 mt-0.5">{customer.email}</p>
+              <div className="mt-2">
+                {customer.isActive ? (
+                  <span className="px-2.5 py-1 bg-[#dcfce3] text-[#166534] rounded-full text-xs font-semibold inline-block">
+                    {t('status.active')}
+                  </span>
+                ) : (
+                  <span className="px-2.5 py-1 bg-[#f3f4f6] text-[#4b5563] rounded-full text-xs font-semibold inline-block">
+                    {t('status.locked')}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -285,8 +292,10 @@ export default function AdminCustomerDetailPage() {
             type="button"
             disabled={submitting}
             onClick={handleToggleStatus}
-            className={`rounded-xl px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-60 ${
-              customer.isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+            className={`rounded-lg px-5 py-2.5 text-sm font-semibold transition disabled:opacity-60 border ${
+              customer.isActive 
+                ? 'bg-red-50 text-red-600 border-red-100 hover:bg-red-100' 
+                : 'bg-emerald-50 text-emerald-600 border-emerald-100 hover:bg-emerald-100'
             }`}
           >
             {customer.isActive ? t('actions.lock') : t('actions.unlock')}
@@ -294,59 +303,64 @@ export default function AdminCustomerDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="text-xs uppercase tracking-wide text-slate-500">{t('detail.total_spent')}</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col justify-center">
+          <p className="text-xs uppercase tracking-wider font-semibold text-gray-500">{t('detail.total_spent')}</p>
           <p className="mt-2 text-2xl font-bold text-amber-700">{currencyFormatter.format(totalSpent)}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="text-xs uppercase tracking-wide text-slate-500">{t('detail.order_count')}</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900">{orderCount}</p>
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col justify-center">
+          <p className="text-xs uppercase tracking-wider font-semibold text-gray-500">{t('detail.order_count')}</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{orderCount}</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="text-xs uppercase tracking-wide text-slate-500">{t('detail.review_count')}</p>
-          <p className="mt-2 text-2xl font-bold text-slate-900">{reviewCount}</p>
-        </div>
-      </div>
-
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-slate-900">{t('detail.overview')}</h2>
-        <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-            <p className="text-slate-500">{t('detail.email')}</p>
-            <p className="font-medium text-slate-800">{customer.email}</p>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
-            <p className="text-slate-500">{t('detail.joined_at')}</p>
-            <p className="font-medium text-slate-800">{dateFormatter.format(new Date(customer.createdAt))}</p>
-          </div>
-          <div className="rounded-xl border border-slate-100 bg-slate-50 p-3 md:col-span-2">
-            <p className="text-slate-500">{t('detail.login_methods')}</p>
-            <p className="font-medium text-slate-800">{loginMethods.join(', ') || '-'}</p>
-          </div>
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm flex flex-col justify-center">
+          <p className="text-xs uppercase tracking-wider font-semibold text-gray-500">{t('detail.review_count')}</p>
+          <p className="mt-2 text-2xl font-bold text-gray-900">{reviewCount}</p>
         </div>
       </div>
 
+      {/* Overview Info */}
+      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4">{t('detail.overview')}</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4">
+            <p className="text-gray-500 mb-1">{t('detail.email')}</p>
+            <p className="font-medium text-gray-900">{customer.email}</p>
+          </div>
+          <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4">
+            <p className="text-gray-500 mb-1">{t('detail.joined_at')}</p>
+            <p className="font-medium text-gray-900">{dateFormatter.format(new Date(customer.createdAt))}</p>
+          </div>
+          <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4 md:col-span-2">
+            <p className="text-gray-500 mb-1">{t('detail.login_methods')}</p>
+            <p className="font-medium text-gray-900">{loginMethods.join(', ') || '-'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Address & Purchase History */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h2 className="text-lg font-semibold text-slate-900">{t('detail.address_book')}</h2>
+        
+        {/* Address Book */}
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4">{t('detail.address_book')}</h2>
 
           {customer.addresses.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">{t('detail.no_addresses')}</p>
+            <p className="text-sm text-gray-400 italic py-4">{t('detail.no_addresses')}</p>
           ) : (
-            <div className="mt-4 space-y-3">
+            <div className="space-y-4">
               {customer.addresses.map((address) => (
-                <div key={address.id} className="rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm">
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold text-slate-900">{address.recipientName}</p>
+                <div key={address.id} className="rounded-lg border border-gray-100 bg-gray-50/50 p-4 text-sm relative group">
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="font-semibold text-gray-900">{address.recipientName}</p>
                     {address.isDefault && (
-                      <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-semibold text-blue-700">
+                      <span className="rounded-full bg-blue-100 px-2.5 py-0.5 text-[10px] uppercase tracking-wide font-bold text-blue-700">
                         {t('detail.default_badge')}
                       </span>
                     )}
                   </div>
-                  <p className="text-slate-600 mt-1">{address.phone}</p>
-                  <p className="text-slate-600 mt-1">
+                  <p className="text-gray-600 font-medium">{address.phone}</p>
+                  <p className="text-gray-500 mt-1 leading-relaxed">
                     {address.street}, {address.ward}, {address.district}, {address.city}
                   </p>
                 </div>
@@ -355,31 +369,32 @@ export default function AdminCustomerDetailPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <h2 className="text-lg font-semibold text-slate-900">{t('detail.purchase_history')}</h2>
+        {/* Purchase History */}
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          <h2 className="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-4">{t('detail.purchase_history')}</h2>
 
           {customer.orders.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">{t('detail.no_orders')}</p>
+            <p className="text-sm text-gray-400 italic py-4">{t('detail.no_orders')}</p>
           ) : (
-            <div className="mt-4 overflow-x-auto">
+            <div className="overflow-x-auto">
               <table className="min-w-full text-sm">
-                <thead className="text-slate-500">
+                <thead className="text-gray-500 text-xs uppercase bg-gray-50/80">
                   <tr>
-                    <th className="text-left py-2 font-semibold">{t('detail.order_code')}</th>
-                    <th className="text-left py-2 font-semibold">{t('detail.order_date')}</th>
-                    <th className="text-left py-2 font-semibold">{t('detail.order_total')}</th>
-                    <th className="text-left py-2 font-semibold">{t('detail.order_status')}</th>
+                    <th className="text-left px-3 py-3 font-semibold rounded-l-lg">{t('detail.order_code')}</th>
+                    <th className="text-left px-3 py-3 font-semibold">{t('detail.order_date')}</th>
+                    <th className="text-left px-3 py-3 font-semibold">{t('detail.order_total')}</th>
+                    <th className="text-left px-3 py-3 font-semibold rounded-r-lg">{t('detail.order_status')}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {customer.orders.slice(0, 8).map((order) => (
-                    <tr key={order.id} className="border-t border-slate-100">
-                      <td className="py-2 font-medium text-slate-800">#{order.code}</td>
-                      <td className="py-2 text-slate-600">{dateFormatter.format(new Date(order.createdAt))}</td>
-                      <td className="py-2 text-amber-700 font-semibold">
+                    <tr key={order.id} className="border-b border-gray-50 last:border-0 hover:bg-gray-50/50 transition">
+                      <td className="px-3 py-3.5 font-semibold text-gray-800">#{order.code}</td>
+                      <td className="px-3 py-3.5 text-gray-500">{dateFormatter.format(new Date(order.createdAt))}</td>
+                      <td className="px-3 py-3.5 text-amber-700 font-bold">
                         {currencyFormatter.format(Number(order.totalAmount || 0))}
                       </td>
-                      <td className="py-2 text-slate-700">{t(`order_status.${order.status}`)}</td>
+                      <td className="px-3 py-3.5 text-gray-700 font-medium">{t(`order_status.${order.status}`)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -389,35 +404,47 @@ export default function AdminCustomerDetailPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <h2 className="text-lg font-semibold text-slate-900">{t('detail.recent_activity')}</h2>
+      {/* Activity Timeline */}
+      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+        <h2 className="text-lg font-bold text-gray-800 border-b border-gray-100 pb-3 mb-5">{t('detail.recent_activity')}</h2>
 
         {timeline.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-500">{t('detail.no_activity')}</p>
+          <p className="text-sm text-gray-400 italic py-2">{t('detail.no_activity')}</p>
         ) : (
-          <div className="mt-5 space-y-4">
-            {timeline.map((item) => (
-              <div key={item.id} className="flex gap-3">
-                <div className="mt-1 h-2.5 w-2.5 rounded-full bg-blue-500" />
-                <div className="flex-1 border-l border-slate-200 pl-4 pb-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <p className="font-semibold text-slate-800">{item.title}</p>
+          <div className="space-y-6">
+            {timeline.map((item, index) => (
+              <div key={item.id} className="flex gap-4 relative">
+                {/* Dây dọc nối timeline */}
+                {index !== timeline.length - 1 && (
+                  <div className="absolute left-1.5 top-6 bottom-[-24px] w-px bg-gray-200" />
+                )}
+                
+                <div className="mt-1.5 h-3 w-3 rounded-full bg-blue-500 ring-4 ring-blue-50 z-10 flex-shrink-0" />
+                
+                <div className="flex-1 pb-1">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <p className="font-bold text-gray-800">{item.title}</p>
                     <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        item.type === 'review' ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'
+                      className={`rounded-md px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider ${
+                        item.type === 'review' ? 'bg-amber-100 text-amber-700' : 'bg-gray-100 text-gray-600'
                       }`}
                     >
                       {item.type === 'review' ? t('detail.timeline.review_badge') : t('detail.timeline.log_badge')}
                     </span>
                   </div>
-                  <p className="mt-1 text-sm text-slate-600 break-words">{item.description}</p>
-                  <p className="mt-1 text-xs text-slate-400">{dateTimeFormatter.format(new Date(item.createdAt))}</p>
+                  <p className="text-sm text-gray-600 leading-relaxed break-words bg-gray-50/50 p-3 rounded-lg border border-gray-100">
+                    {item.description}
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-gray-400">
+                    {dateTimeFormatter.format(new Date(item.createdAt))}
+                  </p>
                 </div>
               </div>
             ))}
           </div>
         )}
       </div>
+      
     </div>
   );
 }

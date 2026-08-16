@@ -2,6 +2,8 @@ import { apiClient } from './api-client';
 
 export type UpdateProfilePayload = {
   name?: string;
+  avatarFile?: File | null;
+  removeAvatar?: boolean;
 };
 
 export type AddressPayload = {
@@ -20,7 +22,23 @@ export const getProfile = async () => {
 };
 
 export const updateProfile = async (data: UpdateProfilePayload) => {
-  const response = await apiClient.patch('/users/profile', data);
+  const formData = new FormData();
+
+  if (data.name !== undefined) {
+    formData.append('name', data.name);
+  }
+
+  if (data.removeAvatar !== undefined) {
+    formData.append('removeAvatar', String(data.removeAvatar));
+  }
+
+  if (data.avatarFile) {
+    formData.append('avatar', data.avatarFile);
+  }
+
+  const response = await apiClient.patch('/users/profile', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
   return response.data;
 };
 

@@ -16,6 +16,7 @@ type Category = {
 
 export default function CategoryDropdown() {
   const t = useTranslations('public_pages.header');
+  const tCategories = useTranslations('public_pages.categories');
   
   const [categories, setCategories] = useState<Category[]>([]);
   const [isOpen, setIsOpen] = useState(false);
@@ -155,7 +156,7 @@ export default function CategoryDropdown() {
                     onClick={() => setIsOpen(false)}
                     className="text-xs font-semibold text-amber-600 hover:text-amber-700 hover:underline"
                   >
-                    Xem tất cả &rarr;
+                    {tCategories('viewAll')} &rarr;
                   </Link>
                 </div>
 

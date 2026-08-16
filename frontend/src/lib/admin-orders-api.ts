@@ -1,6 +1,12 @@
 import { apiClient } from './api-client';
 
-export const getAdminOrders = async (params?: { status?: string; skip?: number; take?: number }) => {
+export const getAdminOrders = async (params?: { 
+  status?: string; 
+  skip?: number; 
+  take?: number;
+  q?: string;          // Bổ sung từ khóa tìm kiếm
+  dateRange?: string;  // Bổ sung lọc ngày tháng
+}) => {
   const response = await apiClient.get('/admin/orders', { params });
   return response.data;
 };

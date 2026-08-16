@@ -4,7 +4,7 @@
       "lang": "vi"
     },
     "header": {
-      "title": "🍃 Tiny Handmade",
+      "title": "Tiny Handmade",
       "subtitle": "Đồ thủ công nhỏ xinh cho góc sống và quà tặng.",
       "login": "Đăng nhập",
       "register": "Đăng ký",
@@ -35,32 +35,13 @@
       "gifts": "Quà tặng",
       "jewelry": "Trang sức",
       "home": "Đồ gia dụng",
-      "cardsAndBags": "Thiệp & Túi"
+      "cardsAndBags": "Thiệp & Túi",
+      "viewAll": "Xem tất cả"
     },
     "products": {
       "title": "Sản phẩm thủ công",
       "detail": "Xem chi tiết",
-      "empty": "Chưa có sản phẩm nào được tạo.",
-      "item1": {
-        "title": "Bình hoa gốm",
-        "description": "Bình cắm hoa thủ công với họa tiết vân đất ấm áp.",
-        "price": "220.000 VNĐ"
-      },
-      "item2": {
-        "title": "Túi vải thêu tay",
-        "description": "Túi canvas nhẹ với họa tiết hoa tinh tế.",
-        "price": "180.000 VNĐ"
-      },
-      "item3": {
-        "title": "Nến thơm handmade",
-        "description": "Nến lavender thơm dịu, đúc thủ công hoàn toàn.",
-        "price": "130.000 VNĐ"
-      },
-      "item4": {
-        "title": "Thiệp chúc mừng",
-        "description": "Thiệp giấy tay cùng nét chữ viết tay duyên dáng.",
-        "price": "95.000 VNĐ"
-      }
+      "empty": "Chưa có sản phẩm nào được tạo."
     },
     "story": {
       "eyebrow": "CÂU CHUYỆN SHOP",
@@ -183,6 +164,15 @@
       "loading": "Đang tải...",
       "loadError": "Lỗi khi tải danh mục",
       "empty": "Không có danh mục",
+      "deleteConfirmTitle": "Xác nhận xóa",
+      "deleteConfirmMessage": "Bạn có chắc chắn muốn xóa danh mục này? Các danh mục con bên trong cũng sẽ bị ảnh hưởng.",
+      "deleteSuccess": "Đã xóa danh mục thành công!",
+      "deleteError": "Không thể xóa danh mục hệ thống hoặc đã xảy ra lỗi.",
+      "createSuccess": "Tạo danh mục thành công!",
+      "updateSuccess": "Đã cập nhật danh mục!",
+      "reorderError": "Lỗi khi thay đổi vị trí danh mục.",
+      "statusActive": "Hoạt động",
+      "statusInactive": "Tạm ẩn",
       "columns": {
         "image": "Ảnh",
         "name": "Tên",
@@ -517,7 +507,11 @@
     "no_description": "...",
     "currency": "đ",
     "view_detail": "Xem chi tiết",
-    "back_to_products": "← Quay lại danh sách"
+    "back_to_products": "← Quay lại danh sách",
+    "search_no_results": "Không tìm thấy sản phẩm nào khớp với \"{query}\"",
+    "search_view_all": "Xem tất cả kết quả cho \"{query}\"",
+    "search_result_for": "Kết quả tìm kiếm cho: \"{query}\"",
+    "explore_all": "Khám phá tất cả các tác phẩm nghệ thuật thủ công"
   },
   "categories": {
     "home": "Trang chủ",
@@ -545,6 +539,11 @@
     "personalInfo": "Thông tin cá nhân",
     "fullName": "Họ và tên",
     "email": "Email",
+    "avatar": "Ảnh đại diện",
+    "avatarHint": "Chọn ảnh và xem trước trước khi lưu.",
+    "changeAvatar": "Đổi ảnh",
+    "removeAvatar": "Xóa ảnh",
+    "avatarUploadFailed": "Tải ảnh xem trước thất bại",
     "saveProfile": "Lưu thông tin",
     "saving": "Đang lưu...",
     "addressBook": "Sổ địa chỉ",
@@ -568,31 +567,44 @@
     "defaultAddressUpdated": "Đã cập nhật địa chỉ mặc định"
   },
   "admin_orders": {
-    "list_title": "📦 Quản lý Đơn hàng",
-    "loading_list": "Đang tải danh sách đơn hàng...",
-    "empty_list": "Chưa có đơn hàng nào.",
+    "list_title": "Quản lý Đơn hàng",
+    "list_subtitle": "Theo dõi và xử lý đơn hàng từ khách hàng",
+    "total_count": "Tổng đơn:",
+    "loading_list": "Đang tải dữ liệu...",
+    "empty_list": "Không tìm thấy đơn hàng nào.",
+    "search_placeholder": "Tìm mã đơn, tên hoặc SĐT khách...",
+    "filter_status_all": "Tất cả trạng thái",
+    "filter_date_all": "Tất cả thời gian",
+    "filter_date_today": "Hôm nay",
+    "filter_date_7days": "7 ngày qua",
+    "filter_date_month": "Tháng này",
+    "filter_date_year": "Năm nay",
     "table": {
-      "order_code": "Mã đơn",
+      "order_code": "Mã ĐH",
       "customer": "Khách hàng",
       "order_date": "Ngày đặt",
       "total": "Tổng tiền",
       "status": "Trạng thái",
-      "action": "Hành động",
+      "action": "Thao tác",
       "detail_btn": "Chi tiết"
     },
     "status": {
-      "PENDING": "⏳ Chờ xác nhận",
-      "PROCESSING": "📦 Đang chuẩn bị",
-      "SHIPPING": "🚚 Đang giao",
-      "DELIVERED": "✅ Đã giao",
-      "CANCELLED": "❌ Đã hủy"
+      "PENDING": "Chờ thanh toán",
+      "PROCESSING": "Đang chuẩn bị",
+      "SHIPPING": "Đang giao",
+      "DELIVERED": "Đã giao",
+      "CANCELLED": "Đã hủy"
+    },
+    "pagination": {
+      "prev": "Trước",
+      "next": "Tiếp"
     },
     "detail": {
       "back": "← Quay lại danh sách",
       "title": "Chi tiết đơn hàng",
       "update_status": "Cập nhật trạng thái:",
       "success_update": "Đã cập nhật trạng thái đơn hàng!",
-      "error_update": "Lỗi cập nhật trạng thái",
+      "error_update": "Lỗi khi cập nhật trạng thái",
       "loading": "Đang tải chi tiết đơn hàng...",
       "not_found": "Không tìm thấy đơn hàng!",
       "shipping_info": "Thông tin giao hàng",
@@ -609,7 +621,7 @@
       "products": "Sản phẩm",
       "product_name": "Sản phẩm",
       "price": "Đơn giá",
-      "quantity": "SL",
+      "quantity": "Số lượng",
       "subtotal": "Thành tiền",
       "variant": "Phân loại",
       "total_amount": "Tổng cộng"
@@ -724,21 +736,38 @@
   },
   "admin_reviews": {
     "title": "Quản lý Đánh giá",
-    "empty": "Chưa có đánh giá nào.",
+    "subtitle": "Quản lý và phản hồi đánh giá sản phẩm từ khách hàng",
+    "search_placeholder": "Tìm tên, email hoặc mã đơn hàng...",
+    "filter_rating_all": "Tất cả số sao",
+    "filter_rating_5": "5 Sao",
+    "filter_rating_4": "4 Sao",
+    "filter_rating_3": "3 Sao",
+    "filter_rating_2": "2 Sao",
+    "filter_rating_1": "1 Sao",
+    "filter_reply_all": "Tất cả trạng thái",
+    "filter_reply_replied": "Đã phản hồi",
+    "filter_reply_unreplied": "Chưa phản hồi",
+    "total_count": "Tổng số:",
+    "reviews": "đánh giá",
+    "empty": "Không tìm thấy đánh giá nào.",
     "product": "Sản phẩm",
     "order": "Đơn hàng",
-    "btn_reply": "Trả lời",
+    "btn_reply": "Phản hồi",
     "btn_edit_reply": "Sửa phản hồi",
     "btn_delete": "Xóa",
-    "admin_reply_label": "Phản hồi của Cửa hàng:",
-    "input_label": "Nhập nội dung phản hồi:",
-    "placeholder": "Cảm ơn bạn đã mua hàng...",
+    "admin_reply_label": "Admin Phản hồi",
+    "input_label": "Nội dung phản hồi",
+    "placeholder": "Nhập nội dung phản hồi cho khách hàng...",
     "btn_cancel": "Hủy",
     "btn_save": "Lưu phản hồi",
     "btn_saving": "Đang lưu...",
-    "confirm_delete": "Bạn có chắc chắn muốn xóa đánh giá này?",
-    "err_delete": "Không thể xóa đánh giá này.",
-    "err_reply": "Có lỗi xảy ra khi lưu phản hồi!"
+    "confirm_delete": "Bạn có chắc chắn muốn xóa đánh giá này không?",
+    "err_reply": "Đã xảy ra lỗi khi lưu phản hồi.",
+    "err_delete": "Đã xảy ra lỗi khi xóa đánh giá.",
+    "pagination": {
+      "prev": "Trước",
+      "next": "Tiếp"
+    }
   },
   "user_reviews": {
     "btn_review": "Đánh giá sản phẩm",
@@ -776,5 +805,28 @@
   "empty": "Chưa có bài viết nào được xuất bản.",
   "back": "Quay lại danh sách",
   "not_found": "Không tìm thấy bài viết hoặc bài viết đã bị xóa."
+  },
+  "admin_dashboard": {
+    "badge": "Bảng điều khiển",
+    "greeting": "Chào mừng trở lại, {name} 👋",
+    "subtitle": "Đây là tổng quan về hoạt động kinh doanh của cửa hàng hôm nay. Mọi thứ đang diễn ra rất tuyệt vời!",
+    "status_title": "Tình trạng hệ thống",
+    "status_desc": "Tất cả dịch vụ đang hoạt động ổn định. Hệ thống sẵn sàng nhận đơn.",
+    "stats": {
+      "orders": "Đơn hàng mới",
+      "revenue": "Doanh thu (tháng)",
+      "products": "Sản phẩm đang bán",
+      "customers": "Khách hàng"
+    },
+    "quick_links": "Truy cập nhanh",
+    "quick_links_desc": "Điều hướng nhanh đến các khu vực quản lý quan trọng.",
+    "links": {
+      "categories": "Quản lý Danh mục",
+      "products": "Quản lý Sản phẩm",
+      "posts": "Quản lý Bài viết",
+      "orders": "Quản lý Đơn hàng",
+      "reviews": "Quản lý Đánh giá",
+      "customers": "Quản lý Khách hàng"
+    }
   }
 }

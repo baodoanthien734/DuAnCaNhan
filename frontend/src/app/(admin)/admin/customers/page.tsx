@@ -27,6 +27,8 @@ export default function AdminCustomersPage() {
   const [submittingId, setSubmittingId] = useState<number | null>(null);
   const [customers, setCustomers] = useState<AdminCustomerRow[]>([]);
   const [total, setTotal] = useState(0);
+  
+  // State Search giống CategoryList & ProductsList
   const [query, setQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
@@ -53,6 +55,19 @@ export default function AdminCustomersPage() {
     [locale],
   );
 
+  // 1. LOGIC DEBOUNCE TÌM KIẾM (Gõ xong 0.5s tự động search và reset trang)
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      if (query !== searchInput) {
+        setQuery(searchInput);
+        setPage(1); 
+      }
+    }, 500);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchInput, query]);
+
+  // 2. TẢI DỮ LIỆU
   const fetchCustomers = async () => {
     setLoading(true);
     try {
@@ -76,14 +91,10 @@ export default function AdminCustomersPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, query]);
 
-  const handleSearch = () => {
-    setPage(1);
-    setQuery(searchInput.trim());
-  };
-
+  // 3. KHÓA / MỞ KHÓA TÀI KHOẢN
   const handleToggleStatus = async (customer: AdminCustomerRow) => {
     const confirmed = customer.isActive
-      ? await modal.confirm(t('confirm_lock', { name: customer.name || customer.email }))
+      ? await modal.confirm(t('confirm_lock', { name: customer.name || customer.email }), 'Xác nhận')
       : true;
 
     if (!confirmed) return;
@@ -112,55 +123,49 @@ export default function AdminCustomersPage() {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-6 md:p-8">
-      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 mb-6">
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">{t('list_title')}</h1>
-          <p className="text-sm text-slate-500 mt-1">{t('list_subtitle')}</p>
-        </div>
-
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <input
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSearch();
-            }}
-            placeholder={t('search_placeholder')}
-            className="w-full md:w-80 rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <button
-            onClick={handleSearch}
-            className="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
-          >
-            {t('search_button')}
-          </button>
+          <h1 className="text-2xl font-bold text-gray-800">{t('list_title')}</h1>
+          <p className="text-sm text-gray-500 mt-1">{t('list_subtitle')}</p>
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+      {/* Toolbar (Đã bỏ nút Search, dùng Auto-search) */}
+      <div className="flex gap-3 items-center mb-6">
+        <input
+          placeholder={t('search_placeholder')}
+          value={searchInput}
+          onChange={(e) => setSearchInput(e.target.value)}
+          className="px-4 py-2.5 rounded-lg border border-gray-300 w-full md:w-80 outline-none focus:ring-2 focus:ring-[#4592b6] text-sm transition"
+        />
+      </div>
+
+      {/* Table Dữ liệu */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50 text-slate-600">
-              <tr>
-                <th className="px-4 py-3 text-left font-semibold">{t('table.customer')}</th>
-                <th className="px-4 py-3 text-left font-semibold">{t('table.joined_at')}</th>
-                <th className="px-4 py-3 text-left font-semibold">{t('table.total_spent')}</th>
-                <th className="px-4 py-3 text-left font-semibold">{t('table.order_count')}</th>
-                <th className="px-4 py-3 text-left font-semibold">{t('table.status')}</th>
-                <th className="px-4 py-3 text-left font-semibold">{t('table.action')}</th>
+          <table className="w-full text-sm text-left border-collapse">
+            <thead>
+              <tr className="bg-gray-50 border-b border-gray-200 text-left">
+                <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.customer')}</th>
+                <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.joined_at')}</th>
+                <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.total_spent')}</th>
+                <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.order_count')}</th>
+                <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.status')}</th>
+                <th className="px-5 py-4 text-gray-700 font-semibold text-right">{t('table.action')}</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={6} className="px-5 py-10 text-center text-gray-500">
                     {t('loading_list')}
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-10 text-center text-slate-500">
+                  <td colSpan={6} className="px-5 py-10 text-center text-gray-500">
                     {t('empty_list')}
                   </td>
                 </tr>
@@ -170,37 +175,40 @@ export default function AdminCustomersPage() {
                   const initial = displayName.charAt(0).toUpperCase();
 
                   return (
-                    <tr key={customer.id} className="border-t border-slate-100">
-                      <td className="px-4 py-4">
+                    <tr key={customer.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
+                      <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 font-semibold flex items-center justify-center">
+                          {/* Avatar tự động tạo từ chữ cái đầu */}
+                          <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 font-bold flex items-center justify-center border border-blue-100">
                             {initial}
                           </div>
                           <div>
-                            <p className="font-semibold text-slate-900">{displayName}</p>
-                            <p className="text-slate-500 text-xs">{customer.email}</p>
+                            <p className="font-semibold text-gray-900">{displayName}</p>
+                            <p className="text-gray-500 text-xs mt-0.5">{customer.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-4 text-slate-700">{dateFormatter.format(new Date(customer.createdAt))}</td>
-                      <td className="px-4 py-4 font-medium text-amber-700">{currencyFormatter.format(customer.totalSpent || 0)}</td>
-                      <td className="px-4 py-4 text-slate-700">{customer.orderCount}</td>
-                      <td className="px-4 py-4">
-                        <span
-                          className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${
-                            customer.isActive
-                              ? 'bg-emerald-100 text-emerald-700'
-                              : 'bg-red-100 text-red-700'
-                          }`}
-                        >
-                          {customer.isActive ? t('status.active') : t('status.locked')}
-                        </span>
+                      <td className="px-5 py-4 text-gray-600">{dateFormatter.format(new Date(customer.createdAt))}</td>
+                      <td className="px-5 py-4 font-bold text-amber-700">{currencyFormatter.format(customer.totalSpent || 0)}</td>
+                      <td className="px-5 py-4 text-gray-600 font-medium">{customer.orderCount}</td>
+                      <td className="px-5 py-4">
+                        {/* Đồng bộ màu nhãn Active/Inactive với CategoryList */}
+                        {customer.isActive ? (
+                          <span className="px-2.5 py-1 bg-[#dcfce3] text-[#166534] rounded-full text-xs font-semibold">
+                            {t('status.active')}
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 bg-[#f3f4f6] text-[#4b5563] rounded-full text-xs font-semibold">
+                            {t('status.locked')}
+                          </span>
+                        )}
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center gap-2">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center justify-end gap-3">
+                          {/* Chỉnh lại nút View Detail dạng text đơn giản */}
                           <Link
                             href={`/admin/customers/${customer.id}`}
-                            className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+                            className="text-blue-600 font-medium hover:text-blue-800 transition text-sm"
                           >
                             {t('actions.view_detail')}
                           </Link>
@@ -208,11 +216,11 @@ export default function AdminCustomersPage() {
                             type="button"
                             disabled={submittingId === customer.id}
                             onClick={() => handleToggleStatus(customer)}
-                            className={`rounded-lg px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-60 ${
-                              customer.isActive ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                            className={`text-sm font-medium transition disabled:opacity-50 ${
+                              customer.isActive ? 'text-red-600 hover:text-red-800' : 'text-emerald-600 hover:text-emerald-800'
                             }`}
                           >
-                            {customer.isActive ? t('actions.lock') : t('actions.unlock')}
+                            {submittingId === customer.id ? '...' : customer.isActive ? t('actions.lock') : t('actions.unlock')}
                           </button>
                         </div>
                       </td>
@@ -223,32 +231,30 @@ export default function AdminCustomersPage() {
             </tbody>
           </table>
         </div>
-
-        <div className="flex items-center justify-between px-4 py-3 border-t border-slate-100 bg-slate-50">
-          <p className="text-xs text-slate-500">{t('pagination.total', { total })}</p>
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              disabled={page <= 1}
-              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
-            >
-              {t('pagination.prev')}
-            </button>
-            <span className="text-xs font-medium text-slate-600">
-              {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages}
-              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 disabled:opacity-50"
-            >
-              {t('pagination.next')}
-            </button>
-          </div>
-        </div>
       </div>
+
+      {/* Phân trang (Pagination) - Đã dời sang góc phải giống CategoryList */}
+      {!loading && totalPages > 1 && (
+        <div className="flex justify-end items-center gap-2 mt-6 pb-6">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition shadow-sm"
+          >
+            {t('pagination.prev')}
+          </button>
+          <div className="font-semibold text-gray-800 px-3 text-sm">
+            {page} / {totalPages}
+          </div>
+          <button
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+            className="px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700 font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 transition shadow-sm"
+          >
+            {t('pagination.next')}
+          </button>
+        </div>
+      )}
     </div>
   );
 }

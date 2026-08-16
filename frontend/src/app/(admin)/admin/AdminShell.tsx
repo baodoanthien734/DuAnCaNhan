@@ -2,10 +2,14 @@
 
 import { useTranslations } from 'next-intl';
 import Sidebar from './Sidebar';
-// Đã tháo import LanguageSwitcher vì nó đã chuyển qua Sidebar.tsx
 
 type AdminShellProps = {
-  user: { name?: string };
+  // CẬP NHẬT: Thêm email và image để truyền qua cho Sidebar làm Avatar
+  user: { 
+    name?: string;
+    email?: string;
+    image?: string | null;
+  };
   children: React.ReactNode;
   brand?: string;
   title?: string;
@@ -22,10 +26,11 @@ export default function AdminShell({ user, children, brand, title }: AdminShellP
         flexDirection: 'row',
         minHeight: '100vh',
         width: '100%',
-        backgroundColor: '#f8fafc', // Vùng chứa content sáng sủa
+        backgroundColor: '#f8fafc',
         color: '#111827',
       }}
     >
+      {/* Vẫn giữ nguyên, nhưng giờ biến user đã ôm đủ cả name, email, image */}
       <Sidebar user={user} brand={brand} title={title} />
 
       <main 

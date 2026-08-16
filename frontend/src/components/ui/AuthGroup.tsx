@@ -1,38 +1,40 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import AuthModal from '@/components/ui/AuthModal';
 import CartDrawer from '@/components/ui/CartDrawer';
 import { logout } from '@/lib/auth';
+import { getProfile } from '@/lib/user-api';
+import { resolveProductImageUrl } from '@/lib/products-api';
 
 type User = {
   id: number;
   email: string;
   name?: string;
+  image?: string | null;
   roles: string[];
 };
 
 export default function AuthGroup() {
   const t = useTranslations('public_pages');
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [initialView, setInitialView] = useState<'login' | 'register'>('login');
-  
   const [user, setUser] = useState<User | null>(null);
   const [isClient, setIsClient] = useState(false);
-
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  // State cho User Dropdown
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
-
     const refreshToken = Cookies.get('refreshToken');
     const userInfo = localStorage.getItem('user_info');
 
-    // Tránh trạng thái "đăng nhập giả": có user_info nhưng không còn refresh token hợp lệ.
     if (userInfo && !refreshToken) {
       localStorage.removeItem('user_info');
       Cookies.remove('accessToken');
@@ -43,214 +45,141 @@ export default function AuthGroup() {
 
     if (userInfo) {
       try {
-        setUser(JSON.parse(userInfo));
-      } catch (error) {
-        console.error('Lỗi khi đọc thông tin user', error);
-        localStorage.removeItem('user_info');
-        setUser(null);
+        const parsedUser = JSON.parse(userInfo) as User;
+        setUser(parsedUser);
+
+        // Đồng bộ avatar mới nhất từ API profile để luôn hiển thị đúng ảnh đã upload.
+        getProfile()
+          .then((profile) => {
+            const nextUser: User = {
+              ...parsedUser,
+              name: profile?.name ?? parsedUser.name,
+              image: profile?.image ?? null,
+            };
+            setUser(nextUser);
+            localStorage.setItem('user_info', JSON.stringify(nextUser));
+          })
+          .catch(() => {
+            // Không chặn UI nếu API profile lỗi tạm thời.
+          });
       }
+      catch (error) { localStorage.removeItem('user_info'); setUser(null); }
     }
   }, []);
 
-  const openLogin = () => {
-    setInitialView('login');
-    setIsModalOpen(true);
-  };
-
-  const openRegister = () => {
-    setInitialView('register');
-    setIsModalOpen(true);
-  };
-
-  const handleRequireLoginFromCart = () => {
-    setIsCartOpen(false);
-    setInitialView('login');
-    setIsModalOpen(true);
-  };
+  // Đóng User menu khi click ra ngoài
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleLogout = async () => {
     setUser(null);
+    setIsUserMenuOpen(false);
     await logout();
   };
 
-  if (!isClient) {
-    return <div style={{ width: '150px' }}></div>;
-  }
+  if (!isClient) return <div className="w-[150px]"></div>;
 
-  // === NẾU ĐÃ ĐĂNG NHẬP ===
-  if (user) {
-    const isAdmin = Array.isArray(user.roles) && user.roles.includes('ADMIN');
+  const avatarUrl = user?.image ? resolveProductImageUrl(user.image) : '';
 
-    return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
-        {/* 🛒 Nút mở giỏ hàng */}
-        <button 
-          onClick={() => setIsCartOpen(true)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '8px 14px',
-            backgroundColor: '#fef3c7',
-            color: '#b45309',
-            border: '1px solid #fde68a',
-            borderRadius: '999px',
-            cursor: 'pointer',
-            fontWeight: '600',
-            fontSize: '13px'
-          }}
-        >
-          {t('header.cart')}
-        </button>
+  return (
+    <div className="flex items-center gap-3 relative" ref={userMenuRef}>
+      
+      {/* 🛒 Nút Giỏ Hàng (Dùng Icon Minimal) */}
+      <button 
+        onClick={() => setIsCartOpen(true)}
+        className="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors relative"
+        title={t('header.cart')}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        </svg>
+        {/* Chấm cam báo có hàng (Giả lập) */}
+        <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
+      </button>
 
-        {/* 📦 Nút Lịch sử Đơn hàng */}
-        <Link
-          href="/orders"
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#f3f4f6',
-            color: '#374151',
-            borderRadius: '999px',
-            fontSize: '13px',
-            fontWeight: '600',
-            textDecoration: 'none',
-            border: '1px solid #e5e7eb',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e5e7eb')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#f3f4f6')}
-        >
-          {t('header.orders')}
-        </Link>
-
-        {/* 👤 Nút Hồ sơ */}
-        <Link
-          href="/profile"
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#eef2ff',
-            color: '#3730a3',
-            borderRadius: '999px',
-            fontSize: '13px',
-            fontWeight: '600',
-            textDecoration: 'none',
-            border: '1px solid #c7d2fe',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#e0e7ff')}
-          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#eef2ff')}
-        >
-          {t('header.profile')}
-        </Link>
-
-        {/* Nút vào trang Admin (Chỉ hiện nếu là ADMIN) */}
-        {isAdmin && (
-          <Link 
-            href="/admin"
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#f1f5f9',
-              color: '#0f172a',
-              borderRadius: '999px',
-              fontSize: '13px',
-              fontWeight: '600',
-              textDecoration: 'none',
-              border: '1px solid #e2e8f0',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
-            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
+      {user ? (
+        <>
+          {/* 👤 Avatar Nút bấm mở Menu */}
+          <button 
+            onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+            className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full border border-transparent hover:bg-slate-50 transition-colors"
           >
-            {t('header.adminPanel')}
-          </Link>
-        )}
-
-        {/* Khu vực Avatar và Tên */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{
-            width: '36px',
-            height: '36px',
-            borderRadius: '50%',
-            backgroundColor: isAdmin ? '#0f172a' : '#f3f4f6',
-            color: isAdmin ? '#fff' : '#111827',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 'bold',
-            fontSize: '14px',
-            border: isAdmin ? 'none' : '1px solid #e5e7eb'
-          }}>
-            {(user.name || user.email).charAt(0).toUpperCase()}
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: '#111827' }}>
+            <span className="text-sm font-semibold text-slate-700 hidden md:block">
               {user.name || user.email.split('@')[0]}
             </span>
+            <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-sm overflow-hidden">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={user.name || user.email} className="w-full h-full object-cover" />
+              ) : (
+                (user.name || user.email).charAt(0).toUpperCase()
+              )}
+            </div>
+          </button>
+
+          {/* 📋 Dropdown Menu User */}
+          {isUserMenuOpen && (
+          <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-slate-100 shadow-xl rounded-2xl py-2 z-50 overflow-hidden">
+            
+            <Link href="/profile" onClick={() => setIsUserMenuOpen(false)} className="flex items-center px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-amber-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              {t('header.profile')}
+            </Link>
+            
+            <Link href="/orders" onClick={() => setIsUserMenuOpen(false)} className="flex items-center px-4 py-3 text-sm text-slate-600 hover:bg-slate-50 hover:text-amber-600 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+              {t('header.orders')}
+            </Link>
+
+            {user.roles.includes('ADMIN') && (
+            <Link href="/admin" onClick={() => setIsUserMenuOpen(false)} className="flex items-center px-4 py-3 text-sm font-semibold text-slate-800 bg-slate-50 hover:bg-slate-100 transition-colors border-y border-slate-100">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              {t('header.adminPanel')}
+            </Link>
+            )}
+
+            <button onClick={handleLogout} className="w-full text-left flex items-center px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              {t('header.logout')}
+            </button>
           </div>
+          )}
+        </>
+      ) : (
+        /* NẾU CHƯA ĐĂNG NHẬP */
+        <div className="flex items-center gap-2">
+          <button 
+            onClick={() => { setInitialView('login'); setIsModalOpen(true); }} 
+            className="text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors"
+          >
+            {t('header.login')}
+          </button>
+          <button 
+            onClick={() => { setInitialView('register'); setIsModalOpen(true); }} 
+            className="text-sm font-semibold bg-slate-900 text-white px-5 py-2 rounded-full hover:bg-slate-800 transition-colors shadow-md"
+          >
+            {t('header.register')}
+          </button>
         </div>
+      )}
 
-        {/* Nút Đăng xuất */}
-        <button 
-          onClick={handleLogout}
-          style={{
-            fontSize: '13px',
-            color: '#ef4444', 
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            fontWeight: '500'
-          }}
-        >
-          {t('header.logout')}
-        </button>
-
-        <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-      </div>
-    );
-  }
-
-  // === NẾU CHƯA ĐĂNG NHẬP ===
-  return (
-    <>
-      <button
-        onClick={() => setIsCartOpen(true)}
-        style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: '6px',
-          padding: '10px 16px',
-          backgroundColor: '#fef3c7',
-          color: '#b45309',
-          border: '1px solid #fde68a',
-          borderRadius: '999px',
-          cursor: 'pointer',
-          fontWeight: '600',
-          fontSize: '14px',
-        }}
-      >
-        {t('header.cart')}
-      </button>
-
-      <button 
-        onClick={openLogin} 
-        style={{ color: '#111827', padding: '10px 18px', background: 'transparent', border: 'none', cursor: 'pointer', fontSize: '16px', fontFamily: 'inherit', fontWeight: '500' }}
-      >
-        {t('header.login')}
-      </button>
-      <button 
-        onClick={openRegister} 
-        style={{ backgroundColor: '#111827', color: '#fff', padding: '10px 18px', borderRadius: '999px', border: 'none', cursor: 'pointer', fontSize: '16px', fontFamily: 'inherit', fontWeight: '500' }}
-      >
-        {t('header.register')}
-      </button>
-
-      <CartDrawer
-        isOpen={isCartOpen}
-        onClose={() => setIsCartOpen(false)}
-        onRequireLogin={handleRequireLoginFromCart}
-      />
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} onRequireLogin={() => { setIsCartOpen(false); setInitialView('login'); setIsModalOpen(true); }} />
       <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} initialView={initialView} />
-    </>
+    </div>
   );
 }

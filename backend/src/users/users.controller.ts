@@ -1,8 +1,15 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CreateAddressDto } from './dto/create-address.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UsersService } from './users.service';
+import * as fs from 'fs';
+
+const TMP_UPLOAD_DIR = './public/uploads/tmp';
+
+fs.mkdirSync(TMP_UPLOAD_DIR, { recursive: true });
 
 @Controller('users')
 @UseGuards(JwtAuthGuard)
@@ -16,9 +23,26 @@ export class UsersController {
   }
 
   @Patch('profile')
-  async updateProfile(@Req() req: any, @Body() dto: UpdateProfileDto) {
+  @UseInterceptors(
+    FileInterceptor('avatar', {
+      storage: diskStorage({
+        destination: TMP_UPLOAD_DIR,
+        filename: (_req, file, callback) => {
+          const timestamp = Date.now();
+          const sanitized = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '-');
+          callback(null, `${timestamp}-${sanitized}`);
+        },
+      }),
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
+  async updateProfile(
+    @Req() req: any,
+    @Body() dto: UpdateProfileDto,
+    @UploadedFile() avatar?: Express.Multer.File,
+  ) {
     const userId = Number(req.user.id || req.user.sub);
-    return this.usersService.updateProfile(userId, dto);
+    return this.usersService.updateProfile(userId, dto, avatar);
   }
 
   @Get('addresses')

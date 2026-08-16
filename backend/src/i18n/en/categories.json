@@ -1,6 +1,9 @@
 {
   "error": {
     "category_not_found": "Category not found",
-    "duplicate_slug": "The name or slug for this category already exists in the system."
+    "duplicate_slug": "The name or slug for this category already exists in the system.",
+    "cannot_delete_system_category": "You cannot delete or deactivate the default system category!",
+    "cannot_modify_system_category_name": "You cannot modify the name of the default system category!",
+    "cannot_modify_system_category_slug": "You cannot modify the slug of the default system category!"
   }
 }

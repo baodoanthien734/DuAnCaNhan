@@ -1,9 +1,8 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { getPublicCategories, getPublicProducts } from '@/lib/public-api';
-import FeaturedProducts from '@/components/ui/FeaturedProducts'; 
-
-// 🗑️ Đã xóa import LanguageSwitcher và AuthGroup vì chúng đã nằm ở layout.tsx
+// Import Component Carousel mới tạo
+import ProductCarousel from '@/components/ui/ProductCarousel';
 
 export default async function Home() {
   const t = await getTranslations('public_pages');
@@ -14,7 +13,7 @@ export default async function Home() {
   try {
     const [catRes, prodRes] = await Promise.all([
       getPublicCategories(),
-      getPublicProducts({ take: 20 }), 
+      getPublicProducts({ take: 50 }),
     ]);
     categories = Array.isArray(catRes) ? catRes : catRes.items || [];
     if (Array.isArray(prodRes)) {
@@ -26,12 +25,21 @@ export default async function Home() {
     console.error('Failed to fetch public data for home page:', error);
   }
 
-  return (
-    // 🗑️ Đã xóa minHeight 100vh ở đây để nhường quyền kiểm soát chiều cao cho layout.tsx
-    <div style={{ color: '#111827' }}>
-      
-      {/* 🗑️ ĐÃ XÓA TOÀN BỘ KHỐI <header> BỊ TRÙNG LẶP */}
+  const rootCategories = categories.filter(c => !c.parentId && !c.isSystem);
 
+  const getSubCategoryIds = (parentId: number, allCats: any[]): number[] => {
+    const children = allCats.filter(c => c.parentId === parentId);
+    const subIds = children.map(c => c.id);
+    children.forEach(child => {
+      subIds.push(...getSubCategoryIds(child.id, allCats));
+    });
+    return subIds;
+  };
+
+  return (
+    <div style={{ color: '#111827', backgroundColor: '#fcfbf9', minHeight: '100vh', paddingBottom: '80px' }}>
+      
+      {/* 🛑 KHU VỰC HERO SECTION (GIỮ NGUYÊN) */}
       <section style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%)', padding: '70px 20px 50px', textAlign: 'center' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>
           <p style={{ margin: 0, color: '#d97706', fontWeight: '700', letterSpacing: '0.12em' }}>{t('hero.eyebrow')}</p>
@@ -47,26 +55,37 @@ export default async function Home() {
         </div>
       </section>
 
-      <section style={{ padding: '40px 20px', backgroundColor: '#f7f5f2' }}>
-        <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-          <h3 style={{ margin: '0 0 20px', fontSize: '26px', color: '#111827' }}>
-             {t('categories.title')}
-          </h3>
-          
-          <FeaturedProducts 
-            categories={categories} 
-            products={products} 
-            dict={{
-              all: t('categories.all'),
-              empty: t('products.empty'),
-              detail: t('products.detail')
-            }}
-          />
-          
-        </div>
-      </section>
+      {/* 🚀 KHU VỰC CÁC TẦNG DANH MỤC */}
+      <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 24px' }}>
+        
+        {rootCategories.map((rootCat) => {
+          const validCategoryIds = [rootCat.id, ...getSubCategoryIds(rootCat.id, categories)];
+          // Lấy lên đến 12 sản phẩm để Carousel trượt cho sướng mắt
+          const sectionProducts = products.filter(p => validCategoryIds.includes(p.categoryId)).slice(0, 12);
 
-      {/* 🗑️ ĐÃ XÓA <footer> VÌ layout.tsx ĐÃ CÓ FOOTER CHUNG */}
+          if (sectionProducts.length === 0) return null;
+
+          return (
+            <section key={rootCat.id} style={{ marginTop: '70px' }}>
+              
+              {/* Tiêu đề */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '24px', borderBottom: '2px solid #f3f4f6', paddingBottom: '16px' }}>
+                <h3 style={{ margin: 0, fontSize: '30px', color: '#111827', fontWeight: '800', letterSpacing: '-0.02em' }}>
+                  {rootCat.name}
+                </h3>
+                <Link href={`/categories/${rootCat.slug}`} style={{ color: '#d97706', fontWeight: '600', textDecoration: 'none', fontSize: '15px' }} className="hover:underline">
+                  {t('categories.viewAll')} &rarr;
+                </Link>
+              </div>
+
+              {/* Truyền mảng sản phẩm vào Carousel */}
+              <ProductCarousel products={sectionProducts} />
+
+            </section>
+          );
+        })}
+        
+      </div>
     </div>
   );
 }

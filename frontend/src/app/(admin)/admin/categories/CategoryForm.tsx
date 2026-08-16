@@ -30,7 +30,7 @@ const CascadingCategorySelect = ({
   const [activePath, setActivePath] = useState<number[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 1. Phẳng hóa thành Cây (Tree) - ĐÃ FIX BUG
+  // 1. Phẳng hóa thành Cây (Tree) 
   const roots = useMemo(() => {
     const map: Record<number, CategoryTreeNode> = {};
     categories.forEach((cat) => (map[cat.id] = { ...cat, children: [] }));
@@ -182,7 +182,7 @@ const CascadingCategorySelect = ({
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         backgroundColor: isSelected ? '#eff6ff' : isHovered ? '#f3f4f6' : '#fff',
-                        color: isSelected ? '#2563eb' : '#374151',
+                        color: isSelected ? '#4592b6' : '#374151',
                         fontWeight: isSelected ? 600 : 400,
                         transition: 'background-color 0.15s',
                         whiteSpace: 'nowrap',
@@ -388,7 +388,7 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
       </div>
 
       <div style={{ display: 'flex', gap: 12, marginTop: 12, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
-        <button type="submit" disabled={submitting} style={{ padding: '10px 24px', backgroundColor: '#2563eb', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}>
+        <button type="submit" disabled={submitting} style={{ padding: '10px 24px', backgroundColor: '#4592b6', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}>
           {submitting ? t('form.saving') : t('form.saveButton')}
         </button>
         <button type="button" onClick={() => onCancel && onCancel()} style={{ padding: '10px 24px', backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, fontWeight: 600, cursor: 'pointer' }}>

@@ -1,6 +1,9 @@
 {
   "error": {
     "category_not_found": "Danh mục không tồn tại",
-    "duplicate_slug": "Tên danh mục hoặc đường dẫn (slug) này đã tồn tại trong hệ thống."
+    "duplicate_slug": "Tên danh mục hoặc đường dẫn (slug) này đã tồn tại trong hệ thống.",
+    "cannot_delete_system_category": "Bạn không được phép xóa hoặc vô hiệu hóa danh mục mặc định của hệ thống!",
+    "cannot_modify_system_category_name": "Bạn không được phép đổi tên danh mục mặc định của hệ thống!",
+    "cannot_modify_system_category_slug": "Bạn không được phép đổi đường dẫn (slug) của danh mục hệ thống!"
   }
 }
