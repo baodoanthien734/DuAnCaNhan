@@ -109,15 +109,95 @@ export class OrdersService {
     }
   }
 
-  // Khách hàng xem lịch sử đơn hàng của mình
+  // 1. Cập nhật hàm xem danh sách đơn hàng
   async findMyOrders(userId: number) {
-    return this.prisma.order.findMany({
+    const orders = await this.prisma.order.findMany({
       where: { customerId: userId },
       orderBy: { createdAt: 'desc' },
-      include: {
-        items: true,
-      },
+      include: { items: true }, 
     });
+
+    // Xử lý thủ công: Lấy ảnh và slug cho từng item trong đơn hàng
+    for (const order of orders) {
+      for (const item of order.items) {
+        // Tìm sản phẩm gốc
+        const product = await this.prisma.product.findUnique({
+          where: { id: item.productId },
+          select: { slug: true, images: true }
+        });
+        
+        // FIX LỖI TYPESCRIPT Ở ĐÂY 👇
+        let imageUrl: string | null = null;
+
+        // Nếu có variant, ưu tiên lấy ảnh của variant trước
+        if (item.variantId) {
+          const variant = await this.prisma.productVariant.findUnique({
+            where: { id: item.variantId },
+            select: { image: true }
+          });
+          if (variant && variant.image) {
+            imageUrl = variant.image;
+          }
+        }
+
+        // Nếu không có ảnh variant, lấy ảnh đầu tiên của product
+        if (!imageUrl && product && product.images && product.images.length > 0) {
+          imageUrl = product.images[0];
+        }
+
+        // Gắn thông tin vào item (dùng any để bypass TypeScript)
+        (item as any).productSlug = product?.slug || null;
+        (item as any).imageUrl = imageUrl;
+      }
+    }
+
+    return orders;
+  }
+
+  // 2. Thêm hàm xem chi tiết 1 đơn hàng
+  async findOneMyOrder(userId: number, orderId: number) {
+    const order = await this.prisma.order.findFirst({
+      where: { 
+        id: orderId,
+        customerId: userId 
+      },
+      include: {
+        address: true,
+        items: true
+      }
+    });
+
+    if (!order) {
+      throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
+    }
+
+    // Xử lý thủ công lấy ảnh và slug tương tự như trên
+    for (const item of order.items) {
+      const product = await this.prisma.product.findUnique({
+        where: { id: item.productId },
+        select: { slug: true, images: true }
+      });
+      
+      // FIX LỖI TYPESCRIPT Ở ĐÂY 👇
+      let imageUrl: string | null = null;
+      
+      if (item.variantId) {
+        const variant = await this.prisma.productVariant.findUnique({
+          where: { id: item.variantId },
+          select: { image: true }
+        });
+        if (variant && variant.image) imageUrl = variant.image;
+      }
+
+      if (!imageUrl && product && product.images && product.images.length > 0) {
+        imageUrl = product.images[0];
+      }
+
+      (item as any).productSlug = product?.slug || null;
+      (item as any).imageUrl = imageUrl;
+    }
+
+    return order;
   }
 
   // ==========================================
@@ -157,5 +237,22 @@ export class OrdersService {
     });
 
     return { success: true, message: this.i18n.t('order.success.status_updated') };
+  }
+
+  // Admin xem chi tiết 1 đơn hàng
+  async findOneForAdmin(id: number) {
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: {
+        customer: { select: { id: true, name: true, email: true } },
+        address: true,
+        items: true, // Lấy chi tiết các sản phẩm trong đơn
+      },
+    });
+
+    if (!order) {
+      throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
+    }
+    return order;
   }
 }

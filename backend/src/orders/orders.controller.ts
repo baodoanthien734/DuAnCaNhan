@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Req, Param } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { CheckoutDto } from './dto/checkout.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -18,5 +18,11 @@ export class OrdersController {
   async findMyOrders(@Req() req: any) {
     const userId = Number(req.user.id || req.user.sub);
     return this.ordersService.findMyOrders(userId);
+  }
+
+  @Get(':id')
+  async findOneMyOrder(@Req() req: any, @Param('id') id: string) {
+    const userId = Number(req.user.id || req.user.sub);
+    return this.ordersService.findOneMyOrder(userId, Number(id));
   }
 }

@@ -13,3 +13,8 @@ export const getMyOrders = async () => {
   const response = await apiClient.get('/orders');
   return response.data;
 };
+
+export const getMyOrderById = async (id: number) => {
+  const response = await apiClient.get(`/orders/${id}`);
+  return response.data;
+};

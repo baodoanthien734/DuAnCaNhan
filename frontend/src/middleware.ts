@@ -3,7 +3,7 @@ import type { NextRequest } from 'next/server';
 
 const publicRoutes = ['/login', '/register', '/verify-otp', '/send-otp'];
 // Xóa '/home', chỉ giữ lại các route thực sự cần bảo vệ
-const protectedRoutes = ['/admin', '/checkout', '/profile']; 
+const protectedRoutes = ['/admin', '/checkout', '/profile', '/orders', '/orders/:id']; 
 const supportedLocales = ['vi', 'en'] as const;
 
 function routeMatches(route: string, pathname: string) {

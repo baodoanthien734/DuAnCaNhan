@@ -125,14 +125,14 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
       </div>
 
       <p style={{ color: '#4b5563', lineHeight: '1.7', marginBottom: '24px' }}>
-        {product.description || 'Không có mô tả chi tiết cho sản phẩm này.'}
+        {product.description || t('no_description')}
       </p>
 
       {/* Danh sách Biến thể (Variants) */}
       {product.variants && product.variants.length > 0 && (
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '10px', color: '#374151' }}>
-            Phân loại / Biến thể
+            {t('variants_label')}
           </h3>
           <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
             {product.variants.map((v: any) => {
@@ -152,7 +152,7 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
                   }}
                 >
                   <div style={{ fontWeight: '600' }}>{v.name}</div>
-                  <div style={{ color: '#b45309' }}>{Number(v.price).toLocaleString()} đ</div>
+                  <div style={{ color: '#b45309' }}>{Number(v.price).toLocaleString()} {t('currency')}</div>
                 </button>
               );
             })}
@@ -164,20 +164,20 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
       {product.customizations && product.customizations.length > 0 && (
         <div style={{ marginBottom: '20px' }}>
           <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '10px', color: '#374151' }}>
-            Tùy chọn cá nhân hóa
+            {t('customizations_label')}
           </h3>
           {product.customizations.map((c: any) => (
             <div key={c.id} style={{ marginBottom: '12px', padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>
                 <span>{c.name}</span>
-                {c.isRequired && <span style={{ color: '#ef4444', fontSize: '11px' }}>Bắt buộc</span>}
+                {c.isRequired && <span style={{ color: '#ef4444', fontSize: '11px' }}>{t('required')}</span>}
               </div>
 
               {c.type === 'TEXT' && (
                 <input
                   type="text"
                   maxLength={c.maxLength || 50}
-                  placeholder={`Nhập ${c.name.toLowerCase()}...`}
+                  placeholder={t('text_input_placeholder', { name: c.name.toLowerCase() })}
                   onChange={(e) => handleCustomChange(c.name, e.target.value)}
                   style={{ width: '100%', padding: '10px', border: '1px solid #d1d5db', borderRadius: '6px', outline: 'none' }}
                 />
@@ -201,7 +201,7 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
                           cursor: 'pointer',
                         }}
                       >
-                        {choice.label} {choice.extraPrice > 0 ? `(+${Number(choice.extraPrice).toLocaleString()} đ)` : ''}
+                        {choice.label} {choice.extraPrice > 0 ? `(+${Number(choice.extraPrice).toLocaleString()} ${t('currency')})` : ''}
                       </button>
                     );
                   })}
@@ -246,7 +246,7 @@ export default function AddToCartForm({ product }: AddToCartFormProps) {
           marginTop: '8px',
         }}
       >
-        🛒 {loading ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
+        {loading ? t('adding') : t('add_button')}
       </button>
     </div>
   );
