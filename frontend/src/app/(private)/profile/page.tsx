@@ -11,7 +11,7 @@ import {
   setDefaultAddress,
   updateProfile,
 } from '@/lib/user-api';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 type Profile = {
   id: number;
@@ -239,7 +239,7 @@ export default function ProfilePage() {
 
   const currentAvatar =
     avatarPreview ||
-    (!removeAvatar && profile?.image ? resolveProductImageUrl(profile.image) : '');
+    (!removeAvatar && profile?.image ? resolveImageUrl(profile.image) : '');
 
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', padding: '40px 20px', color: '#111827' }}>

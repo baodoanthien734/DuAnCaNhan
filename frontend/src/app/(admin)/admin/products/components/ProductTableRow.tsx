@@ -3,8 +3,9 @@
 import React, { useState } from "react";
 import Link from "next/link"; // Import thẻ Link của Next.js
 import { useTranslations } from "next-intl";
-import { deleteProduct, resolveProductImageUrl, updateProductStatus } from "@/lib/products-api"; // Import API
+import { deleteProduct, updateProductStatus } from "@/lib/products-api"; // Import API
 import { useModal } from '@/hooks/useModal';
+import { resolveImageUrl } from '@/lib/utils';
 
 // Định nghĩa nhanh type dựa theo cấu trúc Prisma của bạn
 interface ProductTableRowProps {
@@ -74,7 +75,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
           <div className="flex gap-4">
             <div className="w-12 h-12 rounded-lg bg-gray-200 overflow-hidden shrink-0 border border-gray-100 shadow-sm">
               {product.images && product.images.length > 0 ? (
-                <img src={resolveProductImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
+                <img src={resolveImageUrl(product.images[0])} alt={product.name} className="w-full h-full object-cover" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400 text-[10px]">{t("row.noImage")}</div>
               )}

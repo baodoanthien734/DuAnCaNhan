@@ -8,7 +8,7 @@ import AuthModal from '@/components/ui/AuthModal';
 import CartDrawer from '@/components/ui/CartDrawer';
 import { logout } from '@/lib/auth';
 import { getProfile } from '@/lib/user-api';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 type User = {
   id: number;
@@ -86,7 +86,7 @@ export default function AuthGroup() {
 
   if (!isClient) return <div className="w-[150px]"></div>;
 
-  const avatarUrl = user?.image ? resolveProductImageUrl(user.image) : '';
+  const avatarUrl = user?.image ? resolveImageUrl(user.image) : '';
 
   return (
     <div className="flex items-center gap-3 relative" ref={userMenuRef}>

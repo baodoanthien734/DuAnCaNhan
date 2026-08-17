@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { getPublicProducts, getPublicCategories } from '@/lib/public-api';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 import LiveSearch from '@/components/ui/LiveSearch'; 
 
 interface SearchParams {
@@ -110,7 +110,7 @@ export default async function ProductsPage({
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
             {products.map((item) => {
-              const imageUrl = item.images && item.images.length > 0 ? resolveProductImageUrl(item.images[0]) : null;
+              const imageUrl = item.images && item.images.length > 0 ? resolveImageUrl(item.images[0]) : null;
 
               return (
                 <div 

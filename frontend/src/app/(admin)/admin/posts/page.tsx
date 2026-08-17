@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { listPosts } from "@/lib/posts-api"; 
+import { resolveImageUrl } from "@/lib/utils";
 
 export default function AdminPostsPage() {
   const t = useTranslations("posts.list");
@@ -155,9 +156,9 @@ export default function AdminPostsPage() {
               <div className="aspect-video relative bg-gray-100 overflow-hidden">
                 {post.thumbnail ? (
                   <img 
-                    src={`${API_BASE_URL}${post.thumbnail}`} 
+                    src={resolveImageUrl(post.thumbnail)} 
                     alt={post.title} 
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-gray-400 text-sm">

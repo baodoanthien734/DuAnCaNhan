@@ -73,13 +73,6 @@ export async function uploadProductImage(file: File) {
   return resp.data as { url: string; filename: string };
 }
 
-export function resolveProductImageUrl(imageUrl?: string | null) {
-  if (!imageUrl) return '';
-  if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
-  const normalizedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-  return `${API_BASE_URL}${normalizedPath}`;
-}
-
 export async function updateProductStatus(id: number, status: string) {
   const resp = await apiClient.patch(`/admin/products/${id}/status`, { status });
   return resp.data;
@@ -119,6 +112,5 @@ export default {
   updateProduct,
   removeProduct,
   uploadProductImage,
-  resolveProductImageUrl,
   deleteTempProductImage,
 };

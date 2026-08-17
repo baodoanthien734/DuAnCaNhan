@@ -5,7 +5,7 @@ import { useTranslations, useLocale } from 'next-intl';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import { logout } from '@/lib/auth';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 type SidebarProps = {
   user: { name?: string; email?: string; image?: string | null };
@@ -193,7 +193,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
           }}>
             {clientUser.image ? (
               <img 
-                src={resolveProductImageUrl(clientUser.image)} 
+                src={resolveImageUrl(clientUser.image)} 
                 alt="Avatar" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
               />

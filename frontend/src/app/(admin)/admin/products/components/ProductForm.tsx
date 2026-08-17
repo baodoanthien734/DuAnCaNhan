@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useTranslations } from "next-intl";
 import { listCategories } from "@/lib/categories-api";
-import { deleteTempProductImage, resolveProductImageUrl, uploadProductImage } from "@/lib/products-api";
+import { deleteTempProductImage, uploadProductImage } from "@/lib/products-api";
+import { resolveImageUrl } from '@/lib/utils';
 import { useModal } from '@/hooks/useModal';
 
 // --- TYPE DEFINITIONS ---
@@ -438,7 +439,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                         {variantsWatch[index]?.image || variantImagePreviews[index] ? (
                           <div className="relative rounded-lg overflow-hidden border border-gray-200 aspect-square bg-white">
                             <img
-                              src={variantImagePreviews[index] || resolveProductImageUrl(variantsWatch[index]?.image)}
+                              src={variantImagePreviews[index] || resolveImageUrl(variantsWatch[index]?.image)}
                               alt={t("form.variantImageAlt", { index: index + 1 })}
                               className="w-full h-full object-cover"
                             />
@@ -683,7 +684,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
               <h2 className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider">{t("form.imageTitle")}</h2>
               <div className="grid grid-cols-3 gap-4 mb-2">
                 {imagesWatch.map((url, index) => {
-                  const previewSrc = imagePreviews[index] || resolveProductImageUrl(url);
+                  const previewSrc = imagePreviews[index] || resolveImageUrl(url);
 
                   return (
                     <div key={index} className="relative group rounded-lg overflow-hidden border border-gray-200 aspect-square bg-gray-50">
