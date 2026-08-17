@@ -74,7 +74,6 @@ export default function CategoryList() {
   };
 
   const handleDelete = async (id: number) => {
-    // Sử dụng i18n cho Title và Message
     const isConfirmed = await modal.confirm(
       t('list.deleteConfirmMessage'),
       t('list.deleteConfirmTitle')
@@ -84,11 +83,24 @@ export default function CategoryList() {
       setDeletingId(id);
       try {
         await removeCategory(id);
-        setToast(t('list.deleteSuccess')); // Toast thành công
+        setToast(t('list.deleteSuccess'));
         setTimeout(() => setToast(null), 3000);
         await loadData();
       } catch (err: any) {
-        alert(t('list.deleteError')); // Thông báo lỗi
+        
+        // --- ĐOẠN BÓC TÁCH LỖI CHUẨN XÁC TỪ AXIOS & NESTJS ---
+        const backendMessage = err.response?.data?.message;
+        
+        // Xử lý trường hợp NestJS trả về mảng chuỗi hoặc một chuỗi đơn thuần
+        const displayError = Array.isArray(backendMessage) 
+          ? backendMessage[0] 
+          : backendMessage;
+
+        // Nếu lấy được message từ Backend thì hiện nó, nếu không thì dùng câu phòng hờ
+        const finalErrorMessage = displayError || t('list.deleteError');
+
+        // Gọi Modal thông báo lỗi xịn xò
+        await modal.alert(finalErrorMessage, t('list.errorTitle') || 'Thông báo');
       } finally {
         setDeletingId(null);
       }

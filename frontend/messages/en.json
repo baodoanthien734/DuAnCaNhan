@@ -64,7 +64,7 @@
       "variants": "Variants",
       "customizations": "Customizations",
       "addToCart": "Add to Cart",
-      "back": "← Back to products",
+      "back": "Back to products",
       "required": "Required",
       "from": "From"
     },
@@ -173,6 +173,8 @@
       "reorderError": "Failed to reorder categories.",
       "statusActive": "Active",
       "statusInactive": "Inactive",
+      "errorTitle": "Action error",
+      "errorMessage": "An error occurred. Please try again later.",
       "columns": {
         "image": "Image",
         "name": "Name",
@@ -628,27 +630,28 @@
     }
   },
   "my_orders": {
-    "title": "📦 My Orders",
-    "loading": "Loading your orders...",
+    "title": "My Orders",
+    "loading": "Loading orders...",
     "empty": "You have no orders yet.",
-    "shop_now": "Continue Shopping",
+    "shop_now": "Continue shopping",
     "order_code": "Order ID:",
-    "order_date": "Date:",
+    "order_date": "Order Date:",
     "total_amount": "Total:",
-    "view_detail": "View Details",
+    "view_detail": "View details",
     "status": {
-      "PENDING": "⏳ Pending",
-      "PROCESSING": "📦 Processing",
-      "SHIPPING": "🚚 Shipping",
-      "DELIVERED": "✅ Delivered",
-      "CANCELLED": "❌ Cancelled"
+    "PENDING": "Pending confirmation",
+    "PROCESSING": "Preparing",
+    "SHIPPING": "Shipping",
+    "DELIVERED": "Completed",
+    "CANCELLED": "Cancelled"
     },
+    "load_error": "Error loading orders:",
     "detail": {
       "back": "← Back to orders",
       "title": "Order Details",
       "not_found": "Order not found!",
-      "shipping_info": "📍 Shipping Info",
-      "payment_info": "💳 Payment Info",
+      "shipping_info": "Shipping Info",
+      "payment_info": "Payment Info",
       "payment_method": "Method:",
       "payment_status": "Status:",
       "paid": "Paid",

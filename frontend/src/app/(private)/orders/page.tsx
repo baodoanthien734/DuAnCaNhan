@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl'; // <-- Thêm useLocale ở đây
 import { getMyOrders } from '@/lib/orders-api';
 import { resolveImageUrl } from '@/lib/utils';
 
 export default function MyOrdersPage() {
   const t = useTranslations('my_orders');
+  const locale = useLocale(); // <-- Lấy ngôn ngữ hiện tại (en hoặc vi)
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -17,79 +18,143 @@ export default function MyOrdersPage() {
         const data = await getMyOrders();
         setOrders(data || []);
       } catch (error) {
-        console.error('Lỗi tải đơn hàng:', error);
+        console.error(t('load_error') || 'Lỗi tải đơn hàng:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchOrders();
-  }, []);
+  }, [t]);
+
+  // HÀM FORMAT TIỀN TỆ ĐỘNG THEO LOCALE (Giống trang chi tiết)
+  const formatCurrency = (value: number) => {
+    if (locale === 'en') {
+      // 20,000 VND
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' })
+        .format(Number(value || 0))
+        .replace('₫', 'VND');
+    }
+    // 20.000 đ
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
+  };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '60px', color: '#6b7280' }}>{t('loading')}</div>;
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-slate-50/30">
+        <div className="flex flex-col items-center gap-3 text-slate-500">
+          <svg className="h-6 w-6 animate-spin text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-sm font-medium">{t('loading')}</span>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: 0 }}>{t('title')}</h1>
-          <Link href="/profile" style={{ fontSize: '14px', color: '#4b5563', textDecoration: 'none' }}>
-            Quản lý tài khoản
-          </Link>
+    <div className="min-h-screen bg-slate-50/30 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <div className="mx-auto max-w-4xl">
+        
+        {/* HEADER */}
+        <div className="mb-8 border-b border-slate-200 pb-6">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">{t('title')}</h1>
         </div>
 
+        {/* DANH SÁCH ĐƠN HÀNG */}
         {orders.length === 0 ? (
-          <div style={{ backgroundColor: '#fff', padding: '40px', borderRadius: '16px', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-            <p style={{ color: '#6b7280', marginBottom: '20px' }}>{t('empty')}</p>
-            <Link href="/" style={{ backgroundColor: '#111827', color: '#fff', padding: '10px 20px', borderRadius: '999px', textDecoration: 'none', fontWeight: '600' }}>
+          <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white py-24 shadow-sm">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="mb-6 h-16 w-16 text-slate-300">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
+            </svg>
+            <p className="mb-6 text-slate-500">{t('empty')}</p>
+            <Link 
+              href="/products" 
+              className="rounded-xl bg-slate-900 px-8 py-3.5 text-sm font-bold text-white shadow-md transition hover:bg-slate-800"
+            >
               {t('shop_now')}
             </Link>
           </div>
         ) : (
-          <div style={{ display: 'grid', gap: '16px' }}>
+          <div className="space-y-6">
             {orders.map((order) => (
-              <div key={order.id} style={{ backgroundColor: '#fff', borderRadius: '16px', padding: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid #f3f4f6', paddingBottom: '12px', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+              <div 
+                key={order.id} 
+                className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
+              >
+                {/* HEADER CỦA TỪNG ĐƠN HÀNG */}
+                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 bg-slate-50/50 p-6">
                   <div>
-                    <div style={{ fontWeight: '600', color: '#111827' }}>{t('order_code')} {order.code}</div>
-                    <div style={{ fontSize: '13px', color: '#6b7280', marginTop: '4px' }}>
-                      {t('order_date')} {new Date(order.createdAt).toLocaleDateString()}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">{t('order_code')}</span>
+                      <span className="text-lg font-bold text-slate-900">#{order.code}</span>
+                    </div>
+                    <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      {/* ĐÃ FIX: Format ngày tháng động theo locale */}
+                      {t('order_date')} {new Date(order.createdAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN')}
                     </div>
                   </div>
                   <div>
-                    <span style={{ padding: '6px 12px', borderRadius: '999px', fontSize: '12px', fontWeight: '600', backgroundColor: order.status === 'CANCELLED' ? '#fee2e2' : '#f3f4f6', color: order.status === 'CANCELLED' ? '#b91c1c' : '#374151' }}>
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
+                      order.status === 'CANCELLED' 
+                        ? 'bg-rose-50 text-rose-600 border border-rose-100' 
+                        : 'bg-white text-slate-700 border border-slate-200 shadow-sm'
+                    }`}>
                       {t(`status.${order.status}`)}
                     </span>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  {/* Hiển thị tối đa 2 hình ảnh sản phẩm */}
-                  <div style={{ display: 'flex', gap: '8px' }}>
+                {/* BODY CỦA TỪNG ĐƠN HÀNG */}
+                <div className="flex flex-wrap items-center justify-between gap-6 p-6">
+                  {/* Cột Trái: Hình ảnh */}
+                  <div className="flex gap-3">
                     {order.items.slice(0, 2).map((item: any, idx: number) => (
-                      <div key={idx} style={{ width: '60px', height: '60px', borderRadius: '8px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div 
+                        key={idx} 
+                        className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+                      >
                         {item.imageUrl ? (
-                          <img src={resolveImageUrl(item.imageUrl)} alt={item.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img 
+                            src={resolveImageUrl(item.imageUrl)} 
+                            alt={item.productName} 
+                            className="h-full w-full object-cover mix-blend-multiply" 
+                          />
                         ) : (
-                          <span style={{ fontSize: '20px' }}>📦</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6 text-slate-400">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                          </svg>
                         )}
                       </div>
                     ))}
                     {order.items.length > 2 && (
-                      <div style={{ width: '60px', height: '60px', borderRadius: '8px', backgroundColor: '#f3f4f6', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#6b7280', fontWeight: '600' }}>
+                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-500">
                         +{order.items.length - 2}
                       </div>
                     )}
                   </div>
 
-                  <div style={{ textAlign: 'right' }}>
-                    <div style={{ fontSize: '13px', color: '#6b7280', marginBottom: '4px' }}>{t('total_amount')}</div>
-                    <div style={{ fontWeight: 'bold', color: '#b45309', fontSize: '16px', marginBottom: '8px' }}>
-                      {Number(order.totalAmount).toLocaleString()} đ
+                  {/* Cột Phải: Tổng tiền & Nút xem */}
+                  <div className="flex flex-col items-end gap-3 text-right">
+                    <div>
+                      <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">{t('total_amount')}</div>
+                      <div className="mt-1 text-2xl font-bold text-slate-900">
+                        {/* ĐÃ FIX: Gọi hàm formatCurrency */}
+                        {formatCurrency(order.totalAmount)}
+                      </div>
                     </div>
-                    <Link href={`/orders/${order.id}`} style={{ fontSize: '13px', color: '#111827', fontWeight: '600', textDecoration: 'underline' }}>
+                    
+                    <Link 
+                      href={`/orders/${order.id}`} 
+                      className="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:border-slate-400 hover:bg-slate-50"
+                    >
                       {t('view_detail')}
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4 transition-transform group-hover:translate-x-1">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
                     </Link>
                   </div>
                 </div>

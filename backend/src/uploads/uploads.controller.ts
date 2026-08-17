@@ -13,43 +13,43 @@ export class UploadsController {
     private readonly i18n: I18nService,
   ) {}
 
-  // ==============================================================
-  // 1. API UPLOAD CHUNG / CATEGORIES (Lưu vào tmp)
-  // ==============================================================
-  @Post()
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: (req, file, cb) => {
-          const uploadPath = './public/uploads/tmp';
-          if (!fs.existsSync(uploadPath)) {
-            fs.mkdirSync(uploadPath, { recursive: true });
-          }
-          cb(null, uploadPath);
-        },
-        filename: (_req, file, callback) => {
-          const timestamp = Date.now();
-          const sanitized = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '-');
-          callback(null, `${timestamp}-${sanitized}`);
-        },
-      }),
-      fileFilter: (_req, file, callback) => {
-        if (!file.mimetype.startsWith('image/')) {
-          return callback(new BadRequestException('uploads.error.only_images_allowed'), false);
-        }
-        callback(null, true);
-      },
-      limits: { fileSize: 5 * 1024 * 1024 },
-    }),
-  )
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
-    if (!file) {
-      throw new BadRequestException(this.i18n.t('uploads.error.no_file_uploaded'));
-    }
+  // // ==============================================================
+  // // 1. API UPLOAD CHUNG / CATEGORIES (Lưu vào tmp)
+  // // ==============================================================
+  // @Post()
+  // @UseInterceptors(
+  //   FileInterceptor('file', {
+  //     storage: diskStorage({
+  //       destination: (req, file, cb) => {
+  //         const uploadPath = './public/uploads/tmp';
+  //         if (!fs.existsSync(uploadPath)) {
+  //           fs.mkdirSync(uploadPath, { recursive: true });
+  //         }
+  //         cb(null, uploadPath);
+  //       },
+  //       filename: (_req, file, callback) => {
+  //         const timestamp = Date.now();
+  //         const sanitized = file.originalname.replace(/[^a-zA-Z0-9.\-_]/g, '-');
+  //         callback(null, `${timestamp}-${sanitized}`);
+  //       },
+  //     }),
+  //     fileFilter: (_req, file, callback) => {
+  //       if (!file.mimetype.startsWith('image/')) {
+  //         return callback(new BadRequestException('uploads.error.only_images_allowed'), false);
+  //       }
+  //       callback(null, true);
+  //     },
+  //     limits: { fileSize: 5 * 1024 * 1024 },
+  //   }),
+  // )
+  // async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  //   if (!file) {
+  //     throw new BadRequestException(this.i18n.t('uploads.error.no_file_uploaded'));
+  //   }
 
-    // Trả về thư mục tmp để Service move đi sau khi chốt
-    return this.uploadsService.buildFileResponse(file.filename, 'tmp');
-  }
+  //   // Trả về thư mục tmp để Service move đi sau khi chốt
+  //   return this.uploadsService.buildFileResponse(file.filename, 'tmp');
+  // }
 
   // ==============================================================
   // 2. API MỚI DÀNH RIÊNG CHO PRODUCT (/upload/products)

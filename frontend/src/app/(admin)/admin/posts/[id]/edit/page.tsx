@@ -37,7 +37,7 @@ export default function AdminPostEditPage({ params }: { params: Promise<{ id: st
   const [toast, setToast] = useState<ToastState>(null);
 
   // Fallback URL cho ảnh (thay đổi port nếu backend của bạn khác)
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:3001';
 
   function showToast(type: 'success' | 'error', message: string) {
     setToast({ type, message });
@@ -68,8 +68,8 @@ export default function AdminPostEditPage({ params }: { params: Promise<{ id: st
           // Xử lý đường dẫn ảnh trong nội dung HTML
           let parsedContent = post.content || '';
           // Nối API_BASE_URL vào trước tất cả các src="/uploads..."
-          parsedContent = parsedContent.replace(/src="\/uploads/g, `src="${API_BASE_URL}/uploads`);
-          
+
+          parsedContent = parsedContent.replace(/src="\/uploads/g, `src="${baseUrl}/uploads`);
           setContent(parsedContent);
           setOldThumbnailUrl(post.thumbnail || null);
         }
