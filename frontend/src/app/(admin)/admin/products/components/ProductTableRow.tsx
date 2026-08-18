@@ -1,23 +1,26 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link"; // Import thẻ Link của Next.js
+import Link from "next/link"; 
 import { useTranslations } from "next-intl";
-import { deleteProduct, updateProductStatus } from "@/lib/products-api"; // Import API
+import { deleteProduct, updateProductStatus } from "@/lib/products-api"; 
 import { useModal } from '@/hooks/useModal';
 import { resolveImageUrl } from '@/lib/utils';
 
 // Định nghĩa nhanh type dựa theo cấu trúc Prisma của bạn
 interface ProductTableRowProps {
   product: any;
-  onRefresh: () => void; // Khai báo thêm prop onRefresh
+  onRefresh: () => void;
+  // Khai báo thêm prop cho Bulk Edit
+  isSelected: boolean;
+  onToggleSelect: () => void;
 }
 
-export default function ProductTableRow({ product, onRefresh }: ProductTableRowProps) {
+export default function ProductTableRow({ product, onRefresh, isSelected, onToggleSelect }: ProductTableRowProps) {
   const t = useTranslations("admin_products");
   const modal = useModal();
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false); // Trạng thái loading khi đang xóa/sửa
+  const [isProcessing, setIsProcessing] = useState(false); 
 
   // Hàm xử lý Đổi trạng thái
   const handleToggleStatus = async () => {
@@ -25,7 +28,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
     try {
       setIsProcessing(true);
       await updateProductStatus(product.id, newStatus);
-      onRefresh(); // Báo page.tsx tải lại dữ liệu
+      onRefresh(); 
     } catch (error) {
       console.error("Lỗi cập nhật trạng thái:", error);
       await modal.alert(t("row.statusError"));
@@ -43,7 +46,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
     try {
       setIsProcessing(true);
       await deleteProduct(product.id);
-      onRefresh(); // Báo page.tsx tải lại dữ liệu
+      onRefresh(); 
     } catch (error) {
       console.error("Lỗi xóa sản phẩm:", error);
       await modal.alert(t("row.deleteError"));
@@ -59,7 +62,14 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
 
   return (
     <React.Fragment>
-      <tr className={`border-b hover:bg-gray-50 transition items-start ${isExpanded ? 'bg-blue-50/30 border-blue-100' : 'border-gray-50'}`}>
+      {/* THAY ĐỔI: Highlight dòng nếu isSelected = true */}
+      <tr className={`border-b hover:bg-gray-50 transition items-start ${
+        isSelected 
+          ? 'bg-emerald-50/50 border-emerald-100' 
+          : isExpanded 
+            ? 'bg-blue-50/30 border-blue-100' 
+            : 'border-gray-50'
+      }`}>
         <td className="px-4 py-4 w-10">
           <button 
             onClick={() => setIsExpanded(!isExpanded)}
@@ -98,7 +108,7 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
         <td className="px-6 py-4 align-middle">
           <button 
             onClick={handleToggleStatus}
-            disabled={isProcessing || product.status === 'ARCHIVED'} // Không cho toggle nếu đang bị archived
+            disabled={isProcessing || product.status === 'ARCHIVED'} 
             className="focus:outline-none transition-opacity hover:opacity-80 disabled:opacity-50"
             title={t("row.toggleStatusTitle")}
           >
@@ -108,19 +118,31 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
           </button>
         </td>
 
-       <td className="px-6 py-4 text-right align-middle space-x-4">
+       <td className="px-6 py-4 text-right align-middle space-x-3">
           <Link 
             href={`/admin/products/${product.id}/edit`} 
-            className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block"
+            className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-block px-2"
           >
             {t("row.edit")}
           </Link>
           <button 
             onClick={handleDelete}
             disabled={isProcessing || product.status === 'ARCHIVED'}
-            className="text-red-500 hover:text-red-700 font-medium text-sm disabled:opacity-30 disabled:cursor-not-allowed inline-block"
+            className="text-red-500 hover:text-red-700 font-medium text-sm disabled:opacity-30 disabled:cursor-not-allowed inline-block px-2"
           >
             {t("row.delete")}
+          </button>
+          
+          {/* THAY ĐỔI: Nút Thêm/Hủy Chọn */}
+          <button
+            onClick={onToggleSelect}
+            className={`px-3 py-1.5 text-xs font-semibold rounded-md transition-all inline-block min-w-[70px] ${
+              isSelected 
+                ? 'bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200' 
+                : 'bg-emerald-50 text-emerald-600 border border-emerald-200 hover:bg-emerald-100'
+            }`}
+          >
+            {isSelected ? t("list.cancelAddButton") || "Bỏ chọn" : t("list.addButtonAction") || "Chọn"}
           </button>
         </td>
       </tr>
@@ -158,7 +180,6 @@ export default function ProductTableRow({ product, onRefresh }: ProductTableRowP
                                 {cust.type === 'TEXT' ? t("row.textInputWithMax", { max: cust.maxLength || t("row.unlimited") }) : cust.choices?.map((c:any) => c.label).join(', ')}
                               </td>
                               <td className="px-3 py-2 text-right text-gray-600">
-                                {/* Hiển thị phụ phí cho type SELECT */}
                                 {cust.type === 'SELECT' && cust.choices?.map((c:any, i:number) => (
                                   <div key={i}>{c.label}: <span className="text-orange-600">+{formatPrice(c.extraPrice)}</span></div>
                                 ))}

@@ -2,7 +2,8 @@ import { Controller, Get, Post, Body, Query, Param, Patch, Delete, UseGuards } f
 import { ProductsService } from './services/products.service';
 import { CreateProductDto } from './dto/core/create-product.dto';
 import { FilterProductDto } from './dto/core/filter-product.dto';
-import { UpdateProductDto } from './dto/core/update-product.dto'; 
+import { UpdateProductDto } from './dto/core/update-product.dto';
+import { BulkUpdateProductDto } from './dto/core/bulk-update-product.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '@/auth/decorators/roles.decorator';
@@ -25,6 +26,11 @@ export class ProductsController {
   @Get()
   findAll(@Query() query: FilterProductDto) { // Đổi 'any' thành FilterProductDto
     return this.productsService.findAll(query);
+  }
+
+  @Patch('bulk')
+  bulkUpdate(@Body() bulkDto: BulkUpdateProductDto) {
+    return this.productsService.bulkUpdate(bulkDto);
   }
 
   @Patch(':id/status')

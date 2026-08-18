@@ -7,6 +7,7 @@ import { resolveImageUrl } from '@/lib/utils';
 
 interface Props {
   initial?: Category | null;
+  defaultParentId?: number | null; // <--- KHAI BÁO PROP MỚI
   onSaved?: (cat: Category) => void;
   onCancel?: () => void;
 }
@@ -39,13 +40,10 @@ const CascadingCategorySelect = ({
     const treeRoots: CategoryTreeNode[] = [];
     categories.forEach((cat) => {
       if (cat.parentId) {
-        // Nếu có cha, và cha tồn tại trong map thì nhét vào con của cha
         if (map[cat.parentId]) {
           map[cat.parentId].children.push(map[cat.id]);
         }
-        // NẾU KHÔNG TÌM THẤY CHA (Do đã bị filter out): Bỏ qua luôn, không push vào treeRoots!
       } else {
-        // Chỉ những danh mục thực sự không có cha mới được làm Root
         treeRoots.push(map[cat.id]);
       }
     });
@@ -206,12 +204,16 @@ const CascadingCategorySelect = ({
 };
 // =====================================================================
 
-export default function CategoryForm({ initial = null, onSaved, onCancel }: Props) {
+export default function CategoryForm({ initial = null, defaultParentId = null, onSaved, onCancel }: Props) {
   const t = useTranslations('admin_categories');
   const [name, setName] = useState(initial?.name || '');
   const [slug, setSlug] = useState(initial?.slug || '');
-  const [parentId, setParentId] = useState<number | ''>(initial?.parentId ?? '');
-  const [position, setPosition] = useState<number | ''>(initial?.position ?? '');
+  
+  // SỬ LÝ LOGIC ƯU TIÊN ID CHA: Edit > defaultParentId (Tạo con) > Trống
+  const [parentId, setParentId] = useState<number | ''>(
+    initial?.parentId ?? defaultParentId ?? ''
+  );
+  
   const [isActive, setIsActive] = useState<boolean>(initial?.isActive ?? true);
   const [metaTitle, setMetaTitle] = useState(initial?.metaTitle || '');
   const [metaDesc, setMetaDesc] = useState(initial?.metaDesc || '');
@@ -266,12 +268,11 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
     setError(null);
     if (!name.trim()) return setError(t('form.requiredName'));
 
-    // Bắt buộc khởi tạo payload gửi kèm parentId (dù là rỗng)
     const payload: any = {
       name: name.trim(),
       isActive: String(isActive),
       removeImage: String(removeImage),
-      parentId: parentId === '' ? '' : String(parentId), // FIX LỖI Ở ĐÂY
+      parentId: parentId === '' ? '' : String(parentId), 
     };
 
     if (slug?.trim()) payload.slug = slug.trim();
@@ -292,11 +293,7 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
       }
       onSaved && onSaved(saved);
     } catch (err: any) {
-      // console.error(err);
-      
       const backendMessage = err.response?.data?.message;
-      
-      // Xử lý trường hợp NestJS trả về mảng lỗi (ValidationPipe) hoặc chuỗi (BadRequestException)
       const displayError = Array.isArray(backendMessage) 
         ? backendMessage[0] 
         : backendMessage;

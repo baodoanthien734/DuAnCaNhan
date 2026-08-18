@@ -5,10 +5,12 @@
     "order_not_found": "Không tìm thấy thông tin đơn hàng.",
     "invalid_status": "Trạng thái đơn hàng không hợp lệ để cập nhật.",
     "product_not_found": "Sản phẩm không tồn tại hoặc đã ngừng kinh doanh.",
-    "inventory_changed": "Số lượng tồn kho của {productName} vừa thay đổi. Vui lòng kiểm tra lại giỏ hàng!"
+    "inventory_changed": "Số lượng tồn kho của {productName} vừa thay đổi. Vui lòng kiểm tra lại giỏ hàng!",
+    "cannot_cancel_status": "Chỉ có thể hủy đơn hàng khi đang chờ thanh toán."
   },
   "success": {
     "order_placed": "Bạn đã đặt hàng thành công!",
-    "status_updated": "Cập nhật trạng thái đơn hàng thành công."
+    "status_updated": "Cập nhật trạng thái đơn hàng thành công.",
+    "order_cancelled": "Hủy đơn hàng thành công."
   }
 }

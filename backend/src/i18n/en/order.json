@@ -5,10 +5,12 @@
     "order_not_found": "Order details not found.",
     "invalid_status": "Invalid order status for this update.",
     "product_not_found": "The product does not exist or has been discontinued.",
-    "inventory_changed": "The stock level for {productName} has just changed. Please check your cart!"
+    "inventory_changed": "The stock level for {productName} has just changed. Please check your cart!",
+    "cannot_cancel_status": "You can only cancel an order when it is pending payment."
   },
   "success": {
     "order_placed": "Your order has been placed successfully!",
-    "status_updated": "Order status updated successfully."
+    "status_updated": "Order status updated successfully.",
+    "order_cancelled": "Order cancelled successfully."
   }
 }

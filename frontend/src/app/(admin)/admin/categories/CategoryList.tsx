@@ -18,6 +18,10 @@ export default function CategoryList() {
   
   const [editing, setEditing] = useState<Category | null>(null);
   const [showForm, setShowForm] = useState(false);
+  
+  // STATE MỚI: Dùng để truyền parentId vào Form khi bấm "Tạo từ"
+  const [initialParentIdForForm, setInitialParentIdForForm] = useState<number | null>(null);
+
   const [toast, setToast] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [reordering, setReordering] = useState(false);
@@ -25,14 +29,13 @@ export default function CategoryList() {
   const [showTree, setShowTree] = useState(true); 
   const [expandedIds, setExpandedIds] = useState<Record<number, boolean>>({});
 
-  // LOẠI BỎ HOÀN TOÀN PHÂN TRANG - LOAD MAX 1000 DANH MỤC
   const loadData = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await listCategories({ 
         q: query || undefined, 
-        take: 1000 // Lấy đủ nhiều để ôm trọn toàn bộ cây danh mục
+        take: 1000 
       });
       setCategories(data);
     } catch (err: any) {
@@ -87,24 +90,30 @@ export default function CategoryList() {
         setTimeout(() => setToast(null), 3000);
         await loadData();
       } catch (err: any) {
-        
-        // --- ĐOẠN BÓC TÁCH LỖI CHUẨN XÁC TỪ AXIOS & NESTJS ---
         const backendMessage = err.response?.data?.message;
-        
-        // Xử lý trường hợp NestJS trả về mảng chuỗi hoặc một chuỗi đơn thuần
         const displayError = Array.isArray(backendMessage) 
           ? backendMessage[0] 
           : backendMessage;
-
-        // Nếu lấy được message từ Backend thì hiện nó, nếu không thì dùng câu phòng hờ
         const finalErrorMessage = displayError || t('list.deleteError');
-
-        // Gọi Modal thông báo lỗi xịn xò
         await modal.alert(finalErrorMessage, t('list.errorTitle') || 'Thông báo');
       } finally {
         setDeletingId(null);
       }
     }
+  };
+
+  // HÀM MỚI: Xử lý khi bấm nút "Tạo danh mục con"
+  const handleCreateFrom = (parentCategory: Category) => {
+    setEditing(null); // Reset trạng thái sửa (nếu có)
+    setInitialParentIdForForm(parentCategory.id); // Lưu ID của cha vào state
+    setShowForm(true); // Bật form lên
+  };
+
+  // HÀM MỚI: Reset lại các state liên quan đến form khi tắt
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditing(null);
+    setInitialParentIdForForm(null);
   };
 
   return (
@@ -120,14 +129,17 @@ export default function CategoryList() {
               onChange={(e) => setQuery(e.target.value)}
               style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', width: 320, outline: 'none' }}
             />
-            {/* Đã bỏ nút Search vì input change sẽ gọi lại loadData ngay lập tức nhờ useEffect */}
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
               <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer' }}>
                 <input type="checkbox" checked={showTree} onChange={(e) => setShowTree(e.target.checked)} style={{ width: 16, height: 16 }} />
                 <span style={{ color: '#374151', fontWeight: 500 }}>{t('list.showTree')}</span>
               </label>
               <button 
-                onClick={() => { setEditing(null); setShowForm(true); }} 
+                onClick={() => { 
+                  setEditing(null); 
+                  setInitialParentIdForForm(null);
+                  setShowForm(true); 
+                }} 
                 style={{ padding: '10px 16px', borderRadius: 8, backgroundColor: '#4592b6', color: '#fff', border: 'none', cursor: 'pointer', fontWeight: 600, boxShadow: '0 4px 6px rgba(16, 185, 129, 0.2)' }}
               >
                 + {t('list.createButton')}
@@ -174,6 +186,14 @@ export default function CategoryList() {
 
                       const renderNode = (node: Category & { children?: Category[] }, depth = 0) => {
                         const isExpanded = !!expandedIds[node.id];
+                        
+                        // LÓGIC CHẶN NÚT CREATE CỦA BẠN ĐÂY NHÉ:
+                        // Nó là lá nếu không có danh mục nào nhận nó làm cha.
+                        const isLeafNode = !categories.some(c => c.parentId === node.id);
+                        // Lấy từ đối tượng _count mà Backend Prisma vừa trả ra (nếu > 0 nghĩa là có sp)
+                        const hasProducts = (node._count?.products || 0) > 0;
+                        const disableCreateBtn = isLeafNode && hasProducts;
+
                         return (
                           <React.Fragment key={node.id}>
                             <tr style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.2s' }}>
@@ -225,7 +245,23 @@ export default function CategoryList() {
                                   {!node.isSystem && (
                                     <>
                                       <button style={{ color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setEditing(node); setShowForm(true); }}>{t('list.actions.edit')}</button>
+                                      
                                       <button style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => handleDelete(node.id)} disabled={deletingId === node.id}>{deletingId === node.id ? '...' : t('list.actions.delete')}</button>
+                                      
+                                      <button 
+                                        title={disableCreateBtn ? t('list.actions.cannotCreateHasProducts') : ''}
+                                        disabled={disableCreateBtn}
+                                        style={{ 
+                                          color: disableCreateBtn ? '#9ca3af' : '#16a34a', 
+                                          background: 'none', 
+                                          border: 'none', 
+                                          cursor: disableCreateBtn ? 'not-allowed' : 'pointer', 
+                                          fontWeight: 500 
+                                        }} 
+                                        onClick={() => handleCreateFrom(node)}
+                                      >
+                                        {t('list.actions.createFrom')}
+                                      </button>
                                     </>
                                   )}
                                 </div>
@@ -238,41 +274,62 @@ export default function CategoryList() {
                       return roots.map((r) => renderNode(r, 0));
                     })()
                   ) : (
-                    categories.map((c) => (
-                      <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.2s' }}>
-                        <td style={{ padding: '12px 16px' }}>
-                          {c.image ? (
-                            <img src={resolveImageUrl(c.image)} alt={c.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
-                          ) : (
-                            <div style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb' }} />
-                          )}
-                        </td>
-                        <td style={{ padding: '12px 16px', fontWeight: 500, color: '#111827' }}>{c.name}</td>
-                        <td style={{ padding: '12px 16px' }}>
-                          {c.isActive ? (
-                            <span style={{ padding: '4px 10px', backgroundColor: '#dcfce3', color: '#166534', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>Active</span>
-                          ) : (
-                            <span style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#4b5563', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>Inactive</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '12px 16px' }}>
-                          <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center' }}>
-                            {!c.isSystem && (
-                              <>
-                                <button style={{ color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setEditing(c); setShowForm(true); }}>{t('list.actions.edit')}</button>
-                                <button style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => handleDelete(c.id)} disabled={deletingId === c.id}>{deletingId === c.id ? '...' : t('list.actions.delete')}</button>
-                              </>
+                    categories.map((c) => {
+                      const isLeafNode = !categories.some(child => child.parentId === c.id);
+                      const hasProducts = (c._count?.products || 0) > 0;
+                      const disableCreateBtn = isLeafNode && hasProducts;
+
+                      return (
+                        <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.2s' }}>
+                          <td style={{ padding: '12px 16px' }}>
+                            {c.image ? (
+                              <img src={resolveImageUrl(c.image)} alt={c.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
+                            ) : (
+                              <div style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb' }} />
                             )}
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                          </td>
+                          <td style={{ padding: '12px 16px', fontWeight: 500, color: '#111827' }}>{c.name}</td>
+                          <td style={{ padding: '12px 16px' }}>
+                            {c.isActive ? (
+                              <span style={{ padding: '4px 10px', backgroundColor: '#dcfce3', color: '#166534', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>Active</span>
+                            ) : (
+                              <span style={{ padding: '4px 10px', backgroundColor: '#f3f4f6', color: '#4b5563', borderRadius: 999, fontSize: 12, fontWeight: 600 }}>Inactive</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '12px 16px' }}>
+                            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', alignItems: 'center' }}>
+                              {!c.isSystem && (
+                                <>
+                                  <button style={{ color: '#2563eb', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => { setEditing(c); setShowForm(true); }}>{t('list.actions.edit')}</button>
+                                  
+                                  <button style={{ color: '#dc2626', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} onClick={() => handleDelete(c.id)} disabled={deletingId === c.id}>{deletingId === c.id ? '...' : t('list.actions.delete')}</button>
+
+                                  <button 
+                                    title={disableCreateBtn ? t('list.actions.cannotCreateHasProducts') : ''}
+                                    disabled={disableCreateBtn}
+                                    style={{ 
+                                      color: disableCreateBtn ? '#9ca3af' : '#16a34a', 
+                                      background: 'none', 
+                                      border: 'none', 
+                                      cursor: disableCreateBtn ? 'not-allowed' : 'pointer', 
+                                      fontWeight: 500 
+                                    }} 
+                                    onClick={() => handleCreateFrom(c)}
+                                  >
+                                    {t('list.actions.createFrom')}
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
             </div>
           )}
-          {/* ĐÃ XÓA FOOTER PHÂN TRANG Ở ĐÂY */}
         </>
       ) : (
         <div style={{ backgroundColor: '#fff', borderRadius: 16, border: '1px solid #e5e7eb', padding: 24, boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.05)' }}>
@@ -283,21 +340,27 @@ export default function CategoryList() {
               </h3>
             </div>
             <button 
-              onClick={() => setShowForm(false)} 
+              onClick={handleCloseForm} 
               style={{ padding: '8px 16px', borderRadius: 8, backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}
             >
-              <span>←</span> {t('form.cancelButton')}
+              <span></span> {t('form.cancelButton')}
             </button>
           </div>
           <CategoryForm
             initial={editing ?? undefined}
+            
+            // TRUYỀN parentId TỪ STATE XUỐNG COMPONENT FORM: 
+            // - Nếu bấm "Tạo thư mục con" thì cái initialParentIdForForm này sẽ có giá trị.
+            // - Để prop này hoạt động, bạn sẽ cần hứng nó bên trong CategoryForm.tsx.
+            //   (Ví dụ: bổ sung thêm prop: defaultParentId?: number)
+            defaultParentId={initialParentIdForForm}
+            
             onSaved={(cat) => {
-              setShowForm(false);
-              // Đã dùng i18n thay cho text cứng
+              handleCloseForm();
               setToast(editing ? t('list.updateSuccess') : t('list.createSuccess')); 
               setTimeout(() => setToast(null), 3000);
             }}
-            onCancel={() => setShowForm(false)}
+            onCancel={handleCloseForm}
           />
         </div>
       )}

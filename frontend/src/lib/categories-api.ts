@@ -13,6 +13,9 @@ export interface Category {
   metaDesc?: string | null;
   createdAt?: string | null;
   updatedAt?: string | null;
+  _count?: {
+    products: number;
+  };
 }
 
 export interface ListCategoriesParams {

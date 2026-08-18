@@ -44,6 +44,12 @@ export interface ListProductsParams {
   take?: number;
 }
 
+export interface BulkUpdateProductDto {
+  productIds: number[];
+  categoryId?: number;
+  status?: string;
+}
+
 // --- CÁC HÀM GỌI API ---
 
 export async function listProducts(params: ListProductsParams = {}) {
@@ -95,6 +101,11 @@ export async function updateProduct(id: number, data: any) {
   return resp.data;
 }
 
+export async function bulkUpdateProducts(dto: BulkUpdateProductDto) {
+  const resp = await apiClient.patch('/admin/products/bulk', dto);
+  return resp.data;
+}
+
 // Xóa ảnh tạm của sản phẩm trên server
 export const deleteTempProductImage = async (url: string) => {
   try {
@@ -112,5 +123,6 @@ export default {
   updateProduct,
   removeProduct,
   uploadProductImage,
+  bulkUpdateProducts,
   deleteTempProductImage,
 };

@@ -108,7 +108,19 @@ export class CategoriesService implements OnModuleInit {
     }
 
     const [items, total] = await this.prisma.$transaction([
-      this.prisma.category.findMany({ where, orderBy: { position: 'asc' }, skip: query.skip, take: query.take }),
+      this.prisma.category.findMany({ 
+        where, 
+        orderBy: { position: 'asc' }, 
+        skip: query.skip, 
+        take: query.take,
+        // Đảm bảo rằng khi lấy danh sách, chúng ta cũng đếm số sản phẩm trong mỗi danh mục để hiển thị cho người quản trị biết
+        include: {
+          _count: {
+            select: { products: true }
+          }
+        }
+        // ----------------------------------------------------
+      }),
       this.prisma.category.count({ where }),
     ]);
 
