@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server'; 
+import { getServerDashboardStats } from '@/lib/dashboard-api'; // IMPORT HÀM GỌI API
 
 async function getProfile(token: string) {
   try {
@@ -15,6 +16,14 @@ async function getProfile(token: string) {
   } catch {
     return null;
   }
+}
+
+// Hàm hỗ trợ format tiền tệ (Ví dụ: 4.5M, 12K)
+function formatCompactNumber(number: number) {
+  return Intl.NumberFormat('en-US', {
+    notation: "compact",
+    maximumFractionDigits: 1
+  }).format(number);
 }
 
 export default async function AdminPage() {
@@ -34,10 +43,22 @@ export default async function AdminPage() {
   // Khởi tạo bộ dịch
   const t = await getTranslations('admin_dashboard');
 
+  // GỌI API LẤY THỐNG KÊ (Dùng token của Admin)
+  const statsData = await getServerDashboardStats(token);
+  console.log("Dữ liệu từ API:", statsData);
+
+  // Fallback data nếu API lỗi hoặc chưa có dữ liệu
+  const stats = {
+    orders: statsData?.orders || 0,
+    revenue: statsData?.revenue || 0,
+    products: statsData?.products || 0,
+    customers: statsData?.customers || 0,
+  };
+
   return (
     <div style={{ marginTop: '18px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
-      {/* SECTION 1: HEADER & STATS (Đồng bộ UI với CategoryList) */}
+      {/* SECTION 1: HEADER & STATS */}
       <section>
         <div
           style={{
@@ -62,7 +83,7 @@ export default async function AdminPage() {
               </p>
             </div>
 
-            {/* Trạng thái hệ thống - Tone màu giống Toast success của bạn */}
+            {/* Trạng thái hệ thống */}
             <div style={{ padding: '12px 16px', borderRadius: '8px', backgroundColor: '#e0f2fe', border: '1px solid #bae6fd', minWidth: '240px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ display: 'inline-block', width: '8px', height: '8px', backgroundColor: '#0369a1', borderRadius: '50%' }}></span>
@@ -76,13 +97,13 @@ export default async function AdminPage() {
 
           <div style={{ height: '1px', backgroundColor: '#e5e7eb' }}></div>
 
-          {/* 4 Thẻ Thống kê (Chuyển sang nền trắng xám, font chuẩn CategoryList) */}
+          {/* 4 Thẻ Thống kê (Áp dụng dữ liệu thật từ biến `stats`) */}
           <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
             {[
-              { label: t('stats.orders'), value: '12', icon: '🛒' },
-              { label: t('stats.revenue'), value: '4.5M', icon: '💰' },
-              { label: t('stats.products'), value: '45', icon: '📦' },
-              { label: t('stats.customers'), value: '128', icon: '👥' },
+              { label: t('stats.orders'), value: stats.orders.toLocaleString(), icon: '🛒' },
+              { label: t('stats.revenue'), value: formatCompactNumber(stats.revenue), icon: '💰' },
+              { label: t('stats.products'), value: stats.products.toLocaleString(), icon: '📦' },
+              { label: t('stats.customers'), value: stats.customers.toLocaleString(), icon: '👥' },
             ].map((item) => (
               <div 
                 key={item.label} 
@@ -111,7 +132,7 @@ export default async function AdminPage() {
         </div>
       </section>
 
-      {/* SECTION 2: QUICK LINKS */}
+      {/* SECTION 2: QUICK LINKS (Giữ nguyên) */}
       <section>
         <div style={{ marginBottom: '16px', paddingLeft: '4px' }}>
           <h2 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#111827' }}>{t('quick_links')}</h2>
@@ -145,7 +166,7 @@ export default async function AdminPage() {
                 fontWeight: 600,
                 fontSize: '14px',
                 border: '1px solid #e5e7eb',
-                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)', // Đổ bóng nhẹ chuẩn Tailwind
+                boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
               }}
             >
               <span style={{ fontSize: '20px' }}>{item.icon}</span>

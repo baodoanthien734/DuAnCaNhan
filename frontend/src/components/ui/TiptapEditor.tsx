@@ -141,6 +141,7 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
         continue;
       }
 
+      // Convert the image file to a base64 string
       const base64String = await readFileAsBase64(file);
 
       editor
@@ -149,15 +150,15 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
         .insertContent({
           type: 'image',
           attrs: {
-            src: base64String,
+            src: base64String, // Use the base64 string as the image source and show the image immediately
             alt: file.name,
             title: file.name,
             'data-filename': file.name,
           },
         })
         .run();
-
-      await onImageAdded(file);
+      
+      await onImageAdded(file); // put the image file into the form data so that it can be uploaded to the server later
     }
   }
 

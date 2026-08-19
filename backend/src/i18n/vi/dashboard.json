@@ -1,0 +1,6 @@
+{
+  "error": {
+    "internal_server_error": "Đã xảy ra lỗi khi tải dữ liệu thống kê. Vui lòng thử lại sau.",
+    "unauthorized": "Bạn không có quyền truy cập vào thông tin này."
+  }
+}

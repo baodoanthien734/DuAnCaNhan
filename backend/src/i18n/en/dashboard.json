@@ -1,0 +1,6 @@
+{
+  "error": {
+    "internal_server_error": "An error occurred while loading statistical data. Please try again later.",
+    "unauthorized": "You do not have permission to access this information."
+  }
+}

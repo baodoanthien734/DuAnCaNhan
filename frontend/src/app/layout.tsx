@@ -1,3 +1,6 @@
+// THÊM DÒNG NÀY VÀO ĐẦU FILE: Import CSS toàn cục
+import '@/app/globals.css'; // HOẶC import '@/app/globals.css'; tùy thư mục của bạn
+
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages, getTranslations } from 'next-intl/server';
 import { GlobalModalProvider } from '@/components/providers/ModalContext';

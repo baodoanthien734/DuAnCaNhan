@@ -46,16 +46,16 @@ export default function AdminPostCreatePage() {
       formData.append('title', title);
       formData.append('summary', summary);
       formData.append('isPublished', String(isPublished));
-      formData.append('content', content);
+      formData.append('content', content); // Add the content to the form data
 
       if (thumbnailFile) {
         formData.append('thumbnail', thumbnailFile);
       }
-
+      // Append all image files to the form data
       for (const file of imageFiles) {
         formData.append('contentImages', file);
       }
-
+      // Send the form data to the server
       await apiClient.post('/admin/posts', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',

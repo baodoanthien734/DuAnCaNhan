@@ -156,7 +156,7 @@ export default function CategoryDropdown() {
                     onClick={() => setIsOpen(false)}
                     className="text-xs font-semibold text-amber-600 hover:text-amber-700 hover:underline"
                   >
-                    {tCategories('viewAll')} &rarr;
+                    {tCategories('viewAll')} 
                   </Link>
                 </div>
 
