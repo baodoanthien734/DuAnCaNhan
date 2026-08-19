@@ -10,7 +10,6 @@ export class PublicCategoriesController {
     return this.categoriesService.findAllPublic();
   }
 
-  // 👇 Thêm endpoint này
   @Get(':slug')
   async findOneBySlugPublic(@Param('slug') slug: string) {
     return this.categoriesService.findOneBySlugPublic(slug);

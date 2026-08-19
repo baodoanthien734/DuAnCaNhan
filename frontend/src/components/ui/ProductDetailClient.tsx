@@ -67,12 +67,14 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   // HÀM FORMAT TIỀN TỆ ĐỘNG (vi = đ, en = VND)
   const formatCurrency = (value: number) => {
+    const num = Number(value || 0);
     if (locale === 'en') {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' })
-        .format(Number(value || 0))
-        .replace('₫', 'VND');
+      // Định dạng số kiểu en-US (VD: 150,000) rồi nối ' VND' ra phía sau
+      const formattedNum = new Intl.NumberFormat('en-US').format(num);
+      return `${formattedNum} VND`;
     }
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
+    // Tiếng Việt giữ nguyên
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
   };
 
   const mainImage = allImages[currentIndex] || '';

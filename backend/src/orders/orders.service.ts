@@ -19,6 +19,7 @@ export class OrdersService {
   // PHẦN 1: DÀNH CHO KHÁCH HÀNG (USER)
   // ==========================================
 
+  // 1. Thêm hàm checkout
   async checkout(userId: number, dto: CheckoutDto) {
     // 1. Lấy Giỏ hàng hiện tại
     const cart = await this.cartService.getCart(userId);
@@ -137,7 +138,7 @@ export class OrdersService {
     }
   }
 
-  // 1. Cập nhật hàm xem danh sách đơn hàng
+  // 2. Thêm hàm xem danh sách đơn hàng của khách
   async findMyOrders(userId: number) {
     const orders = await this.prisma.order.findMany({
       where: { customerId: userId },
@@ -176,7 +177,7 @@ export class OrdersService {
     return orders;
   }
 
-  // 2. Thêm hàm xem chi tiết 1 đơn hàng
+  // 3. Thêm hàm xem chi tiết 1 đơn hàng
   async findOneMyOrder(userId: number, orderId: number) {
     const order = await this.prisma.order.findFirst({
       where: { 
@@ -221,7 +222,7 @@ export class OrdersService {
     return order;
   }
 
-  // THÊM HÀM MỚI: Khách hàng tự hủy đơn
+  // 4. Thêm hàm khách hàng tự hủy đơn
   async cancelOrder(userId: number, orderId: number) {
     const order = await this.prisma.order.findFirst({
       where: { 
@@ -277,7 +278,7 @@ export class OrdersService {
   // PHẦN 2: DÀNH CHO QUẢN TRỊ VIÊN (ADMIN)
   // ==========================================
 
-  // Admin xem tất cả đơn hàng
+  // 1. Thêm hàm xem danh sách đơn hàng cho Admin
   async findAllForAdmin(query: { q?: string; dateRange?: string; status?: OrderStatus; skip?: number; take?: number }) {
     const where: any = {};
 
@@ -344,7 +345,7 @@ export class OrdersService {
     return { items, total };
   }
 
-  // Admin cập nhật trạng thái đơn
+  // 5. Admin cập nhật trạng thái đơn
   async updateStatus(id: number, status: OrderStatus) {
     const order = await this.prisma.order.findUnique({ where: { id } });
     if (!order) throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
@@ -357,7 +358,7 @@ export class OrdersService {
     return { success: true, message: this.i18n.t('order.success.status_updated') };
   }
 
-  // Admin xem chi tiết 1 đơn hàng
+  // 6. Admin xem chi tiết 1 đơn hàng
   async findOneForAdmin(id: number) {
     const order = await this.prisma.order.findUnique({
       where: { id },

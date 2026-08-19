@@ -26,13 +26,18 @@ export class ProductsService {
     private readonly i18n: I18nService,
   ) {}
 
-  // 1. Hàm chuẩn hóa chuỗi tiếng Việt
+  // ==============================================================
+  // STRING & SLUG UTILITIES
+  // ==============================================================
+
+  // Sinh slug từ tên sản phẩm, như bên categories
   private slugify(text: string) {
     return text
       .toString()
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
       .toLowerCase()
       .trim()
       .replace(/\s+/g, '-')
@@ -40,7 +45,7 @@ export class ProductsService {
       .replace(/\-+/g, '-');
   }
 
-  // 2. Hàm tự động sinh Slug (thêm -1, -2 nếu trùng)
+  // Sinh slug tự động, đảm bảo không trùng lặp
   private async generateAutoSlug(name: string, currentId?: number): Promise<string> {
     const baseSlug = this.slugify(name);
     let slug = baseSlug;
@@ -56,7 +61,7 @@ export class ProductsService {
     }
   }
 
-  // 3. Hàm kiểm tra Admin nhập tay
+  // Kiểm tra slug do người dùng nhập, đảm bảo không trùng lặp với sản phẩm khác
   private async checkManualSlug(slug: string, currentId?: number): Promise<void> {
     const existing = await this.prisma.product.findFirst({ where: { slug } });
     if (existing && existing.id !== currentId) {
@@ -64,17 +69,24 @@ export class ProductsService {
     }
   }
 
+  // ==============================================================
+  // VALIDATION & HELPERS
+  // ==============================================================
+
+  // Chuyển đổi giá trị sang number, nếu không hợp lệ thì trả về 0
   private toNumber(value: unknown): number {
     if (typeof value === 'number') return value;
     return Number(value || 0);
   }
 
+  // Kiểm tra số lượng hình ảnh giới thiệu của sản phẩm, không vượt quá 5
   private assertMainImagesLimit(images?: string[]) {
     if ((images || []).length > 5) {
       throw new BadRequestException(this.i18n.t('products.error.product_images_limit_exceeded'));
     }
   }
 
+  // Kiểm tra giá của các biến thể, đảm bảo không nhỏ hơn giá gốc của sản phẩm
   private assertVariantPrices(basePrice: number, variants?: Array<{ price?: number }>) {
     if (!variants || variants.length === 0) return;
 
@@ -90,6 +102,11 @@ export class ProductsService {
     }
   }
 
+  // ==============================================================
+  // FILE SYSTEM MANAGEMENT (UPLOAD & CLEANUP)
+  // ==============================================================
+
+  // Phân tích đường dẫn hình ảnh, trả về đường dẫn tương đối và tuyệt đối nếu hợp lệ
   private parseProductUploadPath(imageUrl: string): { relative: string; absolute: string } | null {
     if (!imageUrl) return null;
 
@@ -116,10 +133,12 @@ export class ProductsService {
     return { relative: pathname, absolute };
   }
 
+  // Đảm bảo thư mục tồn tại, nếu không thì tạo mới
   private async ensureDir(path: string) {
     await fs.mkdir(path, { recursive: true });
   }
 
+  // Di chuyển file một cách an toàn, xử lý trường hợp khác phân vùng (EXDEV)
   private async moveFileSafe(from: string, to: string) {
     await this.ensureDir(dirname(to));
 
@@ -138,6 +157,7 @@ export class ProductsService {
     }
   }
 
+  // Xóa file một cách an toàn, bỏ qua lỗi nếu file không tồn tại
   private async removeFileSafe(filePath: string) {
     try {
       await fs.unlink(filePath);
@@ -148,6 +168,7 @@ export class ProductsService {
     }
   }
 
+  // Xóa thư mục nếu trống, bỏ qua lỗi nếu thư mục không tồn tại
   private async removeEmptyDirSafe(dirPath: string) {
     try {
       const entries = await fs.readdir(dirPath);
@@ -159,6 +180,7 @@ export class ProductsService {
     }
   }
 
+  // Di chuyển hình ảnh sản phẩm vào thư mục sản phẩm, trả về đường dẫn mới
   private async moveImageToProductDir(productId: number, imageUrl: string) {
     const parsed = this.parseProductUploadPath(imageUrl);
     if (!parsed) return imageUrl;
@@ -179,6 +201,7 @@ export class ProductsService {
     return `/${targetRelative}`;
   }
 
+  // Di chuyển hình ảnh biến thể vào thư mục biến thể, trả về đường dẫn mới
   private async moveImageToVariantDir(productId: number, variantId: number, imageUrl: string) {
     const parsed = this.parseProductUploadPath(imageUrl);
     if (!parsed) return imageUrl;
@@ -199,6 +222,7 @@ export class ProductsService {
     return `/${targetRelative}`;
   }
 
+  // Dọn dẹp các hình ảnh sản phẩm không còn sử dụng
   private async cleanupProductImageUrls(imageUrls: string[]) {
     for (const imageUrl of imageUrls) {
       const parsed = this.parseProductUploadPath(imageUrl);
@@ -212,6 +236,7 @@ export class ProductsService {
     }
   }
 
+  // Đồng bộ các biến thể của sản phẩm, tạo mới, cập nhật hoặc xóa nếu cần thiết
   private async syncVariants(productId: number, variantsData: any[], currentBasePrice: number) {
     const existingVariants = await this.prisma.productVariant.findMany({
       where: { productId },
@@ -293,6 +318,11 @@ export class ProductsService {
     }
   }
 
+  // ==============================================================
+  // ADMIN FEATURES (CRUD & MANAGEMENT)
+  // ==============================================================
+
+  // Tạo sản phẩm mới, bao gồm xử lý hình ảnh, biến thể và tuỳ chỉnh
   async create(createProductDto: CreateProductDto) {
     this.logger.log(`Bắt đầu tạo sản phẩm: ${createProductDto.name}`);
 
@@ -301,15 +331,10 @@ export class ProductsService {
     this.assertVariantPrices(basePrice, createProductDto.variants);
 
     try {
-      // ==========================================
-      // LOGIC XỬ LÝ SLUG CHO CREATE
-      // ==========================================
       let finalSlug = '';
       if (!createProductDto.slug) {
-        // Admin bỏ trống -> Tự sinh
         finalSlug = await this.generateAutoSlug(createProductDto.name);
       } else {
-        // Admin nhập tay -> Chuẩn hóa và kiểm tra trùng
         finalSlug = this.slugify(createProductDto.slug);
         await this.checkManualSlug(finalSlug);
       }
@@ -317,7 +342,7 @@ export class ProductsService {
       const product = await this.prisma.product.create({
         data: {
           name: createProductDto.name,
-          slug: finalSlug, // Dùng Slug mới thay vì cái cũ
+          slug: finalSlug,
           categoryId: createProductDto.categoryId,
           description: createProductDto.description,
           basePrice: createProductDto.basePrice,
@@ -379,6 +404,7 @@ export class ProductsService {
     }
   }
 
+  // Tìm kiếm sản phẩm với các bộ lọc, hỗ trợ phân trang
   async findAll(query: FilterProductDto) {
     const { q, categoryId, status, skip, take } = query;
     const where: any = {};
@@ -418,26 +444,7 @@ export class ProductsService {
     return { items, total };
   }
 
-  async updateStatus(id: number, status: any) {
-    const product = await this.prisma.product.findUnique({ where: { id } });
-    if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
-
-    return this.prisma.product.update({
-      where: { id },
-      data: { status },
-    });
-  }
-
-  async remove(id: number) {
-    const product = await this.prisma.product.findUnique({ where: { id } });
-    if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
-
-    return this.prisma.product.update({
-      where: { id },
-      data: { status: 'ARCHIVED' },
-    });
-  }
-
+  // Lấy chi tiết sản phẩm theo ID
   async findOne(id: number) {
     const product = await this.prisma.product.findUnique({
       where: { id },
@@ -459,6 +466,7 @@ export class ProductsService {
     return product;
   }
 
+  // Cập nhật sản phẩm theo ID
   async update(id: number, dto: UpdateProductDto) {
     const existing = await this.findOne(id);
 
@@ -469,31 +477,23 @@ export class ProductsService {
       this.assertVariantPrices(nextBasePrice, dto.variants);
     }
 
-    // Tách riêng `slug` ra khỏi productData để xử lý
     const { variants, customizations, images, slug, ...productData } = dto as any;
 
-    // ==========================================
-    // LOGIC XỬ LÝ SLUG THÔNG MINH CHO UPDATE
-    // ==========================================
     let finalSlug = existing.slug;
     
     if (slug !== undefined) {
       if (slug === existing.slug) {
-        // Admin không đụng vào ô Slug, nhưng nếu đổi Tên thì tự động đổi Slug theo
         if (dto.name && dto.name !== existing.name) {
           finalSlug = await this.generateAutoSlug(dto.name, id);
         }
       } else if (slug.trim() === '') {
-        // Admin cố tình xóa trắng ô Slug -> Lấy Tên sinh lại
         const targetName = dto.name || existing.name;
         finalSlug = await this.generateAutoSlug(targetName, id);
       } else {
-        // Admin chủ ý gõ một Slug mới hoàn toàn
         finalSlug = this.slugify(slug);
         await this.checkManualSlug(finalSlug, id);
       }
     } else {
-      // Đề phòng trường hợp Frontend không gửi trường slug lên, vẫn tự động bám theo tên
       if (dto.name && dto.name !== existing.name) {
         finalSlug = await this.generateAutoSlug(dto.name, id);
       }
@@ -510,7 +510,7 @@ export class ProductsService {
       where: { id },
       data: {
         ...productData,
-        slug: finalSlug, // Truyền Slug đã được xử lý thông minh vào DB
+        slug: finalSlug, 
         images: finalProductImages,
       },
     });
@@ -528,10 +528,79 @@ export class ProductsService {
     return this.findOne(id);
   }
 
+  // Cập nhật trạng thái sản phẩm
+  async updateStatus(id: number, status: any) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
+
+    return this.prisma.product.update({
+      where: { id },
+      data: { status },
+    });
+  }
+
+  // Cập nhật hàng loạt sản phẩm
+  async bulkUpdate(dto: { productIds: number[]; categoryId?: number; status?: string }) {
+    const { productIds, categoryId, status } = dto;
+
+    if (!productIds || productIds.length === 0) {
+      throw new BadRequestException(this.i18n.t('products.error.no_products_selected'));
+    }
+
+    const updateData: any = {};
+    
+    if (categoryId !== undefined && categoryId !== null) {
+      updateData.categoryId = Number(categoryId);
+    }
+    
+    if (status !== undefined && status !== null) {
+      updateData.status = status;
+    }
+
+    if (Object.keys(updateData).length === 0) {
+      throw new BadRequestException(this.i18n.t('products.error.no_data_to_update'));
+    }
+
+    try {
+      const result = await this.prisma.product.updateMany({
+        where: { id: { in: productIds } },
+        data: updateData,
+      });
+
+      this.logger.log(`Bulk update thành công: ${result.count} sản phẩm.`);
+
+      return {
+        success: true,
+        message: this.i18n.t('products.success.bulk_updated', { 
+          args: { count: result.count }
+        }),
+        updatedCount: result.count,
+      };
+    } catch (error) {
+      this.logger.error('Lỗi Database khi Bulk Update:', error instanceof Error ? error.stack : undefined);
+      throw new InternalServerErrorException(this.i18n.t('products.error.bulk_update_failed'));
+    }
+  }
+
+  // Xóa mềm sản phẩm (đánh dấu là ARCHIVED)
+  async remove(id: number) {
+    const product = await this.prisma.product.findUnique({ where: { id } });
+    if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
+
+    return this.prisma.product.update({
+      where: { id },
+      data: { status: 'ARCHIVED' },
+    });
+  }
+
+  // ==============================================================
+  // PUBLIC FEATURES (STOREFRONT)
+  // ==============================================================
+
+  // Tìm kiếm sản phẩm công khai với các bộ lọc, hỗ trợ phân trang
   async findAllPublic(query: { q?: string; categoryId?: string; skip?: number; take?: number }) {
     const { q, categoryId, skip, take } = query;
     
-    // 1. Khóa chặt ĐIỀU KIỆN GỐC: Chỉ lấy sản phẩm ACTIVE và KHÔNG NẰM TRONG danh mục hệ thống
     const where: any = { 
       status: 'ACTIVE',
       category: {
@@ -546,10 +615,7 @@ export class ProductsService {
       ];
     }
 
-    // 2. Logic gom nhóm ID (Cha + Tất cả các Lá)
     if (categoryId && typeof categoryId === 'string' && categoryId.trim() !== '') {
-      
-      // Tách chuỗi, ép kiểu sang số và vứt bỏ các giá trị lỗi NaN
       const targetIds = categoryId.split(',').map(id => Number(id)).filter(id => !isNaN(id));
 
       if (targetIds.length > 0) {
@@ -568,14 +634,12 @@ export class ProductsService {
 
         const validCategoryIds = new Set<number>();
         
-        // Quét đệ quy cho từng ID được truyền xuống
         targetIds.forEach(targetId => {
           validCategoryIds.add(targetId);
           const subIds = getSubCategoryIds(targetId, allCategories);
           subIds.forEach(subId => validCategoryIds.add(subId));
         });
         
-        // Nhồi mảng ID an toàn vào bộ lọc
         where.categoryId = { in: Array.from(validCategoryIds) };
       }
     }
@@ -600,6 +664,7 @@ export class ProductsService {
     return { items, total };
   }
 
+  // Lấy chi tiết sản phẩm công khai theo slug
   async findOneBySlug(slug: string) {
     const product = await this.prisma.product.findFirst({
       where: { slug, status: 'ACTIVE' },
@@ -618,53 +683,4 @@ export class ProductsService {
 
     return product;
   }
-
-  // ==========================================
-  // HÀM MỚI: BULK UPDATE (CHỈNH SỬA HÀNG LOẠT) 
-  // ==========================================
-  async bulkUpdate(dto: { productIds: number[]; categoryId?: number; status?: string }) {
-    const { productIds, categoryId, status } = dto;
-
-    if (!productIds || productIds.length === 0) {
-      throw new BadRequestException(this.i18n.t('products.error.no_products_selected', { defaultValue: 'Vui lòng chọn ít nhất một sản phẩm.' }));
-    }
-
-    const updateData: any = {};
-    
-    // Chỉ cập nhật những trường nào được Frontend gửi lên
-    if (categoryId !== undefined && categoryId !== null) {
-      updateData.categoryId = Number(categoryId);
-    }
-    
-    if (status !== undefined && status !== null) {
-      updateData.status = status;
-    }
-
-    // Nếu không có trường nào để cập nhật thì báo lỗi (tránh call Prisma vô ích)
-    if (Object.keys(updateData).length === 0) {
-      throw new BadRequestException(this.i18n.t('products.error.no_data_to_update', { defaultValue: 'Không có dữ liệu nào được chọn để cập nhật.' }));
-    }
-
-    try {
-      const result = await this.prisma.product.updateMany({
-        where: { id: { in: productIds } },
-        data: updateData,
-      });
-
-      this.logger.log(`Bulk update thành công: ${result.count} sản phẩm.`);
-
-      return {
-        success: true,
-        message: this.i18n.t('products.success.bulk_updated', { 
-          args: { count: result.count },
-          defaultValue: `Đã cập nhật thành công ${result.count} sản phẩm.`
-        }),
-        updatedCount: result.count,
-      };
-    } catch (error) {
-      this.logger.error('Lỗi Database khi Bulk Update:', error instanceof Error ? error.stack : undefined);
-      throw new InternalServerErrorException(this.i18n.t('products.error.bulk_update_failed', { defaultValue: 'Có lỗi xảy ra khi cập nhật hàng loạt.' }));
-    }
-  }
 }
-
