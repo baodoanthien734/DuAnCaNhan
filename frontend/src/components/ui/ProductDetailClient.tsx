@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-// Thêm useLocale để format tiền tệ động
 import { useTranslations, useLocale } from 'next-intl';
 import { addToCart } from '@/lib/cart-api';
 import { resolveImageUrl } from '@/lib/utils';
@@ -47,7 +46,7 @@ type ProductDetailClientProps = {
 export default function ProductDetailClient({ product }: ProductDetailClientProps) {
   const t = useTranslations('public_pages.product_detail');
   const tCart = useTranslations('cart');
-  const locale = useLocale(); // Lấy ngôn ngữ hiện tại
+  const locale = useLocale(); 
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -65,15 +64,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     return [...productImages, ...variantImages];
   }, [product.images, product.variants]);
 
-  // HÀM FORMAT TIỀN TỆ ĐỘNG (vi = đ, en = VND)
   const formatCurrency = (value: number) => {
     const num = Number(value || 0);
     if (locale === 'en') {
-      // Định dạng số kiểu en-US (VD: 150,000) rồi nối ' VND' ra phía sau
       const formattedNum = new Intl.NumberFormat('en-US').format(num);
       return `${formattedNum} VND`;
     }
-    // Tiếng Việt giữ nguyên
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
   };
 
@@ -134,7 +130,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     const totalCustomPrice = customValues.reduce((sum, item) => sum + (item.extraPrice || 0), 0);
 
     if (selectedVariantPrice !== null) {
-      // Giảm kích thước text-4xl xuống text-3xl
       return <span className="text-3xl font-semibold tracking-tight text-amber-600">{formatCurrency(selectedVariantPrice + totalCustomPrice)}</span>;
     }
 
@@ -206,6 +201,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       setMessage({ type: 'success', text: tCart('success_add') });
       setSelectedVariant(null);
       setCustomValues([]);
+      
+      // ==========================================
+      // BẮN SỰ KIỆN MỞ GIỎ HÀNG RA TOÀN CỤC
+      // ==========================================
+      window.dispatchEvent(new CustomEvent('open-cart'));
+
     } catch (error: any) {
       setMessage({ type: 'error', text: error.response?.data?.message || tCart('error_add') });
     } finally {
@@ -214,7 +215,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   };
 
   return (
-    // THAY ĐỔI 1: Bọc font-sans (vuông vắn) và text-[0.85rem] (khoảng 85% của text-base mặc định)
     <div className="font-sans text-[0.85rem] mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12 bg-slate-50/30">
       <Link href="/products" className="mb-8 inline-flex items-center gap-2 text-xs font-medium text-slate-500 transition hover:text-slate-900">
         {t('back')}
@@ -280,7 +280,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">{product.category.name}</p>
               ) : null}
 
-              {/* Giảm kích thước heading */}
               <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{product.name}</h1>
               
               <div className="mt-2">

@@ -1,12 +1,19 @@
 {
   "success": {
     "product_created": "Tạo sản phẩm và các tùy chọn thành công vào Database",
+    "product_updated": "Cập nhật sản phẩm thành công",
+    "status_updated": "Cập nhật trạng thái sản phẩm thành công",
+    "product_removed": "Sản phẩm đã được xóa (chuyển sang lưu trữ)",
     "bulk_updated": "Đã cập nhật thành công {count} sản phẩm."
   },
   "error": {
     "product_not_found": "Sản phẩm không tồn tại",
     "product_not_found_with_id": "Không tìm thấy sản phẩm với ID: {id}",
     "product_save_failed": "Lỗi hệ thống khi lưu sản phẩm, vui lòng thử lại",
+    "product_update_failed": "Lỗi hệ thống khi cập nhật sản phẩm, vui lòng thử lại",
+    "status_update_failed": "Lỗi hệ thống khi cập nhật trạng thái",
+    "product_remove_failed": "Lỗi hệ thống khi xóa sản phẩm",
+    "duplicate_sku": "Mã SKU này đã tồn tại, vui lòng nhập mã khác.",
     "variant_price_must_be_greater_or_equal_base": "Giá biến thể phải lớn hơn hoặc bằng giá cơ bản ({basePrice}).",
     "product_images_limit_exceeded": "Tối đa chỉ được phép 5 ảnh chính cho một sản phẩm.",
     "duplicate_slug": "Tên sản phẩm hoặc đường dẫn (slug) này đã tồn tại trong hệ thống.",
