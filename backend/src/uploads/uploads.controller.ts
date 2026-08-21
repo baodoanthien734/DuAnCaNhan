@@ -90,23 +90,19 @@ export class UploadsController {
     return this.uploadsService.buildFileResponse(file.filename, 'tmp');
   }
 
+// ==============================================================
+  // 3. API MỚI DÀNH RIÊNG CHO ẢNH ĐÁNH GIÁ SẢN PHẨM (ĐẨY VÀO /TMP)
   // ==============================================================
-  // 3. API MỚI DÀNH RIÊNG CHO ẢNH ĐÁNH GIÁ SẢN PHẨM
-  // ==============================================================
-  @Post('reviews/:productId')
+  @Post('reviews')
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: (req: any, file, cb) => {
-          // Lấy productId từ URL
-          const productId = req.params.productId;
-          const uploadPath = `./public/uploads/reviews/product-${productId}`;
-          
-          // Kiểm tra nếu thư mục chưa tồn tại thì tự động tạo mới
+        destination: (req, file, cb) => {
+          // LUÔN LUÔN VÀO TMP TRƯỚC
+          const uploadPath = './public/uploads/tmp';
           if (!fs.existsSync(uploadPath)) {
             fs.mkdirSync(uploadPath, { recursive: true });
           }
-          
           cb(null, uploadPath);
         },
         filename: (_req, file, callback) => {
@@ -121,23 +117,15 @@ export class UploadsController {
         }
         callback(null, true);
       },
-      limits: { fileSize: 5 * 1024 * 1024 }, // Giới hạn 5MB
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
     }),
   )
-
-  async uploadReviewImage(
-    @Param('productId') productId: string,
-    @UploadedFile() file: Express.Multer.File
-  ) {
+  async uploadReviewImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new BadRequestException(this.i18n.t('uploads.error.no_file_uploaded'));
     }
-
-    // Trả về URL chuẩn, lưu vào đúng thư mục product-{id}
-    return this.uploadsService.buildFileResponse(
-      file.filename, 
-      `reviews/product-${productId}`
-    );
+    // Trả về đường dẫn tạm
+    return this.uploadsService.buildFileResponse(file.filename, 'tmp');
   }
 
   // ==============================================================

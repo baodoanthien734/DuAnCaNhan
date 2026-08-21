@@ -1,10 +1,16 @@
 import { BadRequestException, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import * as fs from 'fs';
-import { basename, join } from 'path';
+import { basename, dirname, join } from 'path';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+
+// Định nghĩa kiểu dữ liệu cho các file đang xếp hàng chờ thuyên chuyển
+type PendingFileMove = {
+    from: string;
+    to: string;
+};
 
 @Injectable()
 export class PostsService {
@@ -20,8 +26,8 @@ export class PostsService {
     // PRIVATE UTILITIES (FILE, SLUG & HTML MANAGEMENT)
     // ==============================================================
 
-	// Sinh slug từ title, đảm bảo slug là duy nhất bằng cách thêm timestamp vào cuối (cần sửa lại là them -1 như categories)
-    private generateSlug(text: string): string {
+    // Tự động sinh slug từ title, xử lý trùng lặp bằng -1, -2
+    private async generateAutoSlug(text: string, currentId?: number): Promise<string> {
         const baseSlug = text
             .toString()
             .toLowerCase()
@@ -35,36 +41,65 @@ export class PostsService {
             .replace(/^-+/, '')
             .replace(/-+$/, '');
 
-        return `${baseSlug}-${Date.now()}`;
+        let slug = baseSlug;
+        let counter = 1;
+
+        while (true) {
+            const existing = await this.prisma.post.findFirst({ where: { slug } });
+            if (!existing || existing.id === currentId) {
+                return slug;
+            }
+            slug = `${baseSlug}-${counter}`;
+            counter++;
+        }
     }
 
-	// Thay thế các src của thẻ <img> trong HTML bằng các tên file đã lưu
-    private replaceInlineImageSources(
-        html: string,
-        postId: number,
-        filenameMap: Map<string, string>,
-    ) {
-        // Duyệt qua tất cả các thẻ <img> trong HTML và thay thế src bằng đường dẫn mới
-        return html.replace(/<img\b[^>]*>/gi, (imgTag) => {
-            // Tìm tên file gốc từ data-filename attribute
-            const filenameMatch = imgTag.match(/data-filename=["']([^"']+)["']/i);
-            if (!filenameMatch) {
-                return imgTag;
+    // Di chuyển file an toàn và xử lý lỗi EXDEV / File đã dời
+    private moveFileSafe(from: string, to: string) {
+        if (!fs.existsSync(dirname(to))) {
+            fs.mkdirSync(dirname(to), { recursive: true });
+        }
+        
+        if (from === to) return;
+
+        try {
+            fs.accessSync(from); // Kiểm tra file nguồn còn không
+        } catch (error) {
+            try {
+                fs.accessSync(to); // Nguồn mất, kiểm tra xem đã tới đích chưa
+                return; // Đã tới đích an toàn
+            } catch (err) {
+                throw new Error(`File không tồn tại ở cả nguồn và đích: ${from}`);
             }
+        }
+
+        try {
+            fs.renameSync(from, to);
+        } catch (error: any) {
+            if (error?.code === 'EXDEV') {
+                fs.copyFileSync(from, to);
+                fs.unlinkSync(from);
+                return;
+            }
+            throw error;
+        }
+    }
+
+    // Thay thế inline img src
+    private replaceInlineImageSources(html: string, postId: number, filenameMap: Map<string, string>) {
+        return html.replace(/<img\b[^>]*>/gi, (imgTag) => {
+            const filenameMatch = imgTag.match(/data-filename=["']([^"']+)["']/i);
+            if (!filenameMatch) return imgTag;
 
             const originalFilename = filenameMatch[1];
-            // Tìm tên file đã lưu trong Map
             const storedFilename = filenameMap.get(originalFilename) ?? filenameMap.get(basename(originalFilename));
-            if (!storedFilename) {
-                return imgTag;
-            }
-            // Tạo URL mới cho ảnh
+            if (!storedFilename) return imgTag;
+
             const imageUrl = `/uploads/posts/${postId}/${storedFilename}`;
-            // Thay thế thuộc tính src trong thẻ <img> bằng URL mới
+            
             if (/src=["'][^"']*["']/i.test(imgTag)) {
                 return imgTag.replace(/src=["'][^"']*["']/i, `src="${imageUrl}"`);
             }
-
             return imgTag.replace('<img', `<img src="${imageUrl}"`);
         });
     }
@@ -73,7 +108,6 @@ export class PostsService {
     // ADMIN FEATURES (CRUD & MANAGEMENT)
     // ==============================================================
 
-	// 1. Thêm hàm xem danh sách bài viết
     async findAll(query: { q?: string; isPublished?: boolean; skip?: number; take?: number }) {
         const where: any = {};
 
@@ -88,16 +122,14 @@ export class PostsService {
             where.isPublished = query.isPublished;
         }
 
-        const [items, total] = await this.prisma.$transaction([
+        const [items, total] = await Promise.all([
             this.prisma.post.findMany({
                 where,
-                skip: query.skip,
-                take: query.take,
+                skip: query.skip ? Number(query.skip) : undefined,
+                take: query.take ? Number(query.take) : undefined,
                 orderBy: { createdAt: 'desc' },
                 include: {
-                    author: {
-                        select: { id: true, name: true, email: true },
-                    },
+                    author: { select: { id: true, name: true, email: true } },
                 },
             }),
             this.prisma.post.count({ where }),
@@ -106,15 +138,11 @@ export class PostsService {
         return { items, total };
     }
 
-
-	// 2. Thêm hàm xem chi tiết bài viết
     async findOne(id: number) {
         const post = await this.prisma.post.findUnique({
             where: { id },
             include: {
-                author: {
-                    select: { id: true, name: true, email: true },
-                },
+                author: { select: { id: true, name: true, email: true } },
             },
         });
 
@@ -125,18 +153,19 @@ export class PostsService {
         return post;
     }
 
-	// 3. Thêm hàm tạo bài viết
     async create(
         dto: CreatePostDto,
         files: { thumbnail?: Express.Multer.File[]; contentImages?: Express.Multer.File[] },
         authorId: number,
     ) {
-        let createdPostDir: string | null = null;
+        const pendingMoves: PendingFileMove[] = [];
 
         try {
+            // SỬ DỤNG TRANSACTION LOCK (Cần thiết vì thao tác ghi 2 lần: create -> update HTML)
             const post = await this.prisma.$transaction(async (tx) => {
-                const slug = this.generateSlug(dto.title);
+                const slug = await this.generateAutoSlug(dto.title);
 
+                // Lần 1: Tạo record để lấy ID
                 const createdPost = await tx.post.create({
                     data: {
                         title: dto.title,
@@ -148,32 +177,30 @@ export class PostsService {
                     },
                 });
 
-                createdPostDir = join(this.postsRootDir, String(createdPost.id));
-                fs.mkdirSync(createdPostDir, { recursive: true });
-
+                const createdPostDir = join(this.postsRootDir, String(createdPost.id));
                 let thumbnailUrl: string | null = null;
-                // Tạo một Map để lưu trữ mapping giữa tên file gốc và tên file đã lưu
                 const filenameMap = new Map<string, string>();
+
+                // Chuẩn bị tính toán đường dẫn (Không dời file vật lý ở đây)
                 const thumbnailFile = files.thumbnail?.[0];
                 const contentImages = files.contentImages ?? [];
 
                 if (thumbnailFile) {
                     const thumbnailTargetPath = join(createdPostDir, thumbnailFile.filename);
-                    fs.renameSync(thumbnailFile.path, thumbnailTargetPath);
+                    pendingMoves.push({ from: thumbnailFile.path, to: thumbnailTargetPath });
                     thumbnailUrl = `/uploads/posts/${createdPost.id}/${thumbnailFile.filename}`;
                 }
 
                 for (const file of contentImages) {
-                    const tempFilePath = file.path;
                     const targetFilePath = join(createdPostDir, file.filename);
-
-                    fs.renameSync(tempFilePath, targetFilePath); // Di chuyển file từ thư mục tạm sang thư mục bài viết
-                    filenameMap.set(file.originalname, file.filename); // Lưu mapping giữa tên file gốc và tên file đã lưu
+                    pendingMoves.push({ from: file.path, to: targetFilePath });
+                    filenameMap.set(file.originalname, file.filename);
                     filenameMap.set(basename(file.originalname), file.filename);
                 }
 
                 const mappedContent = this.replaceInlineImageSources(dto.content, createdPost.id, filenameMap);
 
+                // Lần 2: Cập nhật lại HTML và ThumbnailURL
                 return tx.post.update({
                     where: { id: createdPost.id },
                     data: {
@@ -182,6 +209,11 @@ export class PostsService {
                     },
                 });
             });
+
+            // GIAO DỊCH THÀNH CÔNG: TIẾN HÀNH DỜI FILE VẬT LÝ (Deferred Execution)
+            for (const move of pendingMoves) {
+                this.moveFileSafe(move.from, move.to);
+            }
 
             const totalUploadedFiles = (files.thumbnail?.length ?? 0) + (files.contentImages?.length ?? 0);
             this.logger.log(`Created post ${post.id} with ${totalUploadedFiles} uploaded file(s)`);
@@ -192,107 +224,98 @@ export class PostsService {
                 data: post,
             };
         } catch (error) {
-            if (createdPostDir && fs.existsSync(createdPostDir)) {
-                fs.rmSync(createdPostDir, { recursive: true, force: true });
-            }
-
+            // DB sập -> Catch nhảy vào đây. File không bị dời, vẫn ở /tmp. 
+            // Không để lại rác trên thư mục đích, không tạo bài viết ảo.
             this.logger.error('Failed to create post', error instanceof Error ? error.stack : undefined);
             throw new BadRequestException(this.i18n.t('posts.error.post_create_failed'));
         }
     }
 
-	// 4. Thêm hàm cập nhật bài viết
     async update(
         id: number,
         dto: UpdatePostDto,
         files: { thumbnail?: Express.Multer.File[]; contentImages?: Express.Multer.File[] },
     ) {
         try {
-            // 1. Kiểm tra ID bài viết xem có tồn tại không
             const existingPost = await this.findOne(id);
-
-            // Xác định thư mục chứa ảnh của bài viết này
             const postDir = join(this.postsRootDir, String(id));
-            if (!fs.existsSync(postDir)) {
-                fs.mkdirSync(postDir, { recursive: true });
-            }
+            const pendingMoves: PendingFileMove[] = [];
+            const pendingDeletes: string[] = [];
 
             let thumbnailUrl = existingPost.thumbnail;
             const filenameMap = new Map<string, string>();
             const thumbnailFile = files?.thumbnail?.[0];
             const contentImages = files?.contentImages ?? [];
 
-            // 2. Xử lý File Thumbnail
+            // 1. Tính toán Thumbnail
             if (thumbnailFile) {
-                // Di chuyển ảnh mới vào thư mục
                 const thumbnailTargetPath = join(postDir, thumbnailFile.filename);
-                fs.renameSync(thumbnailFile.path, thumbnailTargetPath);
-                
-                // Cập nhật lại đường dẫn URL
+                pendingMoves.push({ from: thumbnailFile.path, to: thumbnailTargetPath });
                 thumbnailUrl = `/uploads/posts/${id}/${thumbnailFile.filename}`;
 
-                // (Tùy chọn) Xóa ảnh bìa cũ để giải phóng ổ cứng
                 if (existingPost.thumbnail) {
                     const oldThumbnailName = basename(existingPost.thumbnail);
                     const oldThumbnailPath = join(postDir, oldThumbnailName);
-                    if (fs.existsSync(oldThumbnailPath)) {
-                        fs.unlinkSync(oldThumbnailPath);
-                    }
+                    pendingDeletes.push(oldThumbnailPath);
                 }
             }
 
-            // 3. Xử lý File ContentImages
+            // 2. Tính toán Content Images
             for (const file of contentImages) {
-                const tempFilePath = file.path;
                 const targetFilePath = join(postDir, file.filename);
-
-                fs.renameSync(tempFilePath, targetFilePath);
+                pendingMoves.push({ from: file.path, to: targetFilePath });
                 filenameMap.set(file.originalname, file.filename);
                 filenameMap.set(basename(file.originalname), file.filename);
             }
 
-            // 4. Map HTML
+            // 3. Map HTML
             let mappedContent = existingPost.content;
             if (dto.content !== undefined) {
-                // Chỉ chạy lại hàm map ảnh khi có nội dung mới gửi lên
                 mappedContent = this.replaceInlineImageSources(dto.content, id, filenameMap);
             }
 
-            // Nếu người dùng có đổi title thì phải sinh lại slug mới tương ứng
-            const slug = dto.title ? this.generateSlug(dto.title) : existingPost.slug;
-            
-            // 5. Garbage Collector: Xóa các ảnh rác không còn được tham chiếu trong HTML 
+            const slug = dto.title && dto.title !== existingPost.title 
+                ? await this.generateAutoSlug(dto.title, id) 
+                : existingPost.slug;
+
+            // 4. Garbage Collection Logic (Đưa vào mảng chờ xóa)
             if (fs.existsSync(postDir)) {
                 const allFilesInDir = fs.readdirSync(postDir);
-                
                 for (const file of allFilesInDir) {
-                    // Bỏ qua nếu file đang xét là Thumbnail hiện tại
                     if (thumbnailUrl && thumbnailUrl.includes(file)) continue;
 
-                    // Nếu tên file không còn tồn tại trong HTML mới -> Người dùng đã xóa ảnh này
                     if (!mappedContent.includes(file)) {
                         const filePath = join(postDir, file);
-                        fs.unlinkSync(filePath); // Xóa file vật lý khỏi ổ cứng
-                        this.logger.log(`Garbage Collector: Đã xóa ảnh rác ${file} của bài viết ${id}`);
+                        pendingDeletes.push(filePath);
                     }
                 }
             }
 
-            // 6. Lưu DB
-            const updatedPost = await this.prisma.post.update({
-                where: { id },
-                data: {
-                    title: dto.title,
-                    slug,
-                    summary: dto.summary,
-                    content: mappedContent,
-                    isPublished: dto.isPublished,
-                    thumbnail: thumbnailUrl,
-                },
+            // 5. Transaction cho Update (Đề phòng database sập bất ngờ)
+            const updatedPost = await this.prisma.$transaction(async (tx) => {
+                return tx.post.update({
+                    where: { id },
+                    data: {
+                        title: dto.title,
+                        slug,
+                        summary: dto.summary,
+                        content: mappedContent,
+                        isPublished: dto.isPublished,
+                        thumbnail: thumbnailUrl,
+                    },
+                });
             });
 
-            const totalUploadedFiles = (files.thumbnail?.length ?? 0) + (files.contentImages?.length ?? 0);
-            this.logger.log(`Updated post ${id} successfully with ${totalUploadedFiles} new uploaded file(s)`);
+            // 6. DB THÀNH CÔNG -> Chạy File System (Move & Delete)
+            for (const move of pendingMoves) {
+                this.moveFileSafe(move.from, move.to);
+            }
+
+            for (const filePath of pendingDeletes) {
+                if (fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                }
+            }
 
             return {
                 success: true,
@@ -301,11 +324,7 @@ export class PostsService {
             };
         } catch (error) {
             this.logger.error(`Failed to update post ${id}`, error instanceof Error ? error.stack : undefined);
-            
-            if (error instanceof NotFoundException) {
-                throw error;
-            }
-            
+            if (error instanceof NotFoundException) throw error;
             throw new BadRequestException(this.i18n.t('posts.error.post_update_failed'));
         }
     }
@@ -314,7 +333,6 @@ export class PostsService {
     // PUBLIC FEATURES (STOREFRONT)
     // ==============================================================
 
-	// 1. Thêm hàm xem danh sách bài viết công khai
     async findAllPublic(query: { q?: string; skip?: number; take?: number }) {
         const where: any = { isPublished: true };
 
@@ -325,23 +343,16 @@ export class PostsService {
             ];
         }
 
-        const [items, total] = await this.prisma.$transaction([
+        const [items, total] = await Promise.all([
             this.prisma.post.findMany({
                 where,
                 skip: query.skip ?? 0,
                 take: query.take ?? 10,
                 orderBy: { createdAt: 'desc' },
                 select: {
-                    id: true,
-                    title: true,
-                    slug: true,
-                    summary: true,
-                    thumbnail: true,
-                    createdAt: true,
-                    updatedAt: true,
-                    author: {
-                        select: { id: true, name: true },
-                    },
+                    id: true, title: true, slug: true, summary: true, 
+                    thumbnail: true, createdAt: true, updatedAt: true,
+                    author: { select: { id: true, name: true } },
                 },
             }),
             this.prisma.post.count({ where }),
@@ -350,20 +361,13 @@ export class PostsService {
         return { items, total };
     }
 
-	// 2. Thêm hàm xem chi tiết bài viết công khai
     async findOneBySlug(slug: string) {
         const post = await this.prisma.post.findFirst({
             where: { slug, isPublished: true },
-            include: {
-                author: {
-                    select: { id: true, name: true },
-                },
-            },
+            include: { author: { select: { id: true, name: true } } },
         });
 
-        if (!post) {
-            throw new NotFoundException(this.i18n.t('posts.error.post_not_found'));
-        }
+        if (!post) throw new NotFoundException(this.i18n.t('posts.error.post_not_found'));
 
         return post;
     }

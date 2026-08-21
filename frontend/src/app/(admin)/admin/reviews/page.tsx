@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { getAdminReviews, replyAdminReview, deleteAdminReview } from '@/lib/admin-reviews-api';
 import { useModal } from '@/hooks/useModal';
+import { resolveImageUrl } from '@/lib/utils';
 
 type Review = {
   id: number;
@@ -246,7 +247,7 @@ export default function AdminReviewsPage() {
                 <div className="flex gap-3 mb-4 pl-16 overflow-x-auto pb-2 no-scrollbar">
                   {[...new Set(review.images)].map((img, idx) => (
                     <div key={idx} className="w-20 h-20 rounded-lg overflow-hidden border border-gray-200 shadow-sm flex-shrink-0">
-                      <img src={img} alt="Review Attachment" className="w-full h-full object-cover" />
+                      <img src={resolveImageUrl(img)} alt="Review Attachment" className="w-full h-full object-cover" />
                     </div>
                   ))}
                 </div>

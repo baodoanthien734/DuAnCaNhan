@@ -547,14 +547,24 @@
   },
   "checkout": {
     "title": "Checkout",
-    "success_order": "Order placed successfully! Thank you.",
-    "error_order": "An error occurred while placing the order. Please try again.",
+    "loading_page": "Loading checkout page...",
+    "empty_cart": "Your cart is empty",
+    "back_to_home": "Return to home page",
+    "shipping_address": "Shipping address",
+    "address_required_notice": "You will be asked to enter an address when finalizing your order.",
+    "purchased_items": "Items ({count})",
+    "total": "Total:",
+    "payment_method": "Payment method",
+    "payment_cod": "Cash on Delivery (COD)",
     "submit_button": "Place Order",
     "submitting": "Processing...",
+    "variant": "Variant",
+    "success_order": "Order placed successfully!",
+    "error_order": "An error occurred while placing the order.",
     "error": {
-    "reload_cart_notice": "You will be redirected to the homepage to reload your cart.",
-    "fetch_failed": "Unable to load checkout data. Please try again later.",
-    "address_failed": "An error occurred while adding the address."
+    "fetch_failed": "Unable to load checkout information.",
+    "address_failed": "Error adding address.",
+    "reload_cart_notice": "Please check your cart." 
     }
   },
   "profile": {
@@ -613,7 +623,7 @@
     "detail_btn": "Details"
     },
     "status": {
-    "PENDING": "Pending Payment",
+    "PENDING": "Pending confirmation",
     "PROCESSING": "Processing",
     "SHIPPING": "Shipping",
     "DELIVERED": "Delivered",
@@ -648,7 +658,12 @@
       "quantity": "Qty",
       "subtotal": "Subtotal",
       "variant": "Variant",
-      "total_amount": "Total Amount"
+      "total_amount": "Total Amount",
+      "success_payment_update": "Payment status updated successfully!",
+      "error_payment_update": "Failed to update payment status.",
+      "cancelled_warning": "Cancelled orders cannot have their status changed.",
+      "refunded": "Refunded",
+      "confirm_cancel": "Are you sure you want to cancel this order? This action cannot be undone, and the product quantities will be returned to stock!"
     }
   },
   "my_orders": {
@@ -686,7 +701,8 @@
       "qty": "Qty",
       "subtotal": "Subtotal",
       "cancelled_msg": "This order has been cancelled.",
-      "note": "Note:"
+      "note": "Note:",
+      "refunded": "Refunded"
     }
   },
   "admin_customers": {

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { getAdminOrderById, updateOrderStatus } from '@/lib/admin-orders-api';
+import { getAdminOrderById, updateOrderStatus, updateOrderPaymentStatus } from '@/lib/admin-orders-api';
 import { useModal } from '@/hooks/useModal';
 
 export default function AdminOrderDetailPage() {
@@ -16,16 +16,37 @@ export default function AdminOrderDetailPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
+  const [updatingPayment, setUpdatingPayment] = useState(false);
 
   useEffect(() => {
     getAdminOrderById(orderId).then(setOrder).catch(console.error).finally(() => setLoading(false));
   }, [orderId]);
 
   const handleStatusChange = async (newStatus: string) => {
+    // MỚI: Hiện cảnh báo nếu Admin chọn Hủy đơn hàng
+    if (newStatus === 'CANCELLED') {
+      const isConfirm = await modal.confirm(t('detail.confirm_cancel'));
+      // Nếu Admin bấm "Hủy bỏ" trên popup cảnh báo -> Dừng lại, không làm gì cả
+      if (!isConfirm) return; 
+    }
+
     setUpdating(true);
     try {
       await updateOrderStatus(orderId, newStatus);
-      setOrder({ ...order, status: newStatus });
+      
+      let newPaymentStatus = order.paymentStatus;
+      
+      // AUTO-TRIGGER 1: Giao thành công COD -> Tự động PAID
+      if (newStatus === 'DELIVERED' && order.paymentMethod === 'COD' && order.paymentStatus === 'UNPAID') {
+          newPaymentStatus = 'PAID';
+      }
+      
+      // AUTO-TRIGGER 2: Hủy đơn hàng -> Tự động UNPAID (Nếu trước đó đang PAID)
+      if (newStatus === 'CANCELLED' && order.paymentStatus === 'PAID') {
+          newPaymentStatus = 'UNPAID';
+      }
+
+      setOrder({ ...order, status: newStatus, paymentStatus: newPaymentStatus });
       modal.alert(t('detail.success_update'));
     } catch (error) {
       modal.alert(t('detail.error_update'));
@@ -34,8 +55,34 @@ export default function AdminOrderDetailPage() {
     }
   };
 
+  const handlePaymentStatusChange = async (newStatus: string) => {
+    setUpdatingPayment(true);
+    try {
+      await updateOrderPaymentStatus(orderId, newStatus);
+      setOrder({ ...order, paymentStatus: newStatus });
+      modal.alert(t('detail.success_payment_update'));
+    } catch (error) {
+      modal.alert(t('detail.error_payment_update'));
+    } finally {
+      setUpdatingPayment(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-gray-500">{t('detail.loading')}</div>;
   if (!order) return <div className="p-8 text-center text-gray-500">{t('detail.not_found')}</div>;
+
+  const getPaymentOptions = () => {
+    if (order.status === 'CANCELLED') {
+      return [
+        { value: 'UNPAID', label: t('detail.unpaid') },
+        { value: 'REFUNDED', label: t('detail.refunded') }
+      ];
+    }
+    return [
+      { value: 'UNPAID', label: t('detail.unpaid') },
+      { value: 'PAID', label: t('detail.paid') }
+    ];
+  };
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -46,18 +93,24 @@ export default function AdminOrderDetailPage() {
           <h1 className="text-2xl font-bold text-gray-900 mt-2">{t('detail.title')}: #{order.code}</h1>
         </div>
         
-        <div className="flex items-center gap-3">
-          <span className="text-sm font-semibold text-gray-600">{t('detail.update_status')}</span>
-          <select
-            value={order.status}
-            onChange={(e) => handleStatusChange(e.target.value)}
-            disabled={updating}
-            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-[#4592b6] outline-none"
-          >
-            {['PENDING', 'PROCESSING', 'SHIPPING', 'DELIVERED', 'CANCELLED'].map(s => (
-              <option key={s} value={s}>{t(`status.${s}`)}</option>
-            ))}
-          </select>
+        <div className="flex flex-col items-end gap-3">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-semibold text-gray-600">{t('detail.update_status')}</span>
+            <select
+              value={order.status}
+              onChange={(e) => handleStatusChange(e.target.value)}
+              disabled={updating || order.status === 'CANCELLED'}
+              className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-bold focus:ring-2 focus:ring-[#4592b6] outline-none disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+            >
+              {['PENDING', 'PROCESSING', 'SHIPPING', 'DELIVERED', 'CANCELLED'].map(s => (
+                <option key={s} value={s}>{t(`status.${s}`)}</option>
+              ))}
+            </select>
+          </div>
+          
+          {order.status === 'CANCELLED' && (
+            <span className="text-xs text-rose-500 font-medium italic">{t('detail.cancelled_warning')}</span>
+          )}
         </div>
       </div>
 
@@ -74,12 +127,24 @@ export default function AdminOrderDetailPage() {
         <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm">
           <h3 className="font-bold text-gray-800 mb-4 border-b pb-2">{t('detail.payment_info')}</h3>
           <p className="text-sm text-gray-600 mb-1"><strong>{t('detail.method')}:</strong> {order.paymentMethod}</p>
-          <p className="text-sm text-gray-600 mb-1">
+          
+          <div className="text-sm text-gray-600 mb-1 flex items-center gap-2 mt-2">
             <strong>{t('detail.payment_status')}:</strong> 
-            <span className={`ml-2 font-bold ${order.paymentStatus === 'PAID' ? 'text-emerald-600' : 'text-red-600'}`}>
-              {order.paymentStatus === 'PAID' ? t('detail.paid') : t('detail.unpaid')}
-            </span>
-          </p>
+            <select
+              value={order.paymentStatus}
+              onChange={(e) => handlePaymentStatusChange(e.target.value)}
+              disabled={updatingPayment}
+              className={`px-3 py-1 border rounded-lg text-sm font-bold focus:ring-2 focus:ring-[#4592b6] outline-none cursor-pointer ${
+                order.paymentStatus === 'PAID' ? 'text-emerald-600 border-emerald-200 bg-emerald-50' : 
+                order.paymentStatus === 'REFUNDED' ? 'text-purple-600 border-purple-200 bg-purple-50' : 
+                'text-amber-600 border-amber-200 bg-amber-50'
+              }`}
+            >
+              {getPaymentOptions().map(opt => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+          </div>
           <p className="text-sm text-gray-400 mt-2">{t('detail.order_date')}: {new Date(order.createdAt).toLocaleString()}</p>
         </div>
       </div>

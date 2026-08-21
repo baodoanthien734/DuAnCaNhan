@@ -138,7 +138,18 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {cart.items.map((item: any) => {
                 const img = item.variant?.image ? resolveImageUrl(item.variant.image) : (item.product.images?.[0] ? resolveImageUrl(item.product.images[0]) : null);
+                
+                // Giá gốc (90,000)
                 const unitPrice = Number(item.variant?.price || item.product.basePrice);
+                
+                // TÍNH TỔNG GIÁ BAO GỒM CUSTOMIZATION (Để ra được 120,000)
+                let itemTotalPrice = unitPrice;
+                if (item.customizations && Array.isArray(item.customizations)) {
+                  item.customizations.forEach((c: any) => {
+                    if (c.extraPrice) itemTotalPrice += Number(c.extraPrice);
+                  });
+                }
+
                 const stock = item.variant?.stock || 0;
                 const isOutOfStock = item.quantity > stock;
 
@@ -156,7 +167,18 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
                     <div style={{ flex: 1 }}>
                       <h4 style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 4px', color: '#111827' }}>{item.product.name}</h4>
 
-                      {item.variant && <div style={{ fontSize: '12px', color: '#4b5563', marginBottom: '2px' }}>{t('variant_label')}: <b>{item.variant.name}</b></div>}
+                      {/* Đưa giá gốc vào cạnh Variant và đổi màu xám */}
+                      {item.variant ? (
+                        <div style={{ fontSize: '12px', color: '#4b5563', marginBottom: '2px' }}>
+                          {t('variant_label')}: <b>{item.variant.name}</b>{' '}
+                          <span style={{ color: '#61656e' }}>({unitPrice.toLocaleString()} {t('currency')})</span>
+                        </div>
+                      ) : (
+                        /* Dự phòng: Nếu sản phẩm không có phân loại, vẫn hiện giá gốc màu xám */
+                        <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '2px' }}>
+                          {unitPrice.toLocaleString()} {t('currency')}
+                        </div>
+                      )}
                       
                       {item.customizations && Array.isArray(item.customizations) && item.customizations.map((c: any, idx: number) => (
                         <div key={idx} style={{ fontSize: '12px', color: '#6b7280' }}>
@@ -164,8 +186,9 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
                         </div>
                       ))}
 
+                      {/* TỔNG GIÁ TRỊ CỦA ITEM ĐỂ Ở DƯỚI CÙNG (MÀU CAM) */}
                       <div style={{ fontSize: '13px', fontWeight: '700', color: '#b45309', marginTop: '6px' }}>
-                        {unitPrice.toLocaleString()} {t('currency')}
+                        {itemTotalPrice.toLocaleString()} {t('currency')}
                       </div>
 
                       {isOutOfStock && (

@@ -546,16 +546,26 @@
     "empty": "Chưa có sản phẩm nào trong danh mục này."
   },
   "checkout": {
-  "title": "Thanh toán",
-  "success_order": "Đặt hàng thành công! Cảm ơn bạn.",
-  "error_order": "Có lỗi xảy ra khi đặt hàng. Vui lòng thử lại.",
-  "submit_button": "Chốt đơn",
-  "submitting": "Đang xử lý...",
-  "error": {
-    "reload_cart_notice": "Hệ thống sẽ đưa bạn về trang chủ để tải lại giỏ hàng.",
-    "fetch_failed": "Không thể tải dữ liệu thanh toán. Vui lòng thử lại sau.",
-    "address_failed": "Có lỗi khi thêm địa chỉ"
-  }
+    "title": "Thanh toán",
+    "loading_page": "Đang tải trang thanh toán...",
+    "empty_cart": "Giỏ hàng trống",
+    "back_to_home": "Quay về trang chủ",
+    "shipping_address": "Địa chỉ giao hàng",
+    "address_required_notice": "Hệ thống sẽ yêu cầu bạn nhập địa chỉ khi chốt đơn.",
+    "purchased_items": "Sản phẩm mua ({count})",
+    "total": "Tổng cộng:",
+    "payment_method": "Phương thức thanh toán",
+    "payment_cod": "Thanh toán khi nhận hàng (COD)",
+    "submit_button": "Đặt hàng",
+    "submitting": "Đang xử lý...",
+    "variant": "Phân loại",
+    "success_order": "Đặt hàng thành công!",
+    "error_order": "Có lỗi xảy ra khi đặt hàng.",
+    "error": {
+      "fetch_failed": "Không thể tải thông tin thanh toán.",
+      "address_failed": "Lỗi khi thêm địa chỉ.",
+      "reload_cart_notice": "Vui lòng kiểm tra lại giỏ hàng."
+    }
   },
   "profile": {
     "title": "Hồ sơ của tôi",
@@ -613,7 +623,7 @@
       "detail_btn": "Chi tiết"
     },
     "status": {
-      "PENDING": "Chờ thanh toán",
+      "PENDING": "Chờ xác nhận",
       "PROCESSING": "Đang chuẩn bị",
       "SHIPPING": "Đang giao",
       "DELIVERED": "Đã giao",
@@ -648,7 +658,12 @@
       "quantity": "Số lượng",
       "subtotal": "Thành tiền",
       "variant": "Phân loại",
-      "total_amount": "Tổng cộng"
+      "total_amount": "Tổng cộng",
+      "success_payment_update": "Đã cập nhật trạng thái thanh toán!",
+      "error_payment_update": "Lỗi khi cập nhật trạng thái thanh toán.",
+      "cancelled_warning": "Đơn đã hủy không thể thay đổi trạng thái.",
+      "refunded": "Đã hoàn tiền",
+      "confirm_cancel": "Bạn có chắc chắn muốn hủy đơn hàng này không? Thao tác này không thể hoàn tác và số lượng sản phẩm sẽ được cộng lại vào kho!"
     }
   },
   "my_orders": {
@@ -686,7 +701,8 @@
       "qty": "SL",
       "subtotal": "Thành tiền",
       "cancelled_msg": "Đơn hàng này đã bị hủy.",
-      "note": "Ghi chú:"
+      "note": "Ghi chú:",
+      "refunded": "Đã hoàn tiền"
     }
   },
   "admin_customers": {
