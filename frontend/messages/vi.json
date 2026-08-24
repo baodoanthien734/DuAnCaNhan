@@ -375,7 +375,9 @@
       "variantSkuPlaceholder": "VD: LY-CAPYBARA-SX ",
       "variantSkuHint": "Mã quản lý kho. Không được trùng lặp.",
       "categoryHierarchyLabel": "Cấu trúc hiển thị:",
-      "categoryNote": "Chỉ hiển thị các danh mục lá. Sản phẩm sẽ được hiển thị ở toàn bộ danh mục cấp cha liên quan đến danh mục được chọn."
+      "categoryNote": "Chỉ hiển thị các danh mục lá. Sản phẩm sẽ được hiển thị ở toàn bộ danh mục cấp cha liên quan đến danh mục được chọn.",
+      "removeVariantImageBtn": "Xóa ảnh này",
+      "imageLimitExceeded": "Bạn chỉ được tải lên tối đa 5 ảnh. Hệ thống đã tự động bỏ qua các ảnh thừa."
     },
     "bulkEdit": {
       "title": "Chỉnh sửa hàng loạt",
@@ -509,7 +511,8 @@
     "required_customization": "Vui lòng hoàn thành các tùy chọn bắt buộc.",
     "out_of_stock": "Hết hàng",
     "stock_warning": "⚠️ Chỉ còn {stock} sản phẩm trong kho",
-    "adjust_stock_warning": "Vui lòng điều chỉnh số lượng sản phẩm đang bị lỗi đỏ để tiếp tục."
+    "adjust_stock_warning": "Vui lòng điều chỉnh số lượng sản phẩm đang bị lỗi đỏ để tiếp tục.",
+    "in_cart": "trong giỏ"
   },
   "private_layout": {
     "back_home": "< Về trang chủ"
@@ -561,6 +564,7 @@
     "variant": "Phân loại",
     "success_order": "Đặt hàng thành công!",
     "error_order": "Có lỗi xảy ra khi đặt hàng.",
+    "add_new_address": "Thêm địa chỉ mới",
     "error": {
       "fetch_failed": "Không thể tải thông tin thanh toán.",
       "address_failed": "Lỗi khi thêm địa chỉ.",
@@ -768,6 +772,31 @@
       "order_status": "Trạng thái",
       "recent_activity": "Hoạt động gần đây",
       "no_activity": "Chưa có hoạt động nào.",
+      "deleted_badge": "Đã xóa",
+      "street": "Đường/Số nhà",
+      "ward": "Phường/Xã",
+      "city": "Tỉnh/Thành phố",
+      "show_all_orders": "Xem tất cả đơn hàng",
+      "show_less_orders": "Thu gọn",
+      "tab_reviews": "Đánh giá sản phẩm",
+      "tab_logs": "Nhật ký hệ thống",
+      "load_more": "Xem thêm",
+      "no_reviews": "Khách hàng chưa đánh giá sản phẩm nào.",
+      "no_logs": "Không có nhật ký hệ thống nào.",
+      "filter_all": "Tất cả",
+      "filter_status": "Trạng thái",
+      "sort_default": "Mới nhất",
+      "sort_amount_desc": "Giá giảm dần",
+      "sort_amount_asc": "Giá tăng dần",
+      "filter_time_all": "Mọi lúc",
+      "filter_time_7d": "7 ngày qua",
+      "filter_time_30d": "30 ngày qua",
+      "filter_time_6m": "6 tháng qua",
+      "filter_time_year": "Năm nay",
+      "filter_rating": "Số sao",
+      "filter_has_comment": "Chỉ hiện có bình luận",
+      "search_product": "Tìm tên sản phẩm...",
+      "no_results": "Không tìm thấy kết quả phù hợp.",
       "timeline": {
         "review_title": "Đánh giá sản phẩm",
         "review_badge": "Review",

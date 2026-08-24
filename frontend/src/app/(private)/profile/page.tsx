@@ -1,7 +1,7 @@
 'use client';
 
 import { FormEvent, useEffect, useMemo, useState } from 'react';
-import Link from 'next/link'; // Vẫn giữ lại import Link phòng trường hợp dùng ở nơi khác, dù đã bỏ nút Home
+import Link from 'next/link'; 
 import { useTranslations } from 'next-intl';
 import {
   createAddress,
@@ -26,7 +26,7 @@ type Address = {
   phone: string;
   street: string;
   ward: string;
-  district: string;
+  // Đã xóa district
   city: string;
   isDefault: boolean;
 };
@@ -36,7 +36,7 @@ type AddressForm = {
   phone: string;
   street: string;
   ward: string;
-  district: string;
+  // Đã xóa district
   city: string;
   isDefault: boolean;
 };
@@ -51,7 +51,7 @@ const INITIAL_ADDRESS_FORM: AddressForm = {
   phone: '',
   street: '',
   ward: '',
-  district: '',
+  // Đã xóa district
   city: '',
   isDefault: false,
 };
@@ -244,8 +244,6 @@ export default function ProfilePage() {
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', padding: '40px 20px', color: '#111827' }}>
       <div style={{ maxWidth: '960px', margin: '0 auto' }}>
-        
-        {/* Đã loại bỏ Link Back to Home ở đây */}
 
         <div style={{ marginTop: '16px', marginBottom: '24px' }}>
           <h1 style={{ margin: 0, fontSize: '28px' }}>{t('title')}</h1>
@@ -309,11 +307,9 @@ export default function ProfilePage() {
           >
             <div style={{ display: 'grid', gap: '14px' }}>
               
-              {/* PHẦN AVATAR ĐÃ ĐƯỢC CHỈNH SỬA: CĂN GIỮA, PHÓNG TO VÀ DÙNG ICON */}
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '16px' }}>
                 <div style={{ position: 'relative', width: '120px', height: '120px' }}>
                   
-                  {/* Khung hiển thị ảnh */}
                   <div style={{
                     width: '100%',
                     height: '100%',
@@ -334,7 +330,6 @@ export default function ProfilePage() {
                     )}
                   </div>
 
-                  {/* Nút Đổi Ảnh (Icon Camera) */}
                   <label 
                     style={{ 
                       position: 'absolute', 
@@ -360,7 +355,6 @@ export default function ProfilePage() {
                     <input type="file" accept="image/*" onChange={handleAvatarFileChange} style={{ display: 'none' }} />
                   </label>
 
-                  {/* Nút Xóa Ảnh (Icon Thùng rác) - Chỉ hiện khi có ảnh */}
                   {(avatarPreview || profile?.image) && (
                     <button
                       type="button"
@@ -510,11 +504,23 @@ export default function ProfilePage() {
                     <span style={{ color: '#4b5563', fontSize: '14px' }}>{addr.phone}</span>
                   </div>
 
-                  <p style={{ margin: '10px 0 0', color: '#374151', lineHeight: 1.6 }}>
-                    {addr.street}, {addr.ward}, {addr.district}, {addr.city}
-                  </p>
+                  {/* THAY ĐỔI: Phân tách rõ ràng từng trường địa chỉ */}
+                  <div style={{ margin: '14px 0 0', color: '#374151', fontSize: '14px', lineHeight: 1.8 }}>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ fontWeight: 600, minWidth: '85px', color: '#6b7280' }}>{t('street')}:</span>
+                      <span>{addr.street}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ fontWeight: 600, minWidth: '85px', color: '#6b7280' }}>{t('ward')}:</span>
+                      <span>{addr.ward}</span>
+                    </div>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span style={{ fontWeight: 600, minWidth: '85px', color: '#6b7280' }}>{t('city')}:</span>
+                      <span>{addr.city}</span>
+                    </div>
+                  </div>
 
-                  <div style={{ display: 'flex', gap: '8px', marginTop: '12px', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '8px', marginTop: '16px', flexWrap: 'wrap' }}>
                     {!addr.isDefault && (
                       <button
                         onClick={() => handleSetDefault(addr.id)}
@@ -608,19 +614,13 @@ export default function ProfilePage() {
                 placeholder={t('street')}
                 style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
               />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              {/* THAY ĐỔI: Xóa trường District, cập nhật lại grid cho 2 trường Ward và City */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 <input
                   required
                   value={addressForm.ward}
                   onChange={(e) => setAddressForm((prev) => ({ ...prev, ward: e.target.value }))}
                   placeholder={t('ward')}
-                  style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
-                />
-                <input
-                  required
-                  value={addressForm.district}
-                  onChange={(e) => setAddressForm((prev) => ({ ...prev, district: e.target.value }))}
-                  placeholder={t('district')}
                   style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
                 />
                 <input

@@ -375,7 +375,9 @@
       "variantSkuPlaceholder": "Ex: LY-CAPYBARA-SX ",
       "variantSkuHint": "Stock Keeping Unit. Must be unique.",
       "categoryHierarchyLabel": "Display structure:",
-      "categoryNote": "Only leaf categories are available for selection. The product will be displayed in all parent categories related to the selected category."
+      "categoryNote": "Only leaf categories are available for selection. The product will be displayed in all parent categories related to the selected category.",
+      "removeVariantImageBtn": "Remove this image",
+      "imageLimitExceeded": "You can only upload up to 5 images. Extra images have been automatically ignored."
     },
     "bulkEdit": {
       "title": "Bulk Edit",
@@ -509,7 +511,8 @@
     "required_customization": "Please complete all required options.",
     "out_of_stock": "Out of stock",
     "stock_warning": "⚠️ Only {stock} of this product is in stock",
-    "adjust_stock_warning": "Please adjust the quantity of the highlighted items to continue."
+    "adjust_stock_warning": "Please adjust the quantity of the highlighted items to continue.",
+    "in_cart": "in cart"
   },
   "private_layout": {
     "back_home": "< Back to Home"
@@ -561,6 +564,7 @@
     "variant": "Variant",
     "success_order": "Order placed successfully!",
     "error_order": "An error occurred while placing the order.",
+    "add_new_address": "Add New Address",
     "error": {
     "fetch_failed": "Unable to load checkout information.",
     "address_failed": "Error adding address.",
@@ -768,6 +772,31 @@
       "order_status": "Status",
       "recent_activity": "Recent Activity",
       "no_activity": "No activity available.",
+      "deleted_badge": "Deleted",
+      "street": "Street/House number",
+      "ward": "Ward/Commune",
+      "city": "Province/City",
+      "show_all_orders": "View all orders",
+      "show_less_orders": "Collapse",
+      "tab_reviews": "Product reviews",
+      "tab_logs": "System logs",
+      "load_more": "Load more",
+      "no_reviews": "No product reviews yet.",
+      "no_logs": "No system logs.",
+      "filter_all": "All",
+      "filter_status": "Status",
+      "sort_default": "Newest",
+      "sort_amount_desc": "Price: High to Low",
+      "sort_amount_asc": "Price: Low to High",
+      "filter_time_all": "All time",
+      "filter_time_7d": "Last 7 days",
+      "filter_time_30d": "Last 30 days",
+      "filter_time_6m": "Last 6 months",
+      "filter_time_year": "This year",
+      "filter_rating": "Rating",
+      "filter_has_comment": "Show only with comments",
+      "search_product": "Search product name...",
+      "no_results": "No matching results found.",
       "timeline": {
         "review_title": "Product Review",
         "review_badge": "Review",

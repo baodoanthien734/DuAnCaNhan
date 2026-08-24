@@ -22,12 +22,7 @@ export class CreateAddressDto {
   @IsNotEmpty({ message: i18nValidationMessage('user.validation.ward_required') })
   @MaxLength(120, { message: i18nValidationMessage('user.validation.ward_max_length') })
   ward!: string;
-
-  @IsString({ message: i18nValidationMessage('user.validation.district_string') })
-  @IsNotEmpty({ message: i18nValidationMessage('user.validation.district_required') })
-  @MaxLength(120, { message: i18nValidationMessage('user.validation.district_max_length') })
-  district!: string;
-
+  
   @IsString({ message: i18nValidationMessage('user.validation.city_string') })
   @IsNotEmpty({ message: i18nValidationMessage('user.validation.city_required') })
   @MaxLength(120, { message: i18nValidationMessage('user.validation.city_max_length') })

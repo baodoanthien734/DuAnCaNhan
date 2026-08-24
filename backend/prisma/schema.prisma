@@ -259,9 +259,10 @@ model Address {
   phone         String
   street        String
   ward          String
-  district      String
   city          String
   isDefault     Boolean @default(false)
+  
+  isDeleted     Boolean @default(false) 
 
   user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   orders Order[]

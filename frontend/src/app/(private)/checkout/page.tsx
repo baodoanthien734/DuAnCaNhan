@@ -72,6 +72,7 @@ export default function CheckoutPage() {
       setAddresses(Array.isArray(updatedAddresses) ? updatedAddresses : []);
       
       if (updatedAddresses && updatedAddresses.length > 0) {
+        // Tự động chọn địa chỉ vừa mới thêm vào
         setSelectedAddressId(updatedAddresses[updatedAddresses.length - 1].id);
       }
     } catch (error: any) {
@@ -145,7 +146,26 @@ export default function CheckoutPage() {
         <form onSubmit={handleCheckout} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
           
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 16px' }}>{t('shipping_address')}</h3>
+            
+            {/* Header của Shipping Address kèm nút Thêm địa chỉ mới */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>{t('shipping_address')}</h3>
+              <button 
+                type="button"
+                onClick={() => setIsModalOpen(true)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  color: '#2563eb', 
+                  fontSize: '14px', 
+                  fontWeight: '600', 
+                  cursor: 'pointer',
+                  padding: 0
+                }}
+              >
+                + {t('add_new_address')}
+              </button>
+            </div>
 
             {addresses.length === 0 && (
               <div style={{ padding: '12px', backgroundColor: '#fef3c7', borderRadius: '8px', color: '#b45309', fontSize: '14px' }}>
@@ -153,15 +173,17 @@ export default function CheckoutPage() {
               </div>
             )}
 
+            {/* TRƯỜNG HỢP CÓ 1 ĐỊA CHỈ: ĐÃ XÓA district */}
             {addresses.length === 1 && (
               <div style={{ padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                 <div style={{ fontWeight: '600', fontSize: '14px' }}>{addresses[0].recipientName} - {addresses[0].phone}</div>
                 <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '4px' }}>
-                  {addresses[0].street}, {addresses[0].ward}, {addresses[0].district}, {addresses[0].city}
+                  {addresses[0].street}, {addresses[0].ward}, {addresses[0].city}
                 </div>
               </div>
             )}
 
+            {/* TRƯỜNG HỢP CÓ >= 2 ĐỊA CHỈ: ĐÃ XÓA district */}
             {addresses.length >= 2 && (
               <select 
                 value={selectedAddressId || ''}
@@ -170,7 +192,7 @@ export default function CheckoutPage() {
               >
                 {addresses.map((addr) => (
                   <option key={addr.id} value={addr.id}>
-                    {addr.recipientName} - {addr.phone} | {addr.street}, {addr.ward}, {addr.district}, {addr.city}
+                    {addr.recipientName} - {addr.phone} | {addr.street}, {addr.ward}, {addr.city}
                   </option>
                 ))}
               </select>
@@ -200,13 +222,11 @@ export default function CheckoutPage() {
                 return (
                   <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingBottom: '12px', borderBottom: '1px dashed #e5e7eb' }}>
                     
-                    {/* Dòng 1: Tên sản phẩm và Tổng tiền của Item đó */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: '600' }}>
                       <span>{item.product.name} (x{item.quantity})</span>
                       <span style={{ color: '#b45309' }}>{finalLinePrice.toLocaleString()} đ</span>
                     </div>
                     
-                    {/* Dòng 2: Phân loại (Variant) */}
                     {item.variant && (
                       <div style={{ fontSize: '13px', color: '#6b7280', paddingLeft: '8px', display: 'flex', gap: '4px' }}>
                         <span>• {t('variant')}:</span>
@@ -219,7 +239,6 @@ export default function CheckoutPage() {
                       </div>
                     )}
 
-                    {/* Dòng 3: Các tùy chọn Customizations */}
                     {hasCustomizations && customs.map((c: any, idx: number) => (
                       <div key={idx} style={{ fontSize: '13px', color: '#6b7280', paddingLeft: '8px', display: 'flex', gap: '4px' }}>
                         <span>• {c.name}:</span>

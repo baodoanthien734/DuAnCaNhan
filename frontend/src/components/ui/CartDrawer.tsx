@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom'; // 👉 MỚI: Import createPortal
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -11,14 +12,21 @@ interface CartDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onRequireLogin?: () => void;
+  onCartChange?: () => void;
 }
 
-export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDrawerProps) {
+export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChange }: CartDrawerProps) {
   const t = useTranslations('cart');
+  const [mounted, setMounted] = useState(false); // 👉 MỚI: Tránh lỗi hydration của Next.js
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isGuest, setIsGuest] = useState(false);
+
+  // Chờ cho component render trên client xong mới bật Portal
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const fetchCartData = async () => {
     setLoading(true);
@@ -38,31 +46,33 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
       const token = Cookies.get('accessToken');
       setIsGuest(!token);
       fetchCartData();
+      document.body.style.overflow = 'hidden'; 
+    } else {
+      document.body.style.overflow = ''; 
     }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
-  // ==========================================
-  // LOGIC ĐÃ ĐƯỢC FIX: AUTO-SNAP SỐ LƯỢNG LỖI
-  // ==========================================
-  const handleUpdateQuantity = async (itemId: number, currentQty: number, change: number, maxStock: number) => {
+  const handleUpdateQuantity = async (itemId: number, currentQty: number, change: number, maxStock: number, totalUsedQty: number) => {
     let newQty = currentQty + change;
     
-    // Chặn không cho giảm xuống dưới 1
     if (newQty < 1) return;
 
-    // Nếu đang bị lố kho (currentQty > maxStock) và khách bấm trừ (change < 0)
-    // -> Tự động kéo số lượng về bằng đúng kho hiện tại (Auto-snap)
+    if (change > 0 && totalUsedQty >= maxStock) {
+      return;
+    }
+
     if (change < 0 && currentQty > maxStock) {
       newQty = maxStock;
     } 
-    // Nếu khách bấm cộng (change > 0) mà vượt quá kho -> Chặn lại
-    else if (change > 0 && newQty > maxStock) {
-      return;
-    }
 
     try {
       await updateCartItem(itemId, newQty);
       await fetchCartData(); 
+      onCartChange?.();
     } catch (err) {
       console.error(err);
     }
@@ -72,14 +82,15 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
     try {
       await removeCartItem(itemId);
       await fetchCartData(); 
+      onCartChange?.();
     } catch (err) {
       console.error(err);
     }
   };
 
-  if (!isOpen) return null;
+  if (!isOpen || !mounted) return null; // 👉 MỚI: Check mounted
 
-  const totalAmount = cart?.items?.reduce((sum: number, item: any) => {
+  const totalAmount = (cart?.items || []).reduce((sum: number, item: any) => {
     let itemPrice = Number(item.variant?.price || item.product.basePrice);
     const customs = item.customizations as any[];
     if (customs && Array.isArray(customs)) {
@@ -88,7 +99,19 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
       });
     }
     return sum + itemPrice * item.quantity;
-  }, 0) || 0;
+  }, 0);
+
+  const stockUsage: Record<string, number> = (cart?.items || []).reduce((acc: Record<string, number>, item: any) => {
+    const key = item.variantId ? `variant-${item.variantId}` : `product-${item.productId}`;
+    acc[key] = (acc[key] || 0) + item.quantity;
+    return acc;
+  }, {});
+
+  const hasStockError = (cart?.items || []).some((item: any) => {
+    const key = item.variantId ? `variant-${item.variantId}` : `product-${item.productId}`;
+    const stock = Number(item.variant?.stock || 0);
+    return (stockUsage[key] || 0) > stock;
+  });
 
   const handleGuestCheckout = () => {
     onClose();
@@ -97,19 +120,23 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
     }
   };
 
-  const hasStockError = cart?.items?.some((item: any) => item.quantity > (item.variant?.stock || 0));
-
-  return (
+  // 👉 MỚI: Bọc toàn bộ return bằng createPortal
+  return createPortal(
     <div style={{
-      position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 9999, display: 'flex',
-      justifyContent: 'flex-end', transition: 'opacity 0.3s ease'
-    }}>
-      <div style={{
-        width: '100%', maxWidth: '420px', height: '100%', backgroundColor: '#fff',
-        display: 'flex', flexDirection: 'column', boxShadow: '-5px 0 25px rgba(0,0,0,0.15)',
-        animation: 'slideInRight 0.3s forwards'
-      }}>
+      position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999999, // Tăng z-index lên đỉnh chóp
+      display: 'flex', justifyContent: 'flex-end', transition: 'opacity 0.3s ease',
+      overflow: 'hidden'
+    }} onClick={onClose}>
+      {/* Thêm onClick={(e) => e.stopPropagation()} để bấm vào trong không bị tắt giỏ hàng */}
+      <div 
+        onClick={(e) => e.stopPropagation()} 
+        style={{
+          width: '90%', maxWidth: '380px', height: '100%', backgroundColor: '#fff',
+          display: 'flex', flexDirection: 'column', boxShadow: '-5px 0 25px rgba(0,0,0,0.15)',
+          animation: 'slideInRight 0.3s forwards', boxSizing: 'border-box'
+        }}
+      >
         
         <div style={{ padding: '20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 'bold', margin: 0, color: '#111827' }}>🛒 {t('title')}</h2>
@@ -139,10 +166,8 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
               {cart.items.map((item: any) => {
                 const img = item.variant?.image ? resolveImageUrl(item.variant.image) : (item.product.images?.[0] ? resolveImageUrl(item.product.images[0]) : null);
                 
-                // Giá gốc (90,000)
                 const unitPrice = Number(item.variant?.price || item.product.basePrice);
                 
-                // TÍNH TỔNG GIÁ BAO GỒM CUSTOMIZATION (Để ra được 120,000)
                 let itemTotalPrice = unitPrice;
                 if (item.customizations && Array.isArray(item.customizations)) {
                   item.customizations.forEach((c: any) => {
@@ -150,8 +175,11 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
                   });
                 }
 
-                const stock = item.variant?.stock || 0;
-                const isOutOfStock = item.quantity > stock;
+                const stock = Number(item.variant?.stock || 0);
+                const key = item.variantId ? `variant-${item.variantId}` : `product-${item.productId}`;
+                
+                const totalUsedQty = Number(stockUsage[key] || item.quantity);
+                const isOutOfStock = totalUsedQty > stock;
 
                 return (
                   <div key={item.id} style={{ 
@@ -167,14 +195,12 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
                     <div style={{ flex: 1 }}>
                       <h4 style={{ fontSize: '14px', fontWeight: '600', margin: '0 0 4px', color: '#111827' }}>{item.product.name}</h4>
 
-                      {/* Đưa giá gốc vào cạnh Variant và đổi màu xám */}
                       {item.variant ? (
                         <div style={{ fontSize: '12px', color: '#4b5563', marginBottom: '2px' }}>
                           {t('variant_label')}: <b>{item.variant.name}</b>{' '}
                           <span style={{ color: '#61656e' }}>({unitPrice.toLocaleString()} {t('currency')})</span>
                         </div>
                       ) : (
-                        /* Dự phòng: Nếu sản phẩm không có phân loại, vẫn hiện giá gốc màu xám */
                         <div style={{ fontSize: '12px', color: '#9ca3af', marginBottom: '2px' }}>
                           {unitPrice.toLocaleString()} {t('currency')}
                         </div>
@@ -186,7 +212,6 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
                         </div>
                       ))}
 
-                      {/* TỔNG GIÁ TRỊ CỦA ITEM ĐỂ Ở DƯỚI CÙNG (MÀU CAM) */}
                       <div style={{ fontSize: '13px', fontWeight: '700', color: '#b45309', marginTop: '6px' }}>
                         {itemTotalPrice.toLocaleString()} {t('currency')}
                       </div>
@@ -194,21 +219,25 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
                       {isOutOfStock && (
                         <div style={{ fontSize: '12px', color: '#dc2626', fontWeight: '600', marginTop: '4px' }}>
                           {t('stock_warning', { stock })}
+                          <span style={{ fontWeight: 'normal', fontStyle: 'italic', marginLeft: '4px' }}>
+                            (Đã chọn {totalUsedQty})
+                          </span>
                         </div>
                       )}
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #d1d5db', borderRadius: '6px', overflow: 'hidden' }}>
-                          <button onClick={() => handleUpdateQuantity(item.id, item.quantity, -1, stock)} style={{ padding: '2px 8px', background: '#f9fafb', border: 'none', cursor: 'pointer' }}>-</button>
+                          <button onClick={() => handleUpdateQuantity(item.id, item.quantity, -1, stock, totalUsedQty)} style={{ padding: '2px 8px', background: '#f9fafb', border: 'none', cursor: 'pointer' }}>-</button>
+                          
                           <span style={{ padding: '0 10px', fontSize: '13px', fontWeight: '600', color: isOutOfStock ? '#dc2626' : 'inherit' }}>{item.quantity}</span>
                           
                           <button 
-                            onClick={() => handleUpdateQuantity(item.id, item.quantity, 1, stock)} 
-                            disabled={item.quantity >= stock}
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity, 1, stock, totalUsedQty)} 
+                            disabled={totalUsedQty >= stock}
                             style={{ 
                               padding: '2px 8px', background: '#f9fafb', border: 'none', 
-                              cursor: item.quantity >= stock ? 'not-allowed' : 'pointer',
-                              opacity: item.quantity >= stock ? 0.3 : 1
+                              cursor: totalUsedQty >= stock ? 'not-allowed' : 'pointer',
+                              opacity: totalUsedQty >= stock ? 0.3 : 1
                             }}
                           >
                             +
@@ -257,6 +286,7 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

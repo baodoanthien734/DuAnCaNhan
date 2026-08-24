@@ -110,12 +110,14 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   const modal = useModal();
   const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [leafCategories, setLeafCategories] = useState<{id: number, name: string, path: string}[]>([]);
+  
   const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDragging, setIsDragging] = useState(false); // State cho Drag & Drop
   const [uploadingVariantIndex, setUploadingVariantIndex] = useState<number | null>(null);
+  
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [variantImagePreviews, setVariantImagePreviews] = useState<Record<number, string>>({});
 
-  // Thêm state và ref cho Custom Dropdown Category
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
   
@@ -142,7 +144,6 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
     },
   });
 
-  // Tự động điền dữ liệu nếu là trang Edit
   useEffect(() => {
     if (initialData) {
       reset(initialData);
@@ -151,7 +152,6 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
     }
   }, [initialData, reset]);
 
-  // Click outside logic cho Dropdown Category
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
@@ -162,24 +162,8 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isCategoryOpen]);
 
-  const readFileAsDataUrl = (file: File) => {
-    return new Promise<string>((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.onerror = () => reject(new Error("Failed to read file"));
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({
-    control,
-    name: "variants",
-  });
-
-  const { fields: customFields, append: appendCustom, remove: removeCustom } = useFieldArray({
-    control,
-    name: "customizations",
-  });
+  const { fields: variantFields, append: appendVariant, remove: removeVariant } = useFieldArray({ control, name: "variants" });
+  const { fields: customFields, append: appendCustom, remove: removeCustom } = useFieldArray({ control, name: "customizations" });
 
   const watchCustomizations = watch("customizations");
   const imagesWatch = watch("images") || [];
@@ -214,38 +198,54 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
       const formattedLeaves = leaves.map(leaf => ({
         id: leaf.id,
         name: leaf.name,
-        slug: leaf.slug, // Truyền thêm slug xuống
-        isSystem: leaf.isSystem, // Truyền thêm isSystem xuống (nếu có)
+        slug: leaf.slug,
+        isSystem: leaf.isSystem,
         path: buildPath(leaf.id)
       }));
 
       setLeafCategories(formattedLeaves);
       
-      // --- LOGIC GÁN DANH MỤC MẶC ĐỊNH (KHI TẠO MỚI) ---
       if (!initialData && formattedLeaves.length > 0) {
-         // Cố gắng tìm danh mục hệ thống bằng isSystem hoặc slug
          const defaultCat = formattedLeaves.find(c => c.isSystem || c.slug === 'chua-phan-loai');
-         
          if (defaultCat) {
-           setValue("categoryId", defaultCat.id); // Ép vào rổ Chưa phân loại
+           setValue("categoryId", defaultCat.id);
          } else {
-           setValue("categoryId", formattedLeaves[0].id); // Backup nếu không tìm thấy
+           setValue("categoryId", formattedLeaves[0].id);
          }
       }
     }).catch(console.error);
   }, [initialData, setValue]);
 
-  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // --- LOGIC XỬ LÝ NHIỀU ẢNH (MULTI-UPLOAD & DRAG-DROP) ---
+  const processImageFiles = async (files: File[]) => {
+    const currentCount = imagesWatch.length;
+    const slotsLeft = 5 - currentCount;
+    
+    if (slotsLeft <= 0) return;
+
+    let filesToProcess = files.filter(f => f.type.startsWith('image/'));
+    
+    // Đánh chặn nếu vượt quá slot
+    if (filesToProcess.length > slotsLeft) {
+      filesToProcess = filesToProcess.slice(0, slotsLeft);
+      await modal.alert(t("form.imageLimitExceeded"));
+    }
+
+    if (filesToProcess.length === 0) return;
 
     setIsUploadingImage(true);
     try {
-      const previewUrl = await readFileAsDataUrl(file);
-      setImagePreviews((current) => [...current, previewUrl]);
+      // 1. Tạo Preview tức thời bằng Blob URL (Nhanh, không treo UI)
+      const newPreviews = filesToProcess.map(file => URL.createObjectURL(file));
+      setImagePreviews(current => [...current, ...newPreviews]);
 
-      const data = await uploadProductImage(file);
-      setValue("images", [...imagesWatch, data.url], { shouldValidate: true, shouldDirty: true });
+      // 2. Upload song song (Concurrency) tất cả các ảnh hợp lệ lên tmp
+      const uploadPromises = filesToProcess.map(file => uploadProductImage(file));
+      const results = await Promise.all(uploadPromises);
+      const newUrls = results.map(res => res.url);
+
+      // 3. Cập nhật mảng vào Form
+      setValue("images", [...imagesWatch, ...newUrls], { shouldValidate: true, shouldDirty: true });
     } catch (error) {
       console.error("Lỗi upload ảnh:", error);
       await modal.alert(t("form.imageUploadError"));
@@ -254,14 +254,63 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
     }
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      await processImageFiles(Array.from(e.target.files));
+      e.target.value = ''; // Reset input để cho phép chọn lại cùng 1 file nếu cần
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      await processImageFiles(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const removeImage = async (indexToRemove: number) => {
+    const urlToRemove = imagesWatch[indexToRemove];
+    if (urlToRemove && urlToRemove.includes('/uploads/tmp/')) {
+      await deleteTempProductImage(urlToRemove);
+    }
+
+    // Dọn rác Blob trong RAM nếu ảnh đang dùng Blob Preview
+    const previewUrl = imagePreviews[indexToRemove];
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+    const newImages = imagesWatch.filter((_, index) => index !== indexToRemove);
+    setValue("images", newImages, { shouldValidate: true });
+    setImagePreviews((current) => current.filter((_, index) => index !== indexToRemove));
+  };
+
+  // --- LOGIC ẢNH VARIANT ---
   const handleVariantImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     setUploadingVariantIndex(index);
     try {
-      const previewUrl = await readFileAsDataUrl(file);
-      setVariantImagePreviews((current) => ({ ...current, [index]: previewUrl }));
+      const previewUrl = URL.createObjectURL(file); // Đổi sang Blob Preview
+      
+      setVariantImagePreviews((current) => {
+        if (current[index] && current[index].startsWith('blob:')) {
+          URL.revokeObjectURL(current[index]); // Dọn rác Blob cũ
+        }
+        return { ...current, [index]: previewUrl };
+      });
 
       const data = await uploadProductImage(file);
       setValue(`variants.${index}.image`, data.url, { shouldValidate: true, shouldDirty: true });
@@ -278,22 +327,17 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
     if (urlToRemove && urlToRemove.includes('/uploads/tmp/')) {
       await deleteTempProductImage(urlToRemove);
     }
-    setValue(`variants.${index}.image`, "", { shouldValidate: true, shouldDirty: true });
+
     setVariantImagePreviews((current) => {
       const next = { ...current };
+      if (next[index] && next[index].startsWith('blob:')) {
+        URL.revokeObjectURL(next[index]);
+      }
       delete next[index];
       return next;
     });
-  };
 
-  const removeImage = async (indexToRemove: number) => {
-    const urlToRemove = imagesWatch[indexToRemove];
-    if (urlToRemove && urlToRemove.includes('/uploads/tmp/')) {
-      await deleteTempProductImage(urlToRemove);
-    }
-    const newImages = imagesWatch.filter((_, index) => index !== indexToRemove);
-    setValue("images", newImages, { shouldValidate: true });
-    setImagePreviews((current) => current.filter((_, index) => index !== indexToRemove));
+    setValue(`variants.${index}.image`, "", { shouldValidate: true, shouldDirty: true });
   };
 
   return (
@@ -437,21 +481,24 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                         <input type="hidden" {...register(`variants.${index}.image` as const)} />
 
                         {variantsWatch[index]?.image || variantImagePreviews[index] ? (
-                          <div className="relative rounded-lg overflow-hidden border border-gray-200 aspect-square bg-white">
-                            <img
-                              src={variantImagePreviews[index] || resolveImageUrl(variantsWatch[index]?.image)}
-                              alt={t("form.variantImageAlt", { index: index + 1 })}
-                              className="w-full h-full object-cover"
-                            />
+                          <div className="flex flex-col gap-2">
+                            <div className="rounded-lg overflow-hidden border border-gray-200 aspect-square bg-white">
+                              <img
+                                src={variantImagePreviews[index] || resolveImageUrl(variantsWatch[index]?.image)}
+                                alt={t("form.variantImageAlt", { index: index + 1 })}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
                             <button
                               type="button"
                               onClick={() => removeVariantImage(index)}
-                              className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1.5 opacity-90 hover:opacity-100 transition-opacity"
+                              className="text-xs font-semibold bg-red-50 text-red-600 px-2 py-1.5 rounded hover:bg-red-100 transition flex items-center justify-center gap-1.5 border border-red-200 w-full"
                               title={t("form.removeVariantImageTitle")}
                             >
                               <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                               </svg>
+                              {t("form.removeVariantImageBtn")}
                             </button>
                           </div>
                         ) : (
@@ -680,7 +727,13 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
               </div>
             </div>
 
-            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 mt-6">
+            <div 
+              className={`bg-white p-6 rounded-xl shadow-sm border mt-6 transition-colors duration-200 ${isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-100'}`}
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+            >
               <h2 className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider">{t("form.imageTitle")}</h2>
               <div className="grid grid-cols-3 gap-4 mb-2">
                 {imagesWatch.map((url, index) => {
@@ -710,7 +763,8 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                       </svg>
                       <span className="text-xs font-medium text-gray-500">{t("form.addImage")}</span>
                     </div>
-                    <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploadingImage} />
+                    {/* THÊM MULTIPLE VÀO INPUT */}
+                    <input type="file" multiple className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploadingImage} />
                     {isUploadingImage && (
                       <div className="absolute inset-0 bg-white/80 flex flex-col items-center justify-center">
                         <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mb-1"></div>

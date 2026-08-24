@@ -9,6 +9,8 @@ import CartDrawer from '@/components/ui/CartDrawer';
 import { logout } from '@/lib/auth';
 import { getProfile } from '@/lib/user-api';
 import { resolveImageUrl } from '@/lib/utils';
+// MỚI: Import hàm getCart
+import { getCart } from '@/lib/cart-api';
 
 type User = {
   id: number;
@@ -26,9 +28,27 @@ export default function AuthGroup() {
   const [isClient, setIsClient] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   
+  // MỚI: State lưu tổng số lượng sản phẩm trong giỏ
+  const [cartItemCount, setCartItemCount] = useState(0);
+
   // State cho User Dropdown
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  // MỚI: Hàm lấy tổng số lượng giỏ hàng
+  const fetchCartCount = async () => {
+    try {
+      const cartData = await getCart();
+      if (cartData && cartData.items) {
+        // Đếm theo SỐ DÒNG (Line Items) - Chỉ cần lấy độ dài của mảng items
+        setCartItemCount(cartData.items.length);
+      } else {
+        setCartItemCount(0);
+      }
+    } catch (error) {
+      console.error('Lỗi khi lấy số lượng giỏ hàng:', error);
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);
@@ -40,6 +60,8 @@ export default function AuthGroup() {
       Cookies.remove('accessToken');
       Cookies.remove('userId');
       setUser(null);
+      // Khi user bị clear, cũng fetch lại cart (để lấy giỏ hàng guest)
+      fetchCartCount();
       return;
     }
 
@@ -62,6 +84,9 @@ export default function AuthGroup() {
       }
       catch (error) { localStorage.removeItem('user_info'); setUser(null); }
     }
+    
+    // Gọi fetch giỏ hàng lần đầu khi mount
+    fetchCartCount();
   }, []);
 
   // Đóng User menu khi click ra ngoài
@@ -75,19 +100,28 @@ export default function AuthGroup() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ==========================================
-  // THÊM ĐOẠN NÀY LẮNG NGHE SỰ KIỆN MỞ GIỎ HÀNG
-  // ==========================================
+  // Lắng nghe các sự kiện liên quan đến Giỏ hàng
   useEffect(() => {
     const handleOpenCart = () => setIsCartOpen(true);
+    
+    // MỚI: Lắng nghe sự kiện 'cart-updated' để cập nhật lại con số
+    const handleCartUpdated = () => fetchCartCount();
+
     window.addEventListener('open-cart', handleOpenCart);
-    return () => window.removeEventListener('open-cart', handleOpenCart);
+    window.addEventListener('cart-updated', handleCartUpdated);
+    
+    return () => {
+      window.removeEventListener('open-cart', handleOpenCart);
+      window.removeEventListener('cart-updated', handleCartUpdated);
+    };
   }, []);
 
   const handleLogout = async () => {
     setUser(null);
     setIsUserMenuOpen(false);
     await logout();
+    // Sau khi đăng xuất, cập nhật lại số lượng giỏ hàng (sẽ chuyển về guest cart)
+    fetchCartCount();
   };
 
   if (!isClient) return <div className="w-[150px]"></div>;
@@ -105,7 +139,13 @@ export default function AuthGroup() {
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
-        <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
+        
+        {/* MỚI: Hiển thị chấm đỏ với con số, xử lý logic 99+ */}
+        {cartItemCount > 0 && (
+          <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white shadow-sm border-2 border-white">
+            {cartItemCount > 99 ? '99+' : cartItemCount}
+          </span>
+        )}
       </button>
 
       {user ? (
@@ -179,7 +219,14 @@ export default function AuthGroup() {
         </div>
       )}
 
-      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} onRequireLogin={() => { setIsCartOpen(false); setInitialView('login'); setIsModalOpen(true); }} />
+      {/* MỚI: Truyền hàm cập nhật số lượng xuống CartDrawer */}
+      <CartDrawer 
+        isOpen={isCartOpen} 
+        onClose={() => setIsCartOpen(false)} 
+        onRequireLogin={() => { setIsCartOpen(false); setInitialView('login'); setIsModalOpen(true); }} 
+        onCartChange={fetchCartCount} 
+      />
+      
       <AuthModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} initialView={initialView} />
     </div>
   );
