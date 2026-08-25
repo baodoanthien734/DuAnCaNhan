@@ -64,7 +64,7 @@
       "variants": "Phân loại / Biến thể",
       "customizations": "Tùy chọn cá nhân hóa",
       "addToCart": "Thêm vào giỏ hàng",
-      "back": "← Quay lại danh sách",
+      "back": "Quay lại danh sách",
       "required": "Bắt buộc",
       "from": "Từ"
     },
@@ -173,6 +173,8 @@
       "reorderError": "Lỗi khi thay đổi vị trí danh mục.",
       "statusActive": "Hoạt động",
       "statusInactive": "Tạm ẩn",
+      "errorTitle": "Lỗi thao tác",
+      "errorMessage": "Đã xảy ra lỗi. Vui lòng thử lại sau.",
       "columns": {
         "image": "Ảnh",
         "name": "Tên",
@@ -628,7 +630,7 @@
     }
   },
   "my_orders": {
-    "title": "📦 Đơn hàng của tôi",
+    "title": "Đơn hàng của tôi",
     "loading": "Đang tải đơn hàng...",
     "empty": "Bạn chưa có đơn hàng nào.",
     "shop_now": "Tiếp tục mua sắm",
@@ -637,18 +639,19 @@
     "total_amount": "Tổng tiền:",
     "view_detail": "Xem chi tiết",
     "status": {
-      "PENDING": "⏳ Chờ xác nhận",
-      "PROCESSING": "📦 Đang chuẩn bị",
-      "SHIPPING": "🚚 Đang giao",
-      "DELIVERED": "✅ Hoàn thành",
-      "CANCELLED": "❌ Đã hủy"
+      "PENDING": "Chờ xác nhận",
+      "PROCESSING": "Đang chuẩn bị",
+      "SHIPPING": "Đang giao",
+      "DELIVERED": "Hoàn thành",
+      "CANCELLED": "Đã hủy"
     },
+    "load_error": "Lỗi tải đơn hàng:",
     "detail": {
       "back": "← Quay lại danh sách",
       "title": "Chi tiết đơn hàng",
       "not_found": "Không tìm thấy đơn hàng!",
-      "shipping_info": "📍 Thông tin nhận hàng",
-      "payment_info": "💳 Thanh toán",
+      "shipping_info": "Thông tin nhận hàng",
+      "payment_info": "Thanh toán",
       "payment_method": "Phương thức:",
       "payment_status": "Trạng thái:",
       "paid": "Đã thanh toán",

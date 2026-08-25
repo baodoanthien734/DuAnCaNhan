@@ -4,6 +4,8 @@
     "duplicate_slug": "Tên danh mục hoặc đường dẫn (slug) này đã tồn tại trong hệ thống.",
     "cannot_delete_system_category": "Bạn không được phép xóa hoặc vô hiệu hóa danh mục mặc định của hệ thống!",
     "cannot_modify_system_category_name": "Bạn không được phép đổi tên danh mục mặc định của hệ thống!",
-    "cannot_modify_system_category_slug": "Bạn không được phép đổi đường dẫn (slug) của danh mục hệ thống!"
+    "cannot_modify_system_category_slug": "Bạn không được phép đổi đường dẫn (slug) của danh mục hệ thống!",
+    "cannot_delete_has_products": "Không thể xóa! Phát hiện {count} sản phẩm trong danh mục này hoặc danh mục con.",
+    "parent_has_products": "Không thể chọn danh mục này làm cha vì nó đang trực tiếp chứa sản phẩm."
   }
 }

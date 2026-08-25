@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 import { getMyOrderById } from '@/lib/orders-api';
 import { deleteReview } from '@/lib/reviews-api';
 import ReviewModal from '@/components/ui/ReviewModal';
@@ -16,6 +16,7 @@ export default function MyOrderDetailPage() {
   const t = useTranslations('my_orders');
   const tReview = useTranslations('user_reviews'); 
   const modal = useModal();
+  const locale = useLocale(); // Lấy ngôn ngữ hiện tại (vi hoặc en)
   
   const params = useParams();
   const orderId = Number(params.id);
@@ -23,7 +24,6 @@ export default function MyOrderDetailPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // State mở Modal: Bổ sung thêm existingReview để truyền dữ liệu khi sửa
   const [reviewData, setReviewData] = useState<{ 
     isOpen: boolean; 
     productId: number; 
@@ -36,7 +36,6 @@ export default function MyOrderDetailPage() {
     } | null;
   } | null>(null);
   
-  // State lưu trữ những ID sản phẩm đã được đánh giá thành công hoặc thông tin review của chúng
   const [reviewedMap, setReviewedMap] = useState<{ [productId: number]: any }>({});
 
   useEffect(() => {
@@ -45,32 +44,59 @@ export default function MyOrderDetailPage() {
         const data = await getMyOrderById(orderId);
         setOrder(data);
 
-        // Map dữ liệu đánh giá từ Backend trả về vào state reviewedMap
         if (data.reviews && Array.isArray(data.reviews)) {
           const map: { [productId: number]: any } = {};
           data.reviews.forEach((r: any) => {
-            // Lưu review ứng với productId tương ứng trong đơn hàng này
             map[r.productId] = r;
           });
           setReviewedMap(map);
         }
       } catch (error) {
-        console.error(error);
+        console.error(t('load_error') || 'Lỗi tải đơn hàng:', error);
       } finally {
         setLoading(false);
       }
     };
     fetchOrder();
-  }, [orderId]);
+  }, [orderId, t]);
 
-  if (loading) return <div style={{ padding: '60px', textAlign: 'center', color: '#6b7280' }}>{t('loading')}</div>;
-  if (!order) return <div style={{ padding: '60px', textAlign: 'center', color: '#b91c1c' }}>{t('detail.not_found')}</div>;
+  // HÀM FORMAT TIỀN TỆ ĐỘNG THEO LOCALE
+  const formatCurrency = (value: number) => {
+    if (locale === 'en') {
+      // 20,000 VND
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' })
+        .format(Number(value || 0))
+        .replace('₫', 'VND');
+    }
+    // 20.000 đ
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
+  };
+
+  if (loading) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-slate-50/30">
+        <div className="flex flex-col items-center gap-3 text-slate-500">
+          <svg className="h-6 w-6 animate-spin text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span className="text-sm font-medium">{t('loading')}</span>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!order) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-slate-50/30">
+        <p className="font-medium text-rose-600">{t('detail.not_found')}</p>
+      </div>
+    );
+  }
 
   const currentStepIndex = STEPS.indexOf(order.status);
 
-  // =================================================================
-  // THUẬT TOÁN GOM NHÓM THEO SẢN PHẨM (PRODUCT ID)
-  // =================================================================
+  // GOM NHÓM THEO SẢN PHẨM
   const groupedItems = order.items.reduce((acc: any, item: any) => {
     if (!acc[item.productId]) {
       acc[item.productId] = {
@@ -97,14 +123,12 @@ export default function MyOrderDetailPage() {
 
   const groupedProducts = Object.values(groupedItems);
 
-  // Hàm xử lý Xóa đánh giá
   const handleDeleteReview = async (reviewId: number, productId: number) => {
     if (!(await modal.confirm(tReview('confirm_delete')))) return;
     try {
       await deleteReview(reviewId);
       await modal.alert(tReview('success_delete'));
       
-      // Xóa khỏi state để nút bấm chuyển lại thành "Đánh giá sản phẩm"
       setReviewedMap(prev => {
         const copy = { ...prev };
         delete copy[productId];
@@ -117,35 +141,47 @@ export default function MyOrderDetailPage() {
   };
 
   return (
-    <div style={{ backgroundColor: '#f9fafb', minHeight: '100vh', padding: '40px 20px', fontFamily: 'system-ui' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div className="min-h-screen bg-slate-50/30 px-4 py-8 sm:px-6 lg:px-8 lg:py-12">
+      <div className="mx-auto max-w-4xl">
         
         {/* Nút quay lại & Tiêu đề */}
-        <Link href="/orders" style={{ fontSize: '14px', color: '#4b5563', textDecoration: 'none', display: 'inline-block', marginBottom: '16px' }}>
+        <Link href="/orders" className="mb-6 inline-block text-sm font-medium text-slate-500 transition hover:text-slate-900">
           {t('detail.back')}
         </Link>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#111827', margin: '0 0 24px' }}>
-          {t('detail.title')} #{order.code}
-        </h1>
+        <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-6">
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">
+            {t('detail.title')} <span className="text-slate-500">#{order.code}</span>
+          </h1>
+        </div>
 
-        {/* Thanh tiến độ trạng thái */}
+        {/* Thanh tiến độ */}
         {order.status === 'CANCELLED' ? (
-          <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '16px', borderRadius: '12px', marginBottom: '24px', fontWeight: '600', textAlign: 'center' }}>
+          <div className="mb-8 rounded-2xl border border-rose-100 bg-rose-50 px-6 py-4 text-center font-semibold text-rose-600 shadow-sm">
             {t('detail.cancelled_msg')}
           </div>
         ) : (
-          <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '16px', marginBottom: '24px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e5e7eb' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', position: 'relative' }}>
-              <div style={{ position: 'absolute', top: '14px', left: '10%', right: '10%', height: '2px', backgroundColor: '#e5e7eb', zIndex: 0 }} />
+          <div className="mb-8 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+            <div className="relative flex justify-between">
+              <div className="absolute left-[10%] right-[10%] top-[14px] z-0 h-1 bg-slate-100 rounded-full" />
               
               {STEPS.map((step, index) => {
                 const isCompleted = currentStepIndex >= index;
+                const isCurrent = currentStepIndex === index;
+                
                 return (
-                  <div key={step} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 1, width: '25%' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: isCompleted ? '#166534' : '#e5e7eb', color: isCompleted ? '#fff' : '#9ca3af', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold', border: '4px solid #fff' }}>
-                      {isCompleted ? '✓' : index + 1}
+                  <div key={step} className="z-10 flex w-1/4 flex-col items-center">
+                    <div className={`flex h-8 w-8 items-center justify-center rounded-full border-4 border-white text-xs font-bold shadow-sm transition-colors ${
+                      isCompleted ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
+                    } ${isCurrent ? 'ring-4 ring-slate-100' : ''}`}>
+                      {isCompleted ? (
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4">
+                          <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+                        </svg>
+                      ) : (
+                        index + 1
+                      )}
                     </div>
-                    <div style={{ fontSize: '12px', marginTop: '8px', color: isCompleted ? '#111827' : '#9ca3af', fontWeight: isCompleted ? '600' : '400', textAlign: 'center' }}>
+                    <div className={`mt-3 text-center text-xs font-medium ${isCompleted ? 'text-slate-900 font-bold' : 'text-slate-400'}`}>
                       {t(`status.${step}`)}
                     </div>
                   </div>
@@ -156,80 +192,119 @@ export default function MyOrderDetailPage() {
         )}
 
         {/* Thông tin Giao hàng & Thanh toán */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
-          <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 12px' }}>{t('detail.shipping_info')}</h3>
-            <p style={{ margin: '4px 0', fontSize: '14px', color: '#374151' }}><strong>{order.address?.recipientName}</strong></p>
-            <p style={{ margin: '4px 0', fontSize: '14px', color: '#4b5563' }}>{order.address?.phone}</p>
-            <p style={{ margin: '4px 0', fontSize: '14px', color: '#4b5563', lineHeight: '1.5' }}>
-              {order.address?.street}, {order.address?.ward}, {order.address?.district}, {order.address?.city}
-            </p>
-            {order.note && <p style={{ margin: '12px 0 0', fontSize: '13px', color: '#b45309', backgroundColor: '#fef3c7', padding: '8px', borderRadius: '6px' }}>{t('detail.note')} {order.note}</p>}
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+          {/* Box Giao Hàng */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-slate-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+              </svg>
+              <h3 className="font-bold text-slate-900">{t('detail.shipping_info')}</h3>
+            </div>
+            <div className="space-y-1.5 text-sm text-slate-600">
+              <p className="font-semibold text-slate-900">{order.address?.recipientName}</p>
+              <p>{order.address?.phone}</p>
+              <p className="leading-relaxed">
+                {order.address?.street}, {order.address?.ward}, {order.address?.district}, {order.address?.city}
+              </p>
+            </div>
+            {order.note && (
+              <div className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
+                <span className="font-semibold">{t('detail.note')}</span> {order.note}
+              </div>
+            )}
           </div>
 
-          <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 12px' }}>{t('detail.payment_info')}</h3>
-            <p style={{ margin: '8px 0', fontSize: '14px' }}>{t('detail.payment_method')} <strong>{order.paymentMethod}</strong></p>
-            <p style={{ margin: '8px 0', fontSize: '14px' }}>
-              {t('detail.payment_status')}{' '}
-              <strong style={{ color: order.paymentStatus === 'PAID' ? '#166534' : '#b45309' }}>
-                {order.paymentStatus === 'PAID' ? t('detail.paid') : t('detail.unpaid')}
-              </strong>
-            </p>
-            <p style={{ margin: '8px 0', fontSize: '13px', color: '#6b7280' }}>
-              {t('order_date')} {new Date(order.createdAt).toLocaleString()}
-            </p>
+          {/* Box Thanh Toán */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-5 w-5 text-slate-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+              </svg>
+              <h3 className="font-bold text-slate-900">{t('detail.payment_info')}</h3>
+            </div>
+            <div className="space-y-3 text-sm text-slate-600">
+              <div className="flex justify-between">
+                <span>{t('detail.payment_method')}</span>
+                <span className="font-semibold text-slate-900">{order.paymentMethod}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>{t('detail.payment_status')}</span>
+                <span className={`font-bold ${order.paymentStatus === 'PAID' ? 'text-emerald-600' : 'text-amber-600'}`}>
+                  {order.paymentStatus === 'PAID' ? t('detail.paid') : t('detail.unpaid')}
+                </span>
+              </div>
+              <div className="flex justify-between border-t border-slate-100 pt-3">
+                <span>{t('order_date')}</span>
+                <span className="font-medium text-slate-900">
+                  {new Date(order.createdAt).toLocaleString(locale === 'en' ? 'en-US' : 'vi-VN')}
+                </span>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Danh sách Sản phẩm (Đã gom nhóm) */}
-        <div style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '16px', border: '1px solid #e5e7eb' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 'bold', margin: '0 0 16px' }}>{t('detail.products')}</h3>
+        {/* CẤU TRÚC LẠI DANH SÁCH SẢN PHẨM THEO ẢNH THAM KHẢO */}
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <div className="border-b border-slate-100 bg-slate-50/50 px-6 py-4">
+            <h3 className="font-bold text-slate-900">{t('detail.products')}</h3>
+          </div>
           
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          <div className="divide-y divide-slate-100">
             {groupedProducts.map((group: any) => {
-              
-              // Kiểm tra xem sản phẩm này đã được đánh giá chưa dựa trên reviewedMap
               const existingReview = reviewedMap[group.productId];
 
               return (
-                <div key={group.productId} style={{ display: 'flex', gap: '16px', borderBottom: '1px solid #f3f4f6', paddingBottom: '20px' }}>
+                <div key={group.productId} className="flex flex-col gap-4 p-6 sm:flex-row">
                   
-                  {/* Ảnh sản phẩm */}
-                  <Link href={group.productSlug ? `/products/${group.productSlug}` : '#'} style={{ flexShrink: 0 }}>
-                    <div style={{ width: '80px', height: '80px', borderRadius: '8px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  {/* Cột 1: Ảnh sản phẩm (Hình vuông, viền mỏng như ảnh) */}
+                  <Link href={group.productSlug ? `/products/${group.productSlug}` : '#'} className="shrink-0">
+                    <div className="flex h-[100px] w-[100px] items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm p-1">
                       {group.imageUrl ? (
-                        <img src={resolveImageUrl(group.imageUrl)} alt={group.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={resolveImageUrl(group.imageUrl)} alt={group.productName} className="h-full w-full object-cover rounded-lg" />
                       ) : (
-                        <span style={{ fontSize: '24px' }}>📦</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-8 w-8 text-slate-300">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                        </svg>
                       )}
                     </div>
                   </Link>
 
-                  <div style={{ flexGrow: 1 }}>
-                    {/* Tên Sản phẩm */}
-                    <Link href={group.productSlug ? `/products/${group.productSlug}` : '#'} style={{ fontWeight: '700', color: '#111827', fontSize: '16px', textDecoration: 'none', display: 'block', marginBottom: '8px' }}>
-                      {group.productName}
-                    </Link>
+                  {/* Cột 2: Nội dung & Giá (Trải dài hết không gian còn lại) */}
+                  <div className="flex flex-col flex-grow w-full">
                     
-                    {/* Cây Biến thể & Tùy chọn */}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingLeft: '12px', borderLeft: '2px solid #e5e7eb' }}>
+                    {/* Header: Tên sản phẩm bên trái, Tổng tiền bên phải */}
+                    <div className="flex justify-between items-start mb-3">
+                      <Link href={group.productSlug ? `/products/${group.productSlug}` : '#'} className="text-base font-bold text-slate-900 hover:text-slate-600 transition-colors">
+                        {group.productName}
+                      </Link>
+                      <div className="text-lg font-bold text-slate-900 ml-4 whitespace-nowrap">
+                        {formatCurrency(group.totalAmount)}
+                      </div>
+                    </div>
+                    
+                    {/* Danh sách biến thể (Có thanh viền dọc bên trái giống ảnh) */}
+                    <div className="space-y-3 border-l-2 border-slate-100 pl-3 mb-4">
                       {group.purchasedDetails.map((detail: any, idx: number) => (
-                        <div key={idx} style={{ fontSize: '13px', color: '#4b5563' }}>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                            <span style={{ fontWeight: '500', color: '#374151' }}>
-                              {detail.variantName || 'Mặc định'} (x{detail.quantity})
+                        <div key={idx} className="flex flex-col gap-1">
+                          
+                          {/* Dòng biến thể & Đơn giá */}
+                          <div className="flex justify-between text-sm">
+                            <span className="text-slate-600">
+                              {detail.variantName || 'Mặc định'} <span className="text-slate-400">x{detail.quantity}</span>
                             </span>
-                            <span style={{ color: '#6b7280' }}>{(Number(detail.price) * detail.quantity).toLocaleString()} đ</span>
+                            <span className="text-slate-500 text-xs mt-0.5">{formatCurrency(Number(detail.price) * detail.quantity)}</span>
                           </div>
                           
-                          {/* Customizations */}
+                          {/* Customizations dưới dạng badge */}
                           {detail.customizations && Array.isArray(detail.customizations) && (
-                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+                            <div className="flex flex-wrap gap-2 mt-1">
                               {detail.customizations.map((c: any, cIdx: number) => (
-                                <div key={cIdx} style={{ fontSize: '11px', backgroundColor: '#f3f4f6', padding: '2px 8px', borderRadius: '4px' }}>
-                                  <span style={{ color: '#6b7280' }}>{c.name}:</span> <strong style={{ color: '#111827' }}>{c.value}</strong>
-                                  {c.extraPrice > 0 ? ` (+${c.extraPrice.toLocaleString()}đ)` : ''}
+                                <div key={cIdx} className="inline-flex items-center rounded-lg bg-slate-50 px-2.5 py-1 text-xs text-slate-600 border border-slate-100">
+                                  <span>{c.name}:</span>
+                                  <strong className="ml-1 text-slate-900">{c.value}</strong>
+                                  {c.extraPrice > 0 ? <span className="ml-1 text-amber-600">(+{formatCurrency(c.extraPrice)})</span> : ''}
                                 </div>
                               ))}
                             </div>
@@ -237,93 +312,53 @@ export default function MyOrderDetailPage() {
                         </div>
                       ))}
                     </div>
-                  </div>
 
-                  {/* Tổng tiền & Nút hành động (Đánh giá hoặc Sửa/Xóa) */}
-                  <div style={{ textAlign: 'right', flexShrink: 0, display: 'flex', flexDirection: 'column', alignItems: 'flex-end', justifyContent: 'space-between' }}>
-                    <div style={{ fontWeight: 'bold', color: '#b45309', fontSize: '16px' }}>
-                      {group.totalAmount.toLocaleString()} đ
+                    {/* Các nút hành động (Được đẩy xuống dưới cùng, dạt sang phải) */}
+                    <div className="mt-auto flex justify-end gap-3 pt-2">
+                      {order.status === 'DELIVERED' && (
+                        existingReview ? (
+                          <>
+                            <button
+                              onClick={() => setReviewData({ isOpen: true, productId: group.productId, productName: group.productName, existingReview: existingReview })}
+                              className="rounded-xl border border-slate-300 bg-white px-5 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-50"
+                            >
+                              {tReview('btn_edit') || 'Edit Review'}
+                            </button>
+                            <button
+                              onClick={() => handleDeleteReview(existingReview.id, group.productId)}
+                              className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-2 text-sm font-semibold text-rose-600 shadow-sm transition-all hover:bg-rose-100"
+                            >
+                              {tReview('btn_delete') || 'Delete'}
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            onClick={() => setReviewData({ isOpen: true, productId: group.productId, productName: group.productName, existingReview: null })}
+                            className="rounded-xl bg-slate-900 px-6 py-2 text-sm font-bold text-white shadow-sm transition-all hover:bg-slate-800"
+                          >
+                            {tReview('btn_review') || 'Write Review'}
+                          </button>
+                        )
+                      )}
                     </div>
-                    
-                    {order.status === 'DELIVERED' && (
-                      existingReview ? (
-                        <div style={{ display: 'flex', gap: '6px', marginTop: '12px' }}>
-                          <button
-                            onClick={() => setReviewData({ 
-                              isOpen: true, 
-                              productId: group.productId, 
-                              productName: group.productName,
-                              existingReview: existingReview 
-                            })}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: '600',
-                              color: '#374151',
-                              backgroundColor: '#f3f4f6',
-                              border: '1px solid #d1d5db',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {tReview('btn_edit')}
-                          </button>
-                          <button
-                            onClick={() => handleDeleteReview(existingReview.id, group.productId)}
-                            style={{
-                              padding: '6px 12px',
-                              fontSize: '12px',
-                              fontWeight: '600',
-                              color: '#b91c1c',
-                              backgroundColor: '#fee2e2',
-                              border: '1px solid #fecaca',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                            }}
-                          >
-                            {tReview('btn_delete')}
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setReviewData({ 
-                            isOpen: true, 
-                            productId: group.productId, 
-                            productName: group.productName,
-                            existingReview: null 
-                          })}
-                          style={{
-                            padding: '8px 16px',
-                            fontSize: '13px',
-                            fontWeight: '600',
-                            color: '#2563eb',
-                            backgroundColor: '#eff6ff',
-                            border: '1px solid #bfdbfe',
-                            borderRadius: '8px',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          {tReview('btn_review')}
-                        </button>
-                      )
-                    )}
                   </div>
                 </div>
               );
             })}
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '16px' }}>
-            <span style={{ fontSize: '16px', fontWeight: '600', color: '#374151' }}>{t('total_amount')}</span>
-            <span style={{ fontSize: '24px', fontWeight: 'bold', color: '#b45309' }}>
-              {Number(order.totalAmount).toLocaleString()} đ
+          {/* Dòng Total dưới cùng */}
+          <div className="flex items-center justify-between bg-slate-50 p-6">
+            <span className="text-lg font-bold text-slate-700">Total:</span>
+            <span className="text-3xl font-bold text-slate-900">
+              {formatCurrency(order.totalAmount)}
             </span>
           </div>
         </div>
 
       </div>
 
-      {/* COMPONENT MODAL ĐÁNH GIÁ (DÙNG CHUNG CHO CẢ TẠO MỚI VÀ SỬA) */}
+      {/* COMPONENT MODAL ĐÁNH GIÁ */}
       {reviewData && (
         <ReviewModal
           isOpen={reviewData.isOpen}
@@ -333,7 +368,6 @@ export default function MyOrderDetailPage() {
           productName={reviewData.productName}
           existingReview={reviewData.existingReview}
           onSuccess={(savedReview) => {
-            // Cập nhật lại state bằng dữ liệu thật từ backend để tránh id giả hoặc ảnh sai trạng thái.
             const fallbackReview = reviewData.existingReview
               ? {
                   ...reviewData.existingReview,
@@ -342,10 +376,8 @@ export default function MyOrderDetailPage() {
                   images: savedReview?.images ?? reviewData.existingReview.images,
                 }
               : null;
-
             const nextReview = savedReview || fallbackReview;
             if (!nextReview) return;
-
             setReviewedMap(prev => ({
               ...prev,
               [reviewData.productId]: nextReview

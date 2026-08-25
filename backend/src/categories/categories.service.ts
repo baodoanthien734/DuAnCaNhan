@@ -123,6 +123,23 @@ export class CategoriesService implements OnModuleInit {
 
   async create(dto: CreateCategoryDto, file?: Express.Multer.File) {
     const data: any = { ...dto };
+
+    // --- ĐOẠN CODE BỔ SUNG: CHẶN TẠO CON NẾU CHA ĐANG CÓ SẢN PHẨM ---
+    if (data.parentId) {
+      const parentIdNum = Number(data.parentId);
+      const productCountInParent = await this.prisma.product.count({
+        where: { categoryId: parentIdNum },
+      });
+
+      if (productCountInParent > 0) {
+        throw new BadRequestException(
+          this.i18n.t('categories.error.parent_has_products', {
+            defaultValue: 'Không thể chọn danh mục này làm cha vì nó đang trực tiếp chứa sản phẩm.',
+          })
+        );
+      }
+    }
+    // -----------------------------------------------------------------
     
     if (!data.slug) {
       data.slug = await this.generateAutoSlug(data.name);
@@ -163,6 +180,23 @@ export class CategoriesService implements OnModuleInit {
   async update(id: number, dto: UpdateCategoryDto, file?: Express.Multer.File) {
     const existing = await this.findOne(id);
     const data: any = { ...dto };
+
+    // --- ĐOẠN CODE BỔ SUNG: CHẶN KHI ĐỔI SANG CHA MỚI ĐANG CÓ SẢN PHẨM ---
+    if (data.parentId && Number(data.parentId) !== existing.parentId) {
+      const parentIdNum = Number(data.parentId);
+      const productCountInParent = await this.prisma.product.count({
+        where: { categoryId: parentIdNum },
+      });
+
+      if (productCountInParent > 0) {
+        throw new BadRequestException(
+          this.i18n.t('categories.error.parent_has_products', {
+            defaultValue: 'Không thể di chuyển vào danh mục này vì nó đang trực tiếp chứa sản phẩm.',
+          })
+        );
+      }
+    }
+    // -----------------------------------------------------------------------
 
     // --- BẢO VỆ DANH MỤC HỆ THỐNG ---
     if (existing.isSystem) {
@@ -239,12 +273,53 @@ export class CategoriesService implements OnModuleInit {
   async remove(id: number) {
     const cat = await this.findOne(id);
 
-    // Chặn xóa danh mục hệ thống
-    if (cat.isSystem) {
+    if (cat.isSystem) { 
       throw new BadRequestException(this.i18n.t('categories.error.cannot_delete_system_category'));
     }
 
-    return this.prisma.category.update({ where: { id }, data: { isActive: false } });
+    //Lấy TOÀN BỘ danh mục (kể cả đã bị ẩn/xóa mềm) để đảm bảo không lọt đứa con nào
+    const allCategories = await this.prisma.category.findMany();
+
+    const getSubCategoryIds = (parentId: number): number[] => {
+      const children = allCategories.filter((c) => c.parentId === parentId);
+      const subIds = children.map((c) => c.id);
+      children.forEach((child) => {
+        subIds.push(...getSubCategoryIds(child.id));
+      });
+      return subIds;
+    };
+
+    const allIdsToCheck = [id, ...getSubCategoryIds(id)];
+
+    //Đếm MỌI SẢN PHẨM (không quan tâm status)
+    const productCount = await this.prisma.product.count({
+      where: {
+        categoryId: { in: allIdsToCheck },
+      },
+    });
+
+    // ==========================================
+    // CAMERA GIÁM SÁT: HÃY NHÌN VÀO TERMINAL CỦA NESTJS
+    // ==========================================
+    console.log('--- DEBUG XÓA DANH MỤC ---');
+    console.log(`1. ID đang yêu cầu xóa: ${id}`);
+    console.log(`2. Mảng ID con cháu tìm được:`, allIdsToCheck);
+    console.log(`3. Tổng số sản phẩm đếm được: ${productCount}`);
+    console.log('---------------------------');
+
+    if (productCount > 0) {
+      throw new BadRequestException(
+        this.i18n.t('categories.error.cannot_delete_has_products', {
+          args: { count: productCount },
+        })
+      );
+    }
+
+    // Nếu lọt qua được (productCount === 0), tiến hành xóa mềm toàn bộ cây
+    return this.prisma.category.updateMany({
+      where: { id: { in: allIdsToCheck } },
+      data: { isActive: false },
+    });
   }
 
   async reorder(updates: { id: number; position: number }[]) {
