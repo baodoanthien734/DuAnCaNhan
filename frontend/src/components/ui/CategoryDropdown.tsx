@@ -152,7 +152,7 @@ export default function CategoryDropdown() {
                     {rootCategories.find(r => r.id === activeRootId)?.name}
                   </h3>
                   <Link 
-                    href={`/categories/${rootCategories.find(r => r.id === activeRootId)?.slug}`}
+                    href={`/${rootCategories.find(r => r.id === activeRootId)?.slug}`}
                     onClick={() => setIsOpen(false)}
                     className="text-xs font-semibold text-amber-600 hover:text-amber-700 hover:underline"
                   >
@@ -172,7 +172,7 @@ export default function CategoryDropdown() {
                       return (
                         <Link 
                           key={sub.id} 
-                          href={`/categories/${sub.slug}`}
+                          href={`/${sub.slug}`}
                           onClick={() => setIsOpen(false)} // Bấm xong tự đóng menu
                           className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition no-underline group"
                         >

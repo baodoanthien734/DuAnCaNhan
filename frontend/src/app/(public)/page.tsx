@@ -73,7 +73,7 @@ export default async function Home() {
                 <h3 style={{ margin: 0, fontSize: '30px', color: '#111827', fontWeight: '800', letterSpacing: '-0.02em' }}>
                   {rootCat.name}
                 </h3>
-                <Link href={`/categories/${rootCat.slug}`} style={{ color: '#d97706', fontWeight: '600', textDecoration: 'none', fontSize: '15px' }} className="hover:underline">
+                <Link href={`/${rootCat.slug}`} style={{ color: '#d97706', fontWeight: '600', textDecoration: 'none', fontSize: '15px' }} className="hover:underline">
                   {t('categories.viewAll')}
                 </Link>
               </div>

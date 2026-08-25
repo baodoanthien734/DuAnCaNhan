@@ -114,7 +114,7 @@ export default function FeaturedProducts({ categories, products, dict }: Feature
       {activeCategory && filteredProducts.length > 0 && (
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
           <Link 
-            href={`/categories/${activeCategory.slug}`}
+            href={`/${activeCategory.slug}`}
             style={{
               display: 'inline-block',
               padding: '12px 24px',
