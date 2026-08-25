@@ -7,7 +7,7 @@ import { resolveImageUrl } from '@/lib/utils';
 
 interface Props {
   initial?: Category | null;
-  defaultParentId?: number | null; // <--- KHAI BÁO PROP MỚI
+  defaultParentId?: number | null;
   onSaved?: (cat: Category) => void;
   onCancel?: () => void;
 }
@@ -21,18 +21,19 @@ const CascadingCategorySelect = ({
   categories,
   value,
   onChange,
-  placeholder = "-- None --"
+  placeholder = "-- None --",
+  emptyText = "Trống"
 }: {
   categories: Category[];
   value: number | '';
   onChange: (val: number | '') => void;
   placeholder?: string;
+  emptyText?: string;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [activePath, setActivePath] = useState<number[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // 1. Phẳng hóa thành Cây (Tree) 
   const roots = useMemo(() => {
     const map: Record<number, CategoryTreeNode> = {};
     categories.forEach((cat) => (map[cat.id] = { ...cat, children: [] }));
@@ -50,7 +51,6 @@ const CascadingCategorySelect = ({
     return treeRoots;
   }, [categories]);
 
-  // 2. TỰ ĐỘNG TRUY TÌM CHUỖI ÔNG-BÀ-CHA-CON TỪ ID ĐANG CHỌN
   const getAncestorPath = (targetId: number | ''): number[] => {
     if (!targetId) return [];
     const path: number[] = [];
@@ -72,7 +72,6 @@ const CascadingCategorySelect = ({
     setIsOpen(!isOpen);
   };
 
-  // 3. Tính toán các cột cần hiển thị
   const columns: CategoryTreeNode[][] = [roots];
   let currentList = roots;
   
@@ -87,7 +86,6 @@ const CascadingCategorySelect = ({
     }
   }
 
-  // 4. Xử lý click ra ngoài
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -113,7 +111,7 @@ const CascadingCategorySelect = ({
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          color: selectedCategory ? '#111827' : '#6b7280'
+          color: selectedCategory ? '#111827' : '#9ca3af'
         }}
       >
         <span>{selectedCategory ? selectedCategory.name : placeholder}</span>
@@ -158,7 +156,7 @@ const CascadingCategorySelect = ({
               )}
 
               {col.length === 0 && colIndex === 0 ? (
-                <div style={{ padding: '10px 16px', color: '#9ca3af' }}>Trống</div>
+                <div style={{ padding: '10px 16px', color: '#9ca3af' }}>{emptyText}</div>
               ) : (
                 col.map(node => {
                   const hasChildren = node.children.length > 0;
@@ -209,7 +207,6 @@ export default function CategoryForm({ initial = null, defaultParentId = null, o
   const [name, setName] = useState(initial?.name || '');
   const [slug, setSlug] = useState(initial?.slug || '');
   
-  // SỬ LÝ LOGIC ƯU TIÊN ID CHA: Edit > defaultParentId (Tạo con) > Trống
   const [parentId, setParentId] = useState<number | ''>(
     initial?.parentId ?? defaultParentId ?? ''
   );
@@ -305,51 +302,53 @@ export default function CategoryForm({ initial = null, defaultParentId = null, o
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 16, marginTop: 12 }}>
+    <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20, marginTop: 12 }}>
       {error && <div style={{ color: '#b91c1c', backgroundColor: '#fee2e2', padding: '12px', borderRadius: 8 }}>{error}</div>}
 
+      {/* Parent Category */}
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('form.parentLabel')}</label>
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{t('form.parentLabel')}</label>
         <CascadingCategorySelect 
           categories={parents}
           value={parentId}
           onChange={(val) => setParentId(val)}
-          placeholder={t('form.noneOption')}
+          placeholder={t('form.parentPlaceholder')}
+          emptyText={t('form.empty')} 
         />
       </div>
 
+      {/* Name */}
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('form.nameLabel')}</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', outline: 'none' }} />
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{t('form.nameLabel')} <span style={{color: '#ef4444'}}>*</span></label>
+        <input 
+          value={name} 
+          onChange={(e) => setName(e.target.value)} 
+          placeholder={t('form.namePlaceholder')}
+          style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', outline: 'none' }} 
+        />
       </div>
 
+      {/* Slug */}
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('form.slugLabel')}</label>
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{t('form.slugLabel')}</label>
         <input 
           value={slug} 
           onChange={(e) => setSlug(e.target.value)} 
+          placeholder={t('form.slugPlaceholder')}
           style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', outline: 'none' }} 
         />
-        <small style={{ color: '#6b7280' }}>
-          {t('form.slugHelp')}
-        </small>
       </div>
 
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-        <input id="isActive" type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} style={{ width: 16, height: 16 }} />
-        <label htmlFor="isActive" style={{ fontWeight: 500, color: '#374151' }}>{t('form.activeLabel')}</label>
-      </div>
-
+      {/* Custom Image Upload */}
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('form.imageLabel')}</label>
-        
-        <div style={{ display: 'flex', gap: 12, alignItems: 'start', flexWrap: 'wrap' }}>
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{t('form.imageLabel')}</label>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
           {previewUrl && (
             <div style={{ position: 'relative' }}>
               <img 
                 src={previewUrl} 
                 alt="Preview" 
-                style={{ width: '120px', height: '120px', borderRadius: 8, objectFit: 'cover', border: '1px solid #e5e7eb' }} 
+                style={{ width: '100px', height: '100px', borderRadius: 8, objectFit: 'cover', border: '1px solid #e5e7eb' }} 
               />
               <button 
                 type="button" 
@@ -361,30 +360,69 @@ export default function CategoryForm({ initial = null, defaultParentId = null, o
             </div>
           )}
           
-          <input 
-            id="category-image"
-            type="file" 
-            accept="image/*" 
-            onChange={handleFileChange} 
-            style={{ 
-              padding: '10px 14px', border: '1px dashed #d1d5db', borderRadius: 8, background: '#f9fafb', width: '100%',
-              display: previewUrl ? 'none' : 'block' 
-            }} 
-          />
+          <div style={{ display: previewUrl ? 'none' : 'flex', alignItems: 'center', gap: '12px' }}>
+            <label style={{
+              padding: '8px 16px',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #d1d5db',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              color: '#374151',
+              fontSize: '14px',
+              fontWeight: 500,
+              transition: 'background-color 0.2s'
+            }}
+            onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e5e7eb'}
+            onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+            >
+              {t('form.chooseFileButton')}
+              <input 
+                id="category-image"
+                type="file" 
+                accept="image/*" 
+                onChange={handleFileChange} 
+                style={{ display: 'none' }} 
+              />
+            </label>
+            <span style={{ fontSize: '14px', color: '#6b7280' }}>
+              {imageFile ? imageFile.name : t('form.noFileChosen')}
+            </span>
+          </div>
         </div>
-        <small style={{ color: '#6b7280' }}>{t('form.imageHelp')}</small>
+      </div>
+
+      {/* Active Checkbox */}
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 8 }}>
+        <input id="isActive" type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} style={{ width: 16, height: 16, cursor: 'pointer' }} />
+        <label htmlFor="isActive" style={{ fontWeight: 600, color: '#374151', cursor: 'pointer', fontSize: 13 }}>{t('form.activeLabel')}</label>
+      </div>
+
+      <hr style={{ borderColor: '#e5e7eb', margin: '10px 0' }} />
+
+      {/* SEO Section */}
+      <h3 style={{ fontSize: 15, fontWeight: 600, color: '#111827', margin: 0 }}>SEO Settings</h3>
+      
+      <div style={{ display: 'grid', gap: 6 }}>
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{t('form.metaTitleLabel')}</label>
+        <input 
+          value={metaTitle} 
+          onChange={(e) => setMetaTitle(e.target.value)} 
+          placeholder={t('form.metaTitlePlaceholder')}
+          style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', outline: 'none' }} 
+        />
       </div>
 
       <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('form.metaTitleLabel')}</label>
-        <input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', outline: 'none' }} />
+        <label style={{ fontSize: 13, color: '#374151', fontWeight: 600 }}>{t('form.metaDescriptionLabel')}</label>
+        <textarea 
+          value={metaDesc} 
+          onChange={(e) => setMetaDesc(e.target.value)} 
+          placeholder={t('form.metaDescriptionPlaceholder')}
+          style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', outline: 'none', minHeight: 80, fontFamily: 'inherit' }} 
+        />
       </div>
 
-      <div style={{ display: 'grid', gap: 6 }}>
-        <label style={{ fontSize: 13, color: '#374151', fontWeight: 500 }}>{t('form.metaDescriptionLabel')}</label>
-        <textarea value={metaDesc} onChange={(e) => setMetaDesc(e.target.value)} style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #d1d5db', outline: 'none', minHeight: 80 }} />
-      </div>
-
+      {/* Actions */}
       <div style={{ display: 'flex', gap: 12, marginTop: 12, paddingTop: 16, borderTop: '1px solid #e5e7eb' }}>
         <button type="submit" disabled={submitting} style={{ padding: '10px 24px', backgroundColor: '#4592b6', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, cursor: submitting ? 'not-allowed' : 'pointer', opacity: submitting ? 0.7 : 1 }}>
           {submitting ? t('form.saving') : t('form.saveButton')}

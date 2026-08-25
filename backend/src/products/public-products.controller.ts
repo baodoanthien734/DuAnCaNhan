@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { ProductsService } from './services/products.service';
 
-@Controller('products') // Route sẽ là /products
+@Controller('products') 
 export class PublicProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
@@ -15,7 +15,7 @@ export class PublicProductsController {
     return this.productsService.findAllPublic({ q, categoryId, skip: skip ? Number(skip) : undefined, take: take ? Number(take) : undefined });
   }
 
-  @Get(':slug') // Dùng slug thay vì ID để chuẩn SEO e-commerce
+  @Get(':slug') 
   async findOneBySlug(@Param('slug') slug: string) {
     return this.productsService.findOneBySlug(slug);
   }

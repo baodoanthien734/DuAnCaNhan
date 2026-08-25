@@ -1,3 +1,17 @@
+/**
+ * @fileoverview Service xử lý toàn bộ logic xác thực người dùng bao gồm:
+ * - Gửi và xác thực OTP qua email
+ * - Đăng ký tài khoản mới với role mặc định
+ * - Đăng nhập với JWT Access Token và Refresh Token
+ * - Làm mới token khi hết hạn
+ * - Đăng xuất và thu hồi token
+ * 
+ * Module này sử dụng bcrypt để hash password/refresh token, JWT Service để tạo token,
+ * và Mail Service để gửi OTP. Thời gian expiry của refresh token khác nhau tùy theo role:
+ * - Admin: 8 phút
+ * - User thường: 10 phút
+ * - Access token: 5 phút (cho tất cả)
+ */
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { I18nService } from 'nestjs-i18n';

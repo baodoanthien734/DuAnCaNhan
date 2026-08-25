@@ -1,3 +1,22 @@
+/**
+ * @fileoverview Service quản lý đơn hàng với Optimistic Locking và Transaction Safety
+ * 
+ * Chức năng chính:
+ * - Checkout: Tạo đơn hàng từ giỏ hàng với trừ tồn kho an toàn
+ * - Order management: Xem danh sách, chi tiết đơn hàng
+ * - Cancel: Khách hủy đơn và hoàn kho
+ * - Admin: Quản lý tất cả đơn hàng, cập nhật trạng thái, trạng thái thanh toán
+ * 
+ * Optimistic Locking:
+ * - Sử dụng field "version" trong ProductVariant
+ * - Kiểm tra version khớp trước khi trừ kho
+ * - Increment version sau khi trừ thành công
+ * - Nếu updateMany.count === 0 → Có người khác đã chỉnh sửa → Rollback transaction
+ * 
+ * Payment Auto-trigger:
+ * - Đơn COD + Status → DELIVERED: Auto set paymentStatus = PAID
+ * - Status → CANCELLED: Auto set paymentStatus = UNPAID (nếu đang là PAID)
+ */
 import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
@@ -66,10 +85,7 @@ export class OrdersService {
     // 3. Thực thi Giao dịch Database (Transaction)
     try {
       const order = await this.prisma.$transaction(async (tx) => {
-        
-        // =================================================================
-        // BƯỚC 3.1: TRỪ KHO VỚI OPTIMISTIC LOCKING
-        // =================================================================
+        // 3.1. Trừ tồn kho với Optimistic Locking
         for (const item of cart.items) {
           if (!item.variantId || !item.variant) {
              throw new BadRequestException(`Sản phẩm ${item.product.name} thiếu thông tin biến thể.`);
@@ -129,11 +145,11 @@ export class OrdersService {
       };
     } catch (error) {
       this.logger.error('Lỗi khi đặt hàng:', error);
-      // Nếu lỗi là BadRequestException (tức là lỗi kho ta chủ động ném ra ở trên), ta ném nó ra ngoài luôn để Frontend hiển thị chữ
+
       if (error instanceof BadRequestException) {
         throw error; 
       }
-      // Các lỗi khác của Database thì vứt ra lỗi chung
+
       throw new BadRequestException('Không thể xử lý đơn hàng lúc này.');
     }
   }
@@ -262,8 +278,6 @@ export class OrdersService {
             data: { stock: { increment: item.quantity } }
           });
         }
-        // Ghi chú: Nếu hệ thống của bạn có lưu stock ở bảng Product (dành cho sản phẩm không có biến thể), 
-        // bạn cần viết thêm logic hoàn kho ở đây.
       }
 
       return {
@@ -356,7 +370,6 @@ export class OrdersService {
 
     // LUẬT 1: Đã HỦY thì không thể hồi sinh
     if (order.status === 'CANCELLED') {
-      // ĐÃ CẤU HÌNH i18n
       throw new BadRequestException(this.i18n.t('order.error.cannot_change_cancelled_status'));
     }
 
@@ -426,7 +439,6 @@ export class OrdersService {
 
     return { 
       success: true, 
-      // ĐÃ CẤU HÌNH i18n
       message: this.i18n.t('order.success.payment_status_updated') 
     };
   }

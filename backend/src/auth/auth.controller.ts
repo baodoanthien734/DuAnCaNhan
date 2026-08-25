@@ -49,7 +49,6 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  // 🔒 Route cần Login (Bảo vệ bằng JWT)
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
@@ -57,14 +56,12 @@ export class AuthController {
     return this.authService.logout(req.user.id);
   }
 
-  // 🔒 Route lấy thông tin cá nhân
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getProfile(@Req() req: any) {
     return req.user;
   }
 
-  // 🔒 Route chỉ dành riêng cho ADMIN (Kiểm tra RBAC)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('ADMIN')
   @Get('admin-only')
@@ -72,7 +69,6 @@ export class AuthController {
     return { message: this.i18n.t('auth.success.admin_welcome') };
   }
 
-  // 🔄 Route Refresh Token
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refreshTokens(@Body() body: { userId: number; refreshToken: string }) {

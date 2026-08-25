@@ -1,7 +1,7 @@
 import { Controller, Get, Param } from '@nestjs/common';
 import { CategoriesService } from './categories.service';
 
-@Controller('categories') // Route sẽ là /categories (không có chữ admin)
+@Controller('categories') 
 export class PublicCategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
 

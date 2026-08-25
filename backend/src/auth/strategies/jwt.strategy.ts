@@ -27,7 +27,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       throw new UnauthorizedException(this.i18n.t('auth.error.account_not_found_or_locked'));
     }
 
-    // Trả về object req.user cho các Controller sử dụng
     return {
       id: user.id,
       email: user.email,

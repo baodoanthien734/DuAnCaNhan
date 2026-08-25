@@ -14,17 +14,17 @@ export class CreateCategoryDto {
   description?: string;
 
   @IsOptional()
-  @Type(() => Number) // Ép chuỗi thành số nguyên
+  @Type(() => Number) 
   @IsInt()
   parentId?: number;
 
   @IsOptional()
-  @Transform(({ value }) => value === 'true' || value === true || value === 1 || value === '1') // Ép chuỗi 'true' thành boolean
+  @Transform(({ value }) => value === 'true' || value === true || value === 1 || value === '1') 
   @IsBoolean()
   isActive?: boolean;
 
   @IsOptional()
-  @Type(() => Number) // Ép chuỗi thành số nguyên
+  @Type(() => Number) 
   @IsInt()
   position?: number;
 

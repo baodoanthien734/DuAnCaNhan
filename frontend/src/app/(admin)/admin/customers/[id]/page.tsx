@@ -261,7 +261,7 @@ export default function AdminCustomerDetailPage() {
     return (
       <div className="w-full max-w-7xl mx-auto p-6">
         <Link href="/admin/customers" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition">
-          <span>←</span> {t('detail.back')}
+          <span></span> {t('detail.back')}
         </Link>
         <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm">
           {t('detail.not_found')}
@@ -277,7 +277,7 @@ export default function AdminCustomerDetailPage() {
       
       <div className="flex items-center justify-between">
         <Link href="/admin/customers" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition">
-          <span>←</span> {t('detail.back')}
+          <span></span> {t('detail.back')}
         </Link>
       </div>
 

@@ -1,3 +1,20 @@
+/**
+ * @fileoverview Service quản lý giỏ hàng với hỗ trợ tùy chọn cá nhân hóa
+ * 
+ * Chức năng chính:
+ * - Tự động tạo cart cho user chưa có
+ * - Thêm item vào cart với merge logic dựa trên customizations
+ * - Cập nhật số lượng item
+ * - Xóa item khỏi cart
+ * - Validate guest cart (refresh thông tin tồn kho từ DB)
+ * 
+ * Merge Logic:
+ * - Cùng productId + variantId + customizations (JSON so sánh) → Cộng dồn quantity
+ * - Khác biệt → Tạo item mới
+ * 
+ * Customizations Structure:
+ * JSON array: [{"name": "Tên thêu", "value": "Anya", "price": 0}, ...]
+ */
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { I18nService } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
@@ -38,7 +55,6 @@ export class CartService {
               select: { id: true, name: true, slug: true, basePrice: true, images: true, status: true },
             },
             variant: {
-              // BỔ SUNG `version: true` Ở ĐÂY ĐỂ LÀM OPTIMISTIC LOCKING
               select: { id: true, name: true, price: true, image: true, stock: true, version: true },
             },
           },

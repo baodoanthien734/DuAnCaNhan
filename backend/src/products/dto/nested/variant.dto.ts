@@ -18,7 +18,7 @@ export class CreateVariantDto {
   stock?: number;
 
   @IsOptional()
-  @IsString() // Có thể đổi thành @IsUrl() nếu bạn muốn validate URL ảnh chặt chẽ hơn
+  @IsString() 
   image?: string;
 
   @IsOptional()

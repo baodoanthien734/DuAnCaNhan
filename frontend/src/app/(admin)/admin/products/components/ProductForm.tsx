@@ -112,7 +112,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   const [leafCategories, setLeafCategories] = useState<{id: number, name: string, path: string}[]>([]);
   
   const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [isDragging, setIsDragging] = useState(false); // State cho Drag & Drop
+  const [isDragging, setIsDragging] = useState(false);
   const [uploadingVariantIndex, setUploadingVariantIndex] = useState<number | null>(null);
   
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -216,7 +216,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
     }).catch(console.error);
   }, [initialData, setValue]);
 
-  // --- LOGIC XỬ LÝ NHIỀU ẢNH (MULTI-UPLOAD & DRAG-DROP) ---
+  // --- LOGIC XỬ LÝ NHIỀU ẢNH ---
   const processImageFiles = async (files: File[]) => {
     const currentCount = imagesWatch.length;
     const slotsLeft = 5 - currentCount;
@@ -225,7 +225,6 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
     let filesToProcess = files.filter(f => f.type.startsWith('image/'));
     
-    // Đánh chặn nếu vượt quá slot
     if (filesToProcess.length > slotsLeft) {
       filesToProcess = filesToProcess.slice(0, slotsLeft);
       await modal.alert(t("form.imageLimitExceeded"));
@@ -235,16 +234,13 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
     setIsUploadingImage(true);
     try {
-      // 1. Tạo Preview tức thời bằng Blob URL (Nhanh, không treo UI)
       const newPreviews = filesToProcess.map(file => URL.createObjectURL(file));
       setImagePreviews(current => [...current, ...newPreviews]);
 
-      // 2. Upload song song (Concurrency) tất cả các ảnh hợp lệ lên tmp
       const uploadPromises = filesToProcess.map(file => uploadProductImage(file));
       const results = await Promise.all(uploadPromises);
       const newUrls = results.map(res => res.url);
 
-      // 3. Cập nhật mảng vào Form
       setValue("images", [...imagesWatch, ...newUrls], { shouldValidate: true, shouldDirty: true });
     } catch (error) {
       console.error("Lỗi upload ảnh:", error);
@@ -257,7 +253,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       await processImageFiles(Array.from(e.target.files));
-      e.target.value = ''; // Reset input để cho phép chọn lại cùng 1 file nếu cần
+      e.target.value = '';
     }
   };
 
@@ -285,7 +281,6 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
       await deleteTempProductImage(urlToRemove);
     }
 
-    // Dọn rác Blob trong RAM nếu ảnh đang dùng Blob Preview
     const previewUrl = imagePreviews[indexToRemove];
     if (previewUrl && previewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(previewUrl);
@@ -303,11 +298,11 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
     setUploadingVariantIndex(index);
     try {
-      const previewUrl = URL.createObjectURL(file); // Đổi sang Blob Preview
+      const previewUrl = URL.createObjectURL(file);
       
       setVariantImagePreviews((current) => {
         if (current[index] && current[index].startsWith('blob:')) {
-          URL.revokeObjectURL(current[index]); // Dọn rác Blob cũ
+          URL.revokeObjectURL(current[index]);
         }
         return { ...current, [index]: previewUrl };
       });
@@ -383,7 +378,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
 
         <div className="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
           
-          {/* CỘT TRÁI (Nội dung chính: Thông tin, Variants, Customizations) */}
+          {/* CỘT TRÁI */}
           <div className="lg:col-span-2 space-y-8">
             
             {/* SECTION: THÔNG TIN CƠ BẢN */}
@@ -404,11 +399,8 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                   <input
                     {...register("slug")}
                     className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
-                    placeholder="vd: ly-su-capybara"
+                    placeholder={t("form.slugPlaceholder")}
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    {t("form.slugHelp")}
-                  </p>
                 </div>
 
                 <div>
@@ -446,7 +438,11 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                       <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-xs font-medium text-gray-600">{t("form.variantNameLabel")}</label>
-                        <input {...register(`variants.${index}.name` as const, { required: true })} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" />
+                        <input 
+                          {...register(`variants.${index}.name` as const, { required: true })} 
+                          placeholder={t("form.variantNamePlaceholder")}
+                          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" 
+                        />
                       </div>
                       <div>
                         <label className="text-xs font-medium text-gray-600">
@@ -457,13 +453,15 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                           placeholder={t("form.variantSkuPlaceholder")} 
                           className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" 
                         />
-                        <p className="text-[10px] text-gray-400 mt-0.5">
-                          {t("form.variantSkuHint")}
-                        </p>
                       </div>
                       <div>
                         <label className="text-xs font-medium text-gray-600">{t("form.variantPriceLabel")}</label>
-                        <input type="number" {...register(`variants.${index}.price` as const, { valueAsNumber: true })} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" />
+                        <input 
+                          type="number" 
+                          {...register(`variants.${index}.price` as const, { valueAsNumber: true })} 
+                          placeholder={t("form.variantPricePlaceholder")}
+                          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" 
+                        />
                         {variantPriceErrorMap[index] && (
                           <p className="text-xs text-red-600 mt-1">
                             {t("form.variantPriceMinBaseError", { basePrice: basePriceWatch })}
@@ -472,7 +470,12 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                       </div>
                       <div>
                         <label className="text-xs font-medium text-gray-600">{t("form.variantStockLabel")}</label>
-                        <input type="number" {...register(`variants.${index}.stock` as const, { valueAsNumber: true })} className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" />
+                        <input 
+                          type="number" 
+                          {...register(`variants.${index}.stock` as const, { valueAsNumber: true })} 
+                          placeholder={t("form.variantStockPlaceholder")}
+                          className="w-full p-2 border rounded focus:ring-2 focus:ring-blue-500 text-sm mt-1" 
+                        />
                       </div>
                       </div>
 
@@ -567,7 +570,11 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                       <div className="flex gap-4">
                         <div className="flex-1">
                           <label className="text-xs font-medium text-gray-600 mb-1 block">{t("form.customizationNameLabel")}</label>
-                          <input {...register(`customizations.${index}.name` as const, { required: true })} className="w-full p-2 border border-purple-200 rounded focus:ring-2 focus:ring-purple-500 text-sm" />
+                          <input 
+                            {...register(`customizations.${index}.name` as const, { required: true })} 
+                            placeholder={t("form.customizationNamePlaceholder")}
+                            className="w-full p-2 border border-purple-200 rounded focus:ring-2 focus:ring-purple-500 text-sm" 
+                          />
                         </div>
                         <div className="w-40">
                           <label className="text-xs font-medium text-gray-600 mb-1 block">{t("form.customizationTypeLabel")}</label>
@@ -602,13 +609,13 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                           </div>
                           <div className="flex-1">
                             <label className="text-xs font-medium text-gray-600 mb-1 block">
-                              Phụ phí thêu/khắc (VNĐ)
+                              {t("form.customizationExtraPriceLabel")}
                             </label>
                             <input 
                               type="number" 
                               {...register(`customizations.${index}.extraPrice` as const, { valueAsNumber: true })} 
                               className="w-full p-2 border border-purple-200 rounded focus:ring-2 focus:ring-purple-500 text-sm" 
-                              placeholder="Ví dụ: 15000" 
+                              placeholder={t("form.customizationExtraPricePlaceholder")} 
                             />
                           </div>
                         </div>
@@ -629,7 +636,7 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
             </div>
           </div>
 
-          {/* CỘT PHẢI (Sidebar: Giá gốc, Cài đặt đăng bán, Hình ảnh) */}
+          {/* CỘT PHẢI (Sidebar) */}
           <div className="space-y-8">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h2 className="text-sm font-bold text-gray-800 mb-4 uppercase tracking-wider">{t("form.salesSetupTitle")}</h2>
@@ -637,10 +644,10 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
               <div className="space-y-5">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">{t("form.basePriceLabel")} <span className="text-red-500">*</span></label>
-                  <p className="text-xs text-gray-400 mb-2">{t("form.basePriceHint")}</p>
                   <input
                     type="number"
                     {...register("basePrice", { valueAsNumber: true })}
+                    placeholder={t("form.basePricePlaceholder")}
                     className="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none font-medium text-lg"
                   />
                 </div>

@@ -11,7 +11,6 @@ export class CartController {
 
   @Get()
   async getCart(@Req() req: any) {
-    // Lấy userId từ JWT token đã được giải mã
     const userId = Number(req.user.id || req.user.sub);
     return this.cartService.getCart(userId);
   }
