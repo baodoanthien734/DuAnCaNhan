@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { showGlobalAlert } from './modal-bridge';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'; // Mặc định trỏ về backend NestJS
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'; 
 const REFRESH_ENDPOINT = '/auth/refresh';
 
 export const apiClient = axios.create({
@@ -72,7 +72,6 @@ const handleUnauthorizedExit = async () => {
   try {
     await showGlobalAlert(UNAUTHORIZED_MESSAGE);
   } finally {
-    // Dự án hiện tại dùng landing page làm điểm vào auth modal thay vì route /login riêng.
     window.location.replace('/');
   }
 };
@@ -88,6 +87,17 @@ apiClient.interceptors.response.use(
 
     if (error.response.status === 401) {
       const requestUrl = typeof originalRequest.url === 'string' ? originalRequest.url : 'unknown_url';
+
+      // 🔥 DANH SÁCH MIỄN TRỪ (BYPASS URLS) 🔥
+      // Các API này nếu trả 401 thì ném lỗi thẳng ra Component/Form để hiển thị text (VD: Sai mật khẩu, OTP hết hạn)
+      const bypassUrls = ['/auth/login', '/auth/register', '/auth/send-otp', '/auth/verify-otp'];
+      const isAuthApi = bypassUrls.some(url => requestUrl.includes(url));
+      
+      if (isAuthApi) {
+        console.log(`[AXIOS] Bỏ qua 401 cho API Auth: ${requestUrl}. Trả quyền báo lỗi cho Form.`);
+        return Promise.reject(error); 
+      }
+
       console.log(`🚨 [AXIOS] Phát hiện lỗi 401 từ URL: ${requestUrl}`);
 
       if ((originalRequest as any)._retry) {
@@ -96,7 +106,6 @@ apiClient.interceptors.response.use(
         return Promise.reject(error);
       }
 
-      // Nếu chính request refresh bị 401 -> refresh token đã chết hoặc account bị khóa.
       if (isRefreshEndpoint(requestUrl)) {
         console.log("💀 [AXIOS] Bản thân API Refresh cũng bị từ chối (401). Refresh token đã chết hoặc tài khoản bị khóa!");
         await handleUnauthorizedExit();
@@ -118,14 +127,12 @@ apiClient.interceptors.response.use(
         }
       }
 
-      // Không có nguyên liệu để refresh thì buộc kết thúc phiên.
       if (!refreshToken || !userId) {
         console.log("🛑 [AXIOS] Không tìm thấy Refresh Token hoặc User ID. Ép đăng xuất!");
         await handleUnauthorizedExit();
         return Promise.reject(error);
       }
 
-      // Khi refresh đang chạy, request mới sẽ đợi token mới rồi retry.
       if (isRefreshing) {
         console.log(`⏳ [AXIOS] Một tiến trình refresh đang chạy, đưa request tới ${requestUrl} vào hàng đợi...`);
         return new Promise((resolve, reject) => {
@@ -165,9 +172,9 @@ apiClient.interceptors.response.use(
           throw new Error('No access token returned from refresh endpoint');
         }
 
-        Cookies.set('accessToken', newAccessToken);
+        Cookies.set('accessToken', newAccessToken, { path: '/', sameSite: 'lax' });
         if (newRefreshToken) {
-          Cookies.set('refreshToken', newRefreshToken);
+          Cookies.set('refreshToken', newRefreshToken, { path: '/', sameSite: 'lax' });
         }
 
         console.log("✅ [AXIOS] Xin Token mới thành công! Đang giải phóng hàng đợi và chạy lại request cũ...");
@@ -184,13 +191,11 @@ apiClient.interceptors.response.use(
         console.log(`❌ [AXIOS] Nỗ lực Refresh Token thất bại (status: ${refreshStatus ?? 'unknown'}). Buộc đăng xuất!`);
         onRefreshed(null);
 
-        // Với các mã auth quan trọng (401/403/404), luôn dọn session ngay lập tức.
         if ([401, 403, 404].includes(Number(refreshStatus))) {
           await handleUnauthorizedExit();
           return Promise.reject(refreshError);
         }
 
-        // Trường hợp lỗi khác cũng kết thúc phiên để tránh trạng thái nửa đăng nhập.
         await handleUnauthorizedExit();
         return Promise.reject(refreshError);
       } finally {

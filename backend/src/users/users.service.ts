@@ -93,6 +93,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         addresses: {
+          where: { isDeleted: false }, // THÊM DÒNG NÀY: Ẩn địa chỉ đã xóa
           orderBy: [{ isDefault: 'desc' }, { id: 'desc' }],
         },
       },
@@ -191,7 +192,10 @@ export class UsersService {
     await this.ensureUserExists(userId);
 
     return this.prisma.address.findMany({
-      where: { userId },
+      where: { 
+        userId, 
+        isDeleted: false // THÊM DÒNG NÀY: Ẩn địa chỉ đã xóa
+      },
       orderBy: [{ isDefault: 'desc' }, { id: 'desc' }],
     });
   }
@@ -202,7 +206,8 @@ export class UsersService {
     const createdAddress = await this.prisma.$transaction(async (tx) => {
       if (dto.isDefault) {
         await tx.address.updateMany({
-          where: { userId, isDefault: true },
+          // Chỉ tắt isDefault của những địa chỉ đang active
+          where: { userId, isDefault: true, isDeleted: false }, 
           data: { isDefault: false },
         });
       }
@@ -214,7 +219,7 @@ export class UsersService {
           phone: dto.phone,
           street: dto.street,
           ward: dto.ward,
-          district: dto.district,
+          // BỎ district: dto.district ở đây
           city: dto.city,
           isDefault: dto.isDefault ?? false,
         },
@@ -229,7 +234,10 @@ export class UsersService {
   }
 
   async removeAddress(userId: number, addressId: number) {
-    const address = await this.prisma.address.findUnique({ where: { id: addressId } });
+    // Thêm điều kiện isDeleted: false để tránh xóa lại địa chỉ đã xóa
+    const address = await this.prisma.address.findUnique({ 
+      where: { id: addressId, isDeleted: false } 
+    });
 
     if (!address) {
       throw new NotFoundException(this.i18n.t('user.error.address_not_found'));
@@ -239,7 +247,11 @@ export class UsersService {
       throw new ForbiddenException(this.i18n.t('user.error.address_forbidden'));
     }
 
-    await this.prisma.address.delete({ where: { id: addressId } });
+    // THAY ĐỔI TỪ DELETE SANG UPDATE (XÓA MỀM)
+    await this.prisma.address.update({ 
+      where: { id: addressId },
+      data: { isDeleted: true, isDefault: false } // Sẵn tiện tắt isDefault đi
+    });
 
     return {
       success: true,
@@ -248,7 +260,10 @@ export class UsersService {
   }
 
   async setDefaultAddress(userId: number, addressId: number) {
-    const address = await this.prisma.address.findUnique({ where: { id: addressId } });
+    // Chỉ set default cho những địa chỉ chưa bị xóa
+    const address = await this.prisma.address.findUnique({ 
+      where: { id: addressId, isDeleted: false } 
+    });
 
     if (!address) {
       throw new NotFoundException(this.i18n.t('user.error.address_not_found'));
@@ -260,7 +275,7 @@ export class UsersService {
 
     const updatedAddress = await this.prisma.$transaction(async (tx) => {
       await tx.address.updateMany({
-        where: { userId, isDefault: true },
+        where: { userId, isDefault: true, isDeleted: false },
         data: { isDefault: false },
       });
 

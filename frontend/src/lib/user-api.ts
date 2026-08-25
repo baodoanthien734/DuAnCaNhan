@@ -11,7 +11,6 @@ export type AddressPayload = {
   phone: string;
   street: string;
   ward: string;
-  district: string;
   city: string;
   isDefault?: boolean;
 };

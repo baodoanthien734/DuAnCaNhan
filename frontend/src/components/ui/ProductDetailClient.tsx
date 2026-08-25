@@ -206,6 +206,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       // BẮN SỰ KIỆN MỞ GIỎ HÀNG RA TOÀN CỤC
       // ==========================================
       window.dispatchEvent(new CustomEvent('open-cart'));
+      window.dispatchEvent(new CustomEvent('cart-updated'));
 
     } catch (error: any) {
       setMessage({ type: 'error', text: error.response?.data?.message || tCart('error_add') });
@@ -297,6 +298,17 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                 <div className="relative">
                   <select
                     value={selectedVariant?.id || ""}
+                    
+                    onClick={() => {
+                      if (selectedVariant && selectedVariant.image) {
+                        const targetImage = resolveImageUrl(selectedVariant.image);
+                        const targetIndex = allImages.findIndex((image) => image === targetImage);
+                        if (targetIndex !== -1 && currentIndex !== targetIndex) {
+                          setCurrentIndex(targetIndex);
+                        }
+                      }
+                    }}
+
                     onChange={(e) => {
                       const variantId = parseInt(e.target.value);
                       const variant = product.variants?.find((v) => v.id === variantId);
@@ -353,6 +365,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                           type="text"
                           maxLength={customization.maxLength || 50}
                           placeholder="..."
+                          value={customValues.find((v) => v.name === customization.name)?.value || ''}
                           onChange={(event) => handleCustomChange(customization.name, event.target.value, Number(customization.extraPrice || 0))}
                           className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[0.85rem] text-slate-900 outline-none transition focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                         />

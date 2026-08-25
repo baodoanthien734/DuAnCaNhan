@@ -107,6 +107,7 @@ export class AdminCustomersService {
         include: {
           roles: true,
           addresses: {
+            // Không lọc isDeleted: false ở đây để Admin xem được cả địa chỉ cũ
             orderBy: [{ isDefault: 'desc' }, { id: 'desc' }],
           },
           orders: {

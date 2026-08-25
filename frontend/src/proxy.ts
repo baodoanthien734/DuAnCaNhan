@@ -27,7 +27,8 @@ async function isTokenValid(token: string) {
   }
 }
 
-export async function middleware(request: NextRequest) {
+// Đã đổi tên hàm middleware thành proxy
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const token = request.cookies.get('accessToken')?.value;
 
