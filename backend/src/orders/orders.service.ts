@@ -3,7 +3,7 @@ import { I18nService } from 'nestjs-i18n';
 import { PrismaService } from '../prisma/prisma.service';
 import { CartService } from '../cart/cart.service';
 import { CheckoutDto } from './dto/checkout.dto';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus } from '@prisma/client';
 
 @Injectable()
 export class OrdersService {
@@ -347,12 +347,52 @@ export class OrdersService {
 
   // 5. Admin cập nhật trạng thái đơn
   async updateStatus(id: number, status: OrderStatus) {
-    const order = await this.prisma.order.findUnique({ where: { id } });
+    const order = await this.prisma.order.findUnique({
+      where: { id },
+      include: { items: true }, 
+    });
+    
     if (!order) throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
 
-    await this.prisma.order.update({
-      where: { id },
-      data: { status },
+    // LUẬT 1: Đã HỦY thì không thể hồi sinh
+    if (order.status === 'CANCELLED') {
+      // ĐÃ CẤU HÌNH i18n
+      throw new BadRequestException(this.i18n.t('order.error.cannot_change_cancelled_status'));
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      const updateData: any = { status };
+
+      // LUẬT 2: Hook Auto-trigger cho Đơn COD
+      if (
+        status === 'DELIVERED' && 
+        order.paymentMethod === 'COD' && 
+        order.paymentStatus === 'UNPAID'
+      ) {
+        updateData.paymentStatus = 'PAID';
+      }
+
+      // LUẬT 3: Hoàn kho nếu Admin chuyển trạng thái thành HỦY
+      if (status === 'CANCELLED') {
+        for (const item of order.items) {
+          if (item.variantId) {
+            await tx.productVariant.update({
+              where: { id: item.variantId },
+              data: { stock: { increment: item.quantity } },
+            });
+          }
+        }
+        
+        // MỚI: Tự động chuyển Payment Status về UNPAID nếu đang là PAID
+        if (order.paymentStatus === 'PAID') {
+          updateData.paymentStatus = 'UNPAID';
+        }
+      }
+
+      await tx.order.update({
+        where: { id },
+        data: updateData,
+      });
     });
 
     return { success: true, message: this.i18n.t('order.success.status_updated') };
@@ -373,5 +413,21 @@ export class OrdersService {
       throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
     }
     return order;
+  }
+    // 7. Admin cập nhật trạng thái thanh toán (Quyền tuyệt đối)
+  async updatePaymentStatus(id: number, paymentStatus: PaymentStatus) {
+    const order = await this.prisma.order.findUnique({ where: { id } });
+    if (!order) throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
+
+    await this.prisma.order.update({
+      where: { id },
+      data: { paymentStatus },
+    });
+
+    return { 
+      success: true, 
+      // ĐÃ CẤU HÌNH i18n
+      message: this.i18n.t('order.success.payment_status_updated') 
+    };
   }
 }

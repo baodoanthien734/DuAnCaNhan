@@ -1,10 +1,11 @@
 import { Controller, Get, Param, Patch, Body, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 import { UpdateOrderStatusDto } from './dto/update-order-status.dto';
+import { UpdatePaymentStatusDto } from './dto/update-payment-status.dto'; // MỚI: Import DTO
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
-import { OrderStatus } from '@prisma/client';
+import { OrderStatus, PaymentStatus } from '@prisma/client'; // MỚI: Thêm PaymentStatus
 
 @Controller('admin/orders')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -37,5 +38,14 @@ export class AdminOrdersController {
   @Patch(':id/status')
   async updateStatus(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateOrderStatusDto) {
     return this.ordersService.updateStatus(id, dto.status);
+  }
+
+  // MỚI: Endpoint cập nhật trạng thái thanh toán
+  @Patch(':id/payment-status')
+  async updatePaymentStatus(
+    @Param('id', ParseIntPipe) id: number, 
+    @Body() dto: UpdatePaymentStatusDto
+  ) {
+    return this.ordersService.updatePaymentStatus(id, dto.status);
   }
 }

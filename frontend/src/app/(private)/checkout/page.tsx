@@ -79,7 +79,6 @@ export default function CheckoutPage() {
     }
   }
 
-  // XỬ LÝ CHỐT ĐƠN (CẬP NHẬT GIAI ĐOẠN 4)
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
@@ -100,16 +99,9 @@ export default function CheckoutPage() {
       await modal.alert(t('success_order'));
       router.push('/');
     } catch (err: any) {
-      // 1. Lấy tin nhắn lỗi từ Backend (Đã được Backend dịch sẵn i18n)
       const backendMessage = err.response?.data?.message || t('error_order');
-      
-      // 2. Hiển thị UI báo lỗi đỏ tại chỗ (tùy chọn)
       setErrorMsg(backendMessage);
-
-      // 3. Hiển thị Popup cảnh báo kèm theo hành động chuẩn bị làm
       await modal.alert(`${backendMessage} ${t('error.reload_cart_notice')}`);
-      
-      // 4. Đá khách hàng về lại trang chủ để mở giỏ hàng xem con số tồn kho mới
       router.push('/');
     } finally {
       setSubmitting(false);
@@ -117,15 +109,15 @@ export default function CheckoutPage() {
   };
 
   if (loading) {
-    return <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'system-ui' }}>Đang tải trang thanh toán...</div>;
+    return <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'system-ui' }}>{t('loading_page')}</div>;
   }
 
   if (!cart || !cart.items || cart.items.length === 0) {
     return (
       <div style={{ textAlign: 'center', marginTop: '100px', fontFamily: 'system-ui' }}>
-        <h2>Giỏ hàng trống</h2>
-        <Link href="/" style={{ padding: '10px 20px', backgroundColor: '#111827', color: '#fff', borderRadius: '999px', textDecoration: 'none' }}>
-          Quay về trang chủ
+        <h2>{t('empty_cart')}</h2>
+        <Link href="/" style={{ display: 'inline-block', marginTop: '16px', padding: '10px 20px', backgroundColor: '#111827', color: '#fff', borderRadius: '999px', textDecoration: 'none' }}>
+          {t('back_to_home')}
         </Link>
       </div>
     );
@@ -141,10 +133,6 @@ export default function CheckoutPage() {
       />
 
       <div style={{ maxWidth: '800px', margin: '0 auto', backgroundColor: '#fff', padding: '32px', borderRadius: '24px', boxShadow: '0 20px 40px rgba(15, 23, 42, 0.06)' }}>
-        
-        <Link href="/" style={{ fontSize: '14px', color: '#4b5563', textDecoration: 'none' }}>
-          ← Quay lại trang chủ
-        </Link>
 
         <h1 style={{ fontSize: '24px', fontWeight: 'bold', margin: '20px 0 24px' }}>📦 {t('title')}</h1>
 
@@ -156,13 +144,12 @@ export default function CheckoutPage() {
 
         <form onSubmit={handleCheckout} style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
           
-          {/* KHU VỰC HIỂN THỊ ĐỊA CHỈ */}
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 16px' }}>Địa chỉ giao hàng</h3>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 16px' }}>{t('shipping_address')}</h3>
 
             {addresses.length === 0 && (
               <div style={{ padding: '12px', backgroundColor: '#fef3c7', borderRadius: '8px', color: '#b45309', fontSize: '14px' }}>
-                Hệ thống sẽ yêu cầu bạn nhập địa chỉ khi chốt đơn.
+                {t('address_required_notice')}
               </div>
             )}
 
@@ -190,35 +177,75 @@ export default function CheckoutPage() {
             )}
           </div>
 
-          {/* Thông tin đơn hàng tóm tắt */}
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px', backgroundColor: '#f9fafb' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 12px' }}>Sản phẩm mua ({cart.items.length})</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '250px', overflowY: 'auto' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: '600', margin: '0 0 12px' }}>{t('purchased_items', { count: cart.items.length })}</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '300px', overflowY: 'auto' }}>
               {cart.items.map((item: any) => {
-                const price = Number(item.variant?.price || item.product.basePrice);
+                const baseItemPrice = Number(item.variant?.price || item.product.basePrice);
+                let totalCustomizationPrice = 0;
+                
+                const customs = item.customizations as any[];
+                const hasCustomizations = customs && Array.isArray(customs) && customs.length > 0;
+
+                if (hasCustomizations) {
+                  customs.forEach((c) => {
+                    if (c.extraPrice) totalCustomizationPrice += Number(c.extraPrice);
+                  });
+                }
+                
+                const finalUnitPrice = baseItemPrice + totalCustomizationPrice;
+                const finalLinePrice = finalUnitPrice * item.quantity;
+
                 return (
-                  <div key={item.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
-                    <span>{item.product.name} (x{item.quantity})</span>
-                    <span style={{ fontWeight: '600', color: '#b45309' }}>{(price * item.quantity).toLocaleString()} đ</span>
+                  <div key={item.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', paddingBottom: '12px', borderBottom: '1px dashed #e5e7eb' }}>
+                    
+                    {/* Dòng 1: Tên sản phẩm và Tổng tiền của Item đó */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', fontWeight: '600' }}>
+                      <span>{item.product.name} (x{item.quantity})</span>
+                      <span style={{ color: '#b45309' }}>{finalLinePrice.toLocaleString()} đ</span>
+                    </div>
+                    
+                    {/* Dòng 2: Phân loại (Variant) */}
+                    {item.variant && (
+                      <div style={{ fontSize: '13px', color: '#6b7280', paddingLeft: '8px', display: 'flex', gap: '4px' }}>
+                        <span>• {t('variant')}:</span>
+                        <strong style={{ color: '#374151' }}>{item.variant.name}</strong>
+                        {Number(item.variant.price) > 0 && (
+                          <span style={{ color: '#b45309' }}>
+                            ({Number(item.variant.price).toLocaleString()} đ)
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Dòng 3: Các tùy chọn Customizations */}
+                    {hasCustomizations && customs.map((c: any, idx: number) => (
+                      <div key={idx} style={{ fontSize: '13px', color: '#6b7280', paddingLeft: '8px', display: 'flex', gap: '4px' }}>
+                        <span>• {c.name}:</span>
+                        <strong style={{ color: '#374151' }}>{c.value}</strong>
+                        {Number(c.extraPrice) > 0 && <span style={{ color: '#b45309' }}>(+{Number(c.extraPrice).toLocaleString()} đ)</span>}
+                      </div>
+                    ))}
+
                   </div>
                 );
               })}
             </div>
             
-            <div style={{ borderTop: '1px solid #e5e7eb', marginTop: '16px', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 'bold' }}>
-              <span>Tổng cộng:</span>
+            <div style={{ marginTop: '16px', paddingTop: '12px', display: 'flex', justifyContent: 'space-between', fontSize: '18px', fontWeight: 'bold' }}>
+              <span>{t('total')}</span>
               <span style={{ color: '#b45309' }}>{totalAmount.toLocaleString()} đ</span>
             </div>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>Phương thức thanh toán</label>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: '600', marginBottom: '6px' }}>{t('payment_method')}</label>
             <div style={{ padding: '12px', border: '2px solid #111827', borderRadius: '8px', fontSize: '14px', fontWeight: '600', backgroundColor: '#f3f4f6' }}>
-              💵 Thanh toán khi nhận hàng (COD)
+              {t('payment_cod')}
             </div>
           </div>
 
-          {/* Nút chốt đơn */}
           <button 
             type="submit"
             disabled={submitting}

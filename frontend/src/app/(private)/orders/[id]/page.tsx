@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
-import { getMyOrderById } from '@/lib/orders-api';
+import { getMyOrderById, cancelMyOrder } from '@/lib/orders-api';
 import { deleteReview } from '@/lib/reviews-api';
 import ReviewModal from '@/components/ui/ReviewModal';
 import { useModal } from '@/hooks/useModal';
@@ -69,6 +69,20 @@ export default function MyOrderDetailPage() {
     }
     // Tiếng Việt giữ nguyên
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
+  };
+
+  const handleCancelOrder = async () => {
+    if (!(await modal.confirm(t('confirm_cancel', { code: order.code })))) return;
+    
+    try {
+      await cancelMyOrder(orderId);
+      await modal.alert(t('cancel_success'));
+      // Cập nhật lại state tại chỗ để UI phản hồi ngay lập tức
+      setOrder({ ...order, status: 'CANCELLED' });
+    } catch (error: any) {
+      console.error(error);
+      await modal.alert(error.response?.data?.message || 'Không thể hủy đơn hàng lúc này.');
+    }
   };
 
   if (loading) {
@@ -147,10 +161,20 @@ export default function MyOrderDetailPage() {
         <Link href="/orders" className="mb-6 inline-block text-sm font-medium text-slate-500 transition hover:text-slate-900">
           {t('detail.back')}
         </Link>
-        <div className="mb-8 flex items-center justify-between border-b border-slate-200 pb-6">
+        <div className="mb-8 flex flex-wrap items-center justify-between border-b border-slate-200 pb-6 gap-4">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">
             {t('detail.title')} <span className="text-slate-500">#{order.code}</span>
           </h1>
+          
+          {/* NÚT HỦY ĐƠN - Chỉ hiển thị khi đơn đang PENDING */}
+          {order.status === 'PENDING' && (
+            <button
+              onClick={handleCancelOrder}
+              className="rounded-xl border border-rose-200 bg-rose-50 px-5 py-2.5 text-sm font-semibold text-rose-600 transition-colors hover:bg-rose-100 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:ring-offset-2"
+            >
+              {t('cancel_button')}
+            </button>
+          )}
         </div>
 
         {/* Thanh tiến độ */}
@@ -230,8 +254,14 @@ export default function MyOrderDetailPage() {
               </div>
               <div className="flex justify-between">
                 <span>{t('detail.payment_status')}</span>
-                <span className={`font-bold ${order.paymentStatus === 'PAID' ? 'text-emerald-600' : 'text-amber-600'}`}>
-                  {order.paymentStatus === 'PAID' ? t('detail.paid') : t('detail.unpaid')}
+                <span className={`font-bold ${
+                  order.paymentStatus === 'PAID' ? 'text-emerald-600' : 
+                  order.paymentStatus === 'REFUNDED' ? 'text-purple-600' : 
+                  'text-amber-600'
+                }`}>
+                  {order.paymentStatus === 'PAID' ? t('detail.paid') : 
+                   order.paymentStatus === 'REFUNDED' ? t('detail.refunded') : 
+                   t('detail.unpaid')}
                 </span>
               </div>
               <div className="flex justify-between border-t border-slate-100 pt-3">

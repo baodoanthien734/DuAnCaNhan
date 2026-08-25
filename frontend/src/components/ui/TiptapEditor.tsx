@@ -63,6 +63,25 @@ function readFileAsBase64(file: File) {
   });
 }
 
+function stripBase64FromHtml(htmlString: string): string {
+  if (!htmlString || !htmlString.includes('data:image/')) {
+    return htmlString; // Tối ưu: Nếu không có base64 thì trả về luôn cho lẹ
+  }
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = htmlString;
+
+  const images = tempDiv.getElementsByTagName('img');
+  for (let i = 0; i < images.length; i++) {
+    const img = images[i];
+    if (img.src && img.src.startsWith('data:image/')) {
+      img.setAttribute('src', ''); // Bóc vỏ base64, để lại src rỗng
+    }
+  }
+
+  return tempDiv.innerHTML;
+}
+
 export default function TiptapEditor({ content, onImageAdded, onContentChange }: TiptapEditorProps) {
   const t = useTranslations('editor');
   const inputId = useId();
@@ -83,10 +102,12 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
     content,
     onCreate: ({ editor }) => {
       setIsEditorEmpty(editor.isEmpty);
+      const cleanHtml = stripBase64FromHtml(editor.getHTML());
       onContentChange?.(editor.getHTML());
     },
     onUpdate: ({ editor }) => {
       setIsEditorEmpty(editor.isEmpty);
+      const cleanHtml = stripBase64FromHtml(editor.getHTML());
       onContentChange?.(editor.getHTML());
     },
     editorProps: {

@@ -5,7 +5,12 @@ import { ReplyReviewDto } from './dto/reply-review.dto';
 import { UpdateReviewDto } from './dto/update-review.dto';
 import { I18nService } from 'nestjs-i18n';
 import * as fs from 'fs';
-import { resolve } from 'path';
+import { basename, dirname, resolve } from 'path';
+
+type PendingFileMove = {
+  from: string;
+  to: string;
+};
 
 @Injectable()
 export class ReviewsService {
@@ -22,94 +27,118 @@ export class ReviewsService {
   // FILE SYSTEM MANAGEMENT (UPLOAD & CLEANUP)
   // ==============================================================
 
-  // Giải quyết đường dẫn tuyệt đối của hình ảnh đánh giá dựa trên URL
-  private resolveReviewImageFilePath(imageUrl: string): string | null {
+  // Phân tích đường dẫn hình ảnh xem nó đang ở tmp hay đã ở review
+  private parseReviewUploadPath(imageUrl: string): { relative: string; absolute: string } | null {
     if (!imageUrl) return null;
-
     let pathname = imageUrl.trim();
-
     try {
       if (/^https?:\/\//i.test(pathname)) {
         pathname = new URL(pathname).pathname;
       }
-    } catch {
-      return null;
-    }
+    } catch { return null; }
 
     pathname = pathname.split('?')[0].replace(/^\/+/, '');
-    if (!pathname.startsWith('uploads/reviews/')) {
+    // Cho phép cả tmp và reviews
+    if (!pathname.startsWith('uploads/reviews/') && !pathname.startsWith('uploads/tmp/')) {
       return null;
     }
 
-    const absolutePath = resolve(this.publicRootDir, pathname);
-    if (!absolutePath.startsWith(this.reviewsRootDir)) {
-      return null;
-    }
+    const absolute = resolve(this.publicRootDir, pathname);
+    if (!absolute.startsWith(this.publicRootDir)) return null;
 
-    return absolutePath;
+    return { relative: pathname, absolute };
   }
 
-  // Dọn dẹp các hình ảnh đánh giá không còn được sử dụng 
-  private cleanupReviewImages(imageUrls: string[]) {
-    if (!Array.isArray(imageUrls) || imageUrls.length === 0) return;
+  private async ensureDir(path: string) {
+    await fs.promises.mkdir(path, { recursive: true });
+  }
 
-    for (const imageUrl of imageUrls) {
-      try {
-        const filePath = this.resolveReviewImageFilePath(imageUrl);
-        if (!filePath) continue;
-        if (!fs.existsSync(filePath)) continue;
-
-        fs.unlinkSync(filePath);
-        this.logger.log(`Deleted orphan review image: ${filePath}`);
-      } catch {
-        this.logger.warn(`Failed to delete review image: ${imageUrl}`);
-      }
+  private moveFileSafe(from: string, to: string) {
+    if (!fs.existsSync(dirname(to))) {
+      fs.mkdirSync(dirname(to), { recursive: true });
     }
+    if (from === to) return;
+    try { fs.accessSync(from); } catch {
+      try { fs.accessSync(to); return; } catch { throw new Error(`File not found: ${from}`); }
+    }
+    try { fs.renameSync(from, to); } catch (error: any) {
+      if (error?.code === 'EXDEV') {
+        fs.copyFileSync(from, to);
+        fs.unlinkSync(from);
+        return;
+      }
+      throw error;
+    }
+  }
+
+  private calculateReviewImagePath(productId: number, imageUrl: string): { url: string; fileToMove: PendingFileMove | null } {
+    const parsed = this.parseReviewUploadPath(imageUrl);
+    if (!parsed) return { url: imageUrl, fileToMove: null };
+
+    const filename = basename(parsed.relative);
+    const targetRelative = `uploads/reviews/product-${productId}/${filename}`;
+    const targetAbsolute = resolve(this.publicRootDir, targetRelative);
+
+    if (parsed.relative === targetRelative) {
+      return { url: `/${targetRelative}`, fileToMove: null };
+    }
+
+    return {
+      url: `/${targetRelative}`,
+      fileToMove: { from: parsed.absolute, to: targetAbsolute },
+    };
   }
 
   // ==============================================================
   // USER FEATURES (STOREFRONT)
   // ==============================================================
 
-  // 1. Tạo đánh giá mới cho sản phẩm
   async create(userId: number, dto: CreateReviewDto) {
     const validOrder = await this.prisma.order.findFirst({
       where: {
         id: dto.orderId,
         customerId: userId,
         status: 'DELIVERED', 
-        items: {
-          some: { productId: dto.productId }
-        }
+        items: { some: { productId: dto.productId } }
       }
     });
 
-    if (!validOrder) {
-      throw new BadRequestException(await this.i18n.translate('reviews.error.not_eligible'));
-    }
+    if (!validOrder) throw new BadRequestException(await this.i18n.translate('reviews.error.not_eligible'));
 
     const existingReview = await this.prisma.review.findFirst({
-      where: {
-        customerId: userId,
-        orderId: dto.orderId,
-        productId: dto.productId
-      }
+      where: { customerId: userId, orderId: dto.orderId, productId: dto.productId }
     });
 
-    if (existingReview) {
-      throw new BadRequestException(await this.i18n.translate('reviews.error.already_reviewed'));
+    if (existingReview) throw new BadRequestException(await this.i18n.translate('reviews.error.already_reviewed'));
+
+    const pendingMoves: PendingFileMove[] = [];
+    const finalImageUrls: string[] = [];
+
+    // Tính toán đường dẫn tương lai cho ảnh (Nếu có)
+    for (const url of (dto.images || [])) {
+        const calc = this.calculateReviewImagePath(dto.productId, url);
+        finalImageUrls.push(calc.url);
+        if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
     }
 
-    const review = await this.prisma.review.create({
-      data: {
-        customerId: userId,
-        productId: dto.productId,
-        orderId: dto.orderId,
-        rating: dto.rating,
-        comment: dto.comment,
-        images: dto.images || [],
-      }
+    // TRANSACTION LOCK
+    const review = await this.prisma.$transaction(async (tx) => {
+        return tx.review.create({
+            data: {
+                customerId: userId,
+                productId: dto.productId,
+                orderId: dto.orderId,
+                rating: dto.rating,
+                comment: dto.comment,
+                images: finalImageUrls,
+            }
+        });
     });
+
+    // CHẠY FILE SYSTEM SAU KHI DB THÀNH CÔNG
+    for (const move of pendingMoves) {
+        this.moveFileSafe(move.from, move.to);
+    }
 
     return {
       success: true,
@@ -118,28 +147,49 @@ export class ReviewsService {
     };
   }
 
-  // 2. Cập nhật đánh giá của người dùng
   async update(userId: number, reviewId: number, dto: UpdateReviewDto) {
     const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
     if (!review) throw new NotFoundException(await this.i18n.translate('reviews.error.not_found'));
+    if (review.customerId !== userId) throw new BadRequestException(await this.i18n.translate('reviews.error.unauthorized'));
 
-    if (review.customerId !== userId) {
-        throw new BadRequestException(await this.i18n.translate('reviews.error.unauthorized'));
+    const nextImages = dto.images !== undefined ? dto.images : (review.images || []);
+    const pendingMoves: PendingFileMove[] = [];
+    const pendingDeletes: string[] = [];
+    const finalImageUrls: string[] = [];
+
+    // 1. Phân tích ảnh mới được đưa vào
+    for (const url of nextImages) {
+        const calc = this.calculateReviewImagePath(review.productId, url);
+        finalImageUrls.push(calc.url);
+        if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
     }
 
-    const nextImages = dto.images !== undefined ? dto.images : review.images;
+    // 2. Tính toán ảnh bị xóa (Ảnh có trong DB nhưng không có trong nextImages)
+    const removedImages = (review.images || []).filter((img) => !finalImageUrls.includes(img));
+    for (const imgUrl of removedImages) {
+        const parsed = this.parseReviewUploadPath(imgUrl);
+        if (parsed) pendingDeletes.push(parsed.absolute);
+    }
 
-    const updated = await this.prisma.review.update({
-        where: { id: reviewId },
-        data: {
-        rating: dto.rating ?? review.rating,
-        comment: dto.comment !== undefined ? dto.comment : review.comment,
-      images: nextImages,
-        },
+    // TRANSACTION LOCK
+    const updated = await this.prisma.$transaction(async (tx) => {
+        return tx.review.update({
+            where: { id: reviewId },
+            data: {
+                rating: dto.rating ?? review.rating,
+                comment: dto.comment !== undefined ? dto.comment : review.comment,
+                images: finalImageUrls,
+            },
+        });
     });
 
-    const removedImages = (review.images || []).filter((img) => !(nextImages || []).includes(img));
-    this.cleanupReviewImages(removedImages);
+    // CHẠY FILE SYSTEM SAU KHI DB THÀNH CÔNG
+    for (const move of pendingMoves) {
+        this.moveFileSafe(move.from, move.to);
+    }
+    for (const filePath of pendingDeletes) {
+        try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) { /* ignore */ }
+    }
 
     return {
         success: true,
@@ -148,17 +198,26 @@ export class ReviewsService {
     };
   }
 
-  // 3. Xoá đánh giá từ phía của người dùng
   async removeByUser(userId: number, reviewId: number) {
     const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
     if (!review) throw new NotFoundException(await this.i18n.translate('reviews.error.not_found'));
+    if (review.customerId !== userId) throw new BadRequestException(await this.i18n.translate('reviews.error.unauthorized'));
 
-    if (review.customerId !== userId) {
-        throw new BadRequestException(await this.i18n.translate('reviews.error.unauthorized'));
+    const pendingDeletes: string[] = [];
+    for (const imgUrl of (review.images || [])) {
+        const parsed = this.parseReviewUploadPath(imgUrl);
+        if (parsed) pendingDeletes.push(parsed.absolute);
     }
 
-    await this.prisma.review.delete({ where: { id: reviewId } });
-    this.cleanupReviewImages(review.images || []);
+    // TRANSACTION LOCK
+    await this.prisma.$transaction(async (tx) => {
+        await tx.review.delete({ where: { id: reviewId } });
+    });
+
+    // XÓA FILE SAU CÙNG
+    for (const filePath of pendingDeletes) {
+        try { if (fs.existsSync(filePath)) fs.unlinkSync(filePath); } catch (e) { /* ignore */ }
+    }
 
     return {
         success: true,
@@ -271,11 +330,34 @@ export class ReviewsService {
   // 3. Xoá đánh giá từ phía Admin
   async remove(id: number) {
     const review = await this.prisma.review.findUnique({ where: { id } });
-    if (!review) throw new NotFoundException(await this.i18n.translate('reviews.error.not_found'));
+    if (!review) {
+        throw new NotFoundException(await this.i18n.translate('reviews.error.not_found'));
+    }
 
-    await this.prisma.review.delete({ where: { id } });
-    this.cleanupReviewImages(review.images || []);
+    // 1. Phân tích các đường dẫn file cần xóa vật lý
+    const pendingDeletes: string[] = [];
+    for (const imgUrl of (review.images || [])) {
+        const parsed = this.parseReviewUploadPath(imgUrl);
+        if (parsed) pendingDeletes.push(parsed.absolute);
+    }
 
-    return { success: true, message: await this.i18n.translate('reviews.success.deleted') };
+    // 2. Xóa bản ghi trong Database an toàn bằng Transaction
+    await this.prisma.$transaction(async (tx) => {
+        await tx.review.delete({ where: { id } });
+    });
+
+    // 3. DB chốt thành công -> Mới rảo bước xóa file vật lý
+    for (const filePath of pendingDeletes) {
+        try { 
+            if (fs.existsSync(filePath)) fs.unlinkSync(filePath); 
+        } catch (e) { 
+            this.logger.warn(`Lỗi xóa file vật lý (Admin remove): ${filePath}`); 
+        }
+    }
+
+    return { 
+        success: true, 
+        message: await this.i18n.translate('reviews.success.deleted') 
+    };
   }
 }

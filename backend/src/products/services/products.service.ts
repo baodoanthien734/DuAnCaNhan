@@ -14,7 +14,6 @@ import { ProductCustomizationsService } from './product-customizations.service';
 import { basename, dirname, join, resolve } from 'path';
 import { promises as fs } from 'fs';
 
-// Định nghĩa kiểu dữ liệu cho các file đang xếp hàng chờ thuyên chuyển
 type PendingFileMove = {
   from: string;
   to: string;
@@ -34,7 +33,7 @@ export class ProductsService {
   ) {}
 
   // ==============================================================
-  // STRING & SLUG UTILITIES
+  // STRING, SLUG & SKU UTILITIES
   // ==============================================================
 
   private slugify(text: string) {
@@ -70,6 +69,40 @@ export class ProductsService {
     const existing = await this.prisma.product.findFirst({ where: { slug } });
     if (existing && existing.id !== currentId) {
       throw new BadRequestException(this.i18n.t('products.error.duplicate_slug'));
+    }
+  }
+
+  // HÀM MỚI: Tự động sinh SKU từ Tên Sản Phẩm + Tên Biến Thể
+  private async generateAutoSku(productName: string, variantName: string, currentVariantId?: number): Promise<string> {
+    const baseSkuText = `${productName}-${variantName}`
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-zA-Z0-9\-]/g, '') // Chỉ giữ chữ và số và gạch ngang
+      .replace(/\-+/g, '-')
+      .toUpperCase();
+
+    let sku = baseSkuText;
+    let counter = 1;
+
+    while (true) {
+      const existing = await this.prisma.productVariant.findFirst({ where: { sku } });
+      if (!existing || existing.id === currentVariantId) {
+        return sku; 
+      }
+      sku = `${baseSkuText}-${counter}`;
+      counter++;
+    }
+  }
+
+  // HÀM MỚI: Check trùng SKU nhập tay
+  private async checkManualSku(sku: string, currentVariantId?: number): Promise<void> {
+    const existing = await this.prisma.productVariant.findFirst({ where: { sku } });
+    if (existing && existing.id !== currentVariantId) {
+      throw new BadRequestException(this.i18n.t('products.error.duplicate_sku'));
     }
   }
 
@@ -137,11 +170,20 @@ export class ProductsService {
     await fs.mkdir(path, { recursive: true });
   }
 
-  // GIỮ NGUYÊN BẢN GỐC (Chưa bắt lỗi file tồn tại)
   private async moveFileSafe(from: string, to: string) {
     await this.ensureDir(dirname(to));
-
     if (from === to) return;
+
+    try {
+      await fs.access(from);
+    } catch (error) {
+      try {
+        await fs.access(to);
+        return;
+      } catch (err) {
+        throw new Error(`File không tồn tại ở cả nguồn và đích: ${from}`);
+      }
+    }
 
     try {
       await fs.rename(from, to);
@@ -177,7 +219,6 @@ export class ProductsService {
     }
   }
 
-  // HÀM MỚI 1: Tính toán đường dẫn Tương Lai cho ảnh Sản phẩm (Không di chuyển file)
   private calculateProductImagePath(productId: number, imageUrl: string): { url: string; fileToMove: PendingFileMove | null } {
     const parsed = this.parseProductUploadPath(imageUrl);
     if (!parsed) return { url: imageUrl, fileToMove: null };
@@ -196,7 +237,6 @@ export class ProductsService {
     };
   }
 
-  // HÀM MỚI 2: Tính toán đường dẫn Tương Lai cho ảnh Biến thể (Không di chuyển file)
   private calculateVariantImagePath(productId: number, variantId: number, imageUrl: string): { url: string; fileToMove: PendingFileMove | null } {
     const parsed = this.parseProductUploadPath(imageUrl);
     if (!parsed) return { url: imageUrl, fileToMove: null };
@@ -228,10 +268,11 @@ export class ProductsService {
     }
   }
 
-  // CẬP NHẬT: Nhận tx (Transaction Client) và các mảng chờ xử lý file
+  // CẬP NHẬT: Nhận thêm biến productName để sinh SKU
   private async syncVariants(
     tx: any, 
     productId: number, 
+    productName: string, // <-- Biến này dùng để tạo SKU
     variantsData: any[], 
     currentBasePrice: number, 
     pendingMoves: PendingFileMove[],
@@ -239,7 +280,7 @@ export class ProductsService {
   ) {
     const existingVariants = await tx.productVariant.findMany({
       where: { productId },
-      select: { id: true, image: true },
+      select: { id: true, image: true, sku: true },
     });
 
     const existingById = new Map(existingVariants.map((variant: any) => [variant.id, variant]));
@@ -253,14 +294,15 @@ export class ProductsService {
           id: { in: toDelete.map((variant: any) => variant.id) },
         },
       });
-      // Gom vào danh sách chờ xóa rác
       pendingCleanups.push(
         ...toDelete.map((variant: any) => variant.image).filter((image: any): image is string => Boolean(image))
       );
     }
 
-    for (const variant of variantsData) {
+    for (let i = 0; i < variantsData.length; i++) {
+      const variant = variantsData[i];
       const price = this.toNumber(variant.price);
+      
       if (price < currentBasePrice) {
         throw new BadRequestException(
           this.i18n.t('products.error.variant_price_must_be_greater_or_equal_base', {
@@ -269,24 +311,55 @@ export class ProductsService {
         );
       }
 
+      // XỬ LÝ SKU KẾT HỢP (Dễ đọc + Đóng băng khi Update)
+      let finalSku = '';
+      if (variant.id) {
+        const variantId = Number(variant.id);
+        const previous: any = existingById.get(variantId);
+
+        if (variant.sku !== undefined) {
+          if (variant.sku.trim() === '') {
+             // Admin xóa trắng -> Sinh lại SKU mới toanh dựa trên tên
+             finalSku = await this.generateAutoSku(productName, variant.name, variantId);
+          } else if (previous?.sku && variant.sku.trim().toUpperCase() === previous.sku.toUpperCase()) {
+             // Admin không đổi SKU -> Giữ nguyên (Dù tên sản phẩm có đổi)
+             finalSku = previous.sku;
+          } else {
+             // Admin nhập tay mã mới -> Check trùng
+             finalSku = variant.sku.trim().toUpperCase();
+             await this.checkManualSku(finalSku, variantId);
+          }
+        } else {
+           // Frontend không gửi trường SKU lên -> Giữ nguyên SKU cũ
+           finalSku = previous?.sku || await this.generateAutoSku(productName, variant.name, variantId);
+        }
+      } else {
+        if (!variant.sku || variant.sku.trim() === '') {
+          // Tạo mới mà để trống -> Tự sinh SKU
+          finalSku = await this.generateAutoSku(productName, variant.name);
+        } else {
+          // Tạo mới mà nhập tay -> Check trùng
+          finalSku = variant.sku.trim().toUpperCase();
+          await this.checkManualSku(finalSku);
+        }
+      }
+
       if (variant.id) {
         const variantId = Number(variant.id);
         const previous: any = existingById.get(variantId);
 
         let finalImage: string | null = variant.image ?? null;
         if (typeof finalImage === 'string' && finalImage.trim().length > 0) {
-          // Chỉ lấy đường dẫn tương lai, đẩy công việc move vào mảng chờ
           const calc = this.calculateVariantImagePath(productId, variantId, finalImage);
           finalImage = calc.url;
           if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
         }
 
-        // Lỗi SKU CŨ VẪN GIỮ NGUYÊN (Không cấp auto-sku)
         await tx.productVariant.update({
           where: { id: variantId },
           data: {
             name: variant.name,
-            sku: variant.sku,
+            sku: finalSku, // Gắn mã SKU đã xử lý
             price,
             stock: this.toNumber(variant.stock),
             image: finalImage,
@@ -297,12 +370,11 @@ export class ProductsService {
           pendingCleanups.push(previous.image);
         }
       } else {
-        // Lỗi SKU CŨ VẪN GIỮ NGUYÊN (Không cấp auto-sku)
         const created = await tx.productVariant.create({
           data: {
             productId,
             name: variant.name,
-            sku: variant.sku,
+            sku: finalSku, // Gắn mã SKU đã xử lý
             price,
             stock: this.toNumber(variant.stock),
             image: null,
@@ -311,7 +383,6 @@ export class ProductsService {
 
         let finalImage: string | null = variant.image ?? null;
         if (typeof finalImage === 'string' && finalImage.trim().length > 0) {
-          // Tính đường dẫn tương lai, gom việc dời file
           const calc = this.calculateVariantImagePath(productId, created.id, finalImage);
           finalImage = calc.url;
           if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
@@ -336,7 +407,6 @@ export class ProductsService {
     this.assertMainImagesLimit(createProductDto.images);
     this.assertVariantPrices(basePrice, createProductDto.variants);
 
-    // MẢNG CHỜ XỬ LÝ FILE (Deferred Execution)
     const pendingMoves: PendingFileMove[] = [];
 
     try {
@@ -348,9 +418,7 @@ export class ProductsService {
         await this.checkManualSlug(finalSlug);
       }
 
-      // ==========================================
-      // BẮT ĐẦU TRANSACTION DB
-      // ==========================================
+      // THỰC THI TRANSACTION
       const product = await this.prisma.$transaction(async (tx) => {
         const newProduct = await tx.product.create({
           data: {
@@ -366,7 +434,6 @@ export class ProductsService {
           },
         });
 
-        // 1. Tính sẵn đường dẫn ảnh sản phẩm, lưu trực tiếp vào DB, đưa thao tác dời file vào mảng chờ
         const finalProductImages: string[] = [];
         for (const url of (createProductDto.images || [])) {
           const calc = this.calculateProductImagePath(newProduct.id, url);
@@ -379,12 +446,11 @@ export class ProductsService {
           data: { images: finalProductImages },
         });
 
-        // 2. Đồng bộ biến thể (Truyền pendingMoves xuống để gom nốt file)
         if (createProductDto.variants && createProductDto.variants.length > 0) {
-          await this.syncVariants(tx, newProduct.id, createProductDto.variants, basePrice, pendingMoves, []);
+          // Truyền tên sản phẩm vào để sinh SKU
+          await this.syncVariants(tx, newProduct.id, createProductDto.name, createProductDto.variants, basePrice, pendingMoves, []);
         }
 
-        // 3. Customizations
         if (createProductDto.customizations && createProductDto.customizations.length > 0) {
           for (const custom of createProductDto.customizations) {
             await tx.productCustomization.create({
@@ -411,13 +477,7 @@ export class ProductsService {
 
         return newProduct;
       });
-      // ==========================================
-      // KẾT THÚC TRANSACTION (Commit thành công)
-      // ==========================================
 
-      // ==========================================
-      // LÚC NÀY MỚI BẮT ĐẦU CHẠY FILE SYSTEM
-      // ==========================================
       for (const move of pendingMoves) {
         await this.moveFileSafe(move.from, move.to);
         if (move.sourceDir !== resolve(this.publicRootDir, 'uploads', 'tmp')) {
@@ -430,16 +490,21 @@ export class ProductsService {
         message: this.i18n.t('products.success.product_created'),
         data: await this.findOne(product.id),
       };
-    } catch (error) {
+    } catch (error: any) {
       if (error instanceof BadRequestException || error instanceof NotFoundException) {
         throw error;
       }
+      
+      // BẮT LỖI PRISMA: Xử lý Unique Constraint (Trường hợp DB tự bắt trước)
+      if (error?.code === 'P2002') {
+        throw new BadRequestException(this.i18n.t('products.error.duplicate_sku'));
+      }
+      
       this.logger.error('Lỗi Database khi tạo sản phẩm:', error instanceof Error ? error.stack : undefined);
       throw new InternalServerErrorException(this.i18n.t('products.error.product_save_failed'));
     }
   }
 
-  // Các hàm đọc (findAll, findOne...) giữ nguyên
   async findAll(query: FilterProductDto) {
     const { q, categoryId, status, skip, take } = query;
     const where: any = {};
@@ -500,102 +565,121 @@ export class ProductsService {
     return product;
   }
 
-  // CẬP NHẬT: Update cũng sử dụng luồng Trì Hoãn File (Deferred Execution) tương tự Create
   async update(id: number, dto: UpdateProductDto) {
-    const existing = await this.findOne(id);
+    try {
+      const existing = await this.findOne(id);
 
-    const nextBasePrice = this.toNumber(dto.basePrice ?? existing.basePrice);
-    this.assertMainImagesLimit(dto.images ?? existing.images);
+      const nextBasePrice = this.toNumber(dto.basePrice ?? existing.basePrice);
+      this.assertMainImagesLimit(dto.images ?? existing.images);
 
-    if (dto.variants) {
-      this.assertVariantPrices(nextBasePrice, dto.variants);
-    }
+      if (dto.variants) {
+        this.assertVariantPrices(nextBasePrice, dto.variants);
+      }
 
-    const { variants, customizations, images, slug, ...productData } = dto as any;
+      const { variants, customizations, images, slug, ...productData } = dto as any;
 
-    let finalSlug = existing.slug;
-    
-    if (slug !== undefined) {
-      if (slug === existing.slug) {
+      let finalSlug = existing.slug;
+      
+      if (slug !== undefined) {
+        if (slug === existing.slug) {
+          if (dto.name && dto.name !== existing.name) {
+            finalSlug = await this.generateAutoSlug(dto.name, id);
+          }
+        } else if (slug.trim() === '') {
+          const targetName = dto.name || existing.name;
+          finalSlug = await this.generateAutoSlug(targetName, id);
+        } else {
+          finalSlug = this.slugify(slug);
+          await this.checkManualSlug(finalSlug, id);
+        }
+      } else {
         if (dto.name && dto.name !== existing.name) {
           finalSlug = await this.generateAutoSlug(dto.name, id);
         }
-      } else if (slug.trim() === '') {
-        const targetName = dto.name || existing.name;
-        finalSlug = await this.generateAutoSlug(targetName, id);
-      } else {
-        finalSlug = this.slugify(slug);
-        await this.checkManualSlug(finalSlug, id);
       }
-    } else {
-      if (dto.name && dto.name !== existing.name) {
-        finalSlug = await this.generateAutoSlug(dto.name, id);
+
+      const pendingMoves: PendingFileMove[] = [];
+      const pendingCleanups: string[] = [];
+
+      const incomingImages = images !== undefined ? images : existing.images;
+      const finalProductImages: string[] = [];
+      
+      for (const url of incomingImages) {
+        const calc = this.calculateProductImagePath(id, url);
+        finalProductImages.push(calc.url);
+        if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
       }
-    }
 
-    const pendingMoves: PendingFileMove[] = [];
-    const pendingCleanups: string[] = [];
+      const removedProductImages = existing.images.filter((url: string) => !finalProductImages.includes(url));
+      pendingCleanups.push(...removedProductImages);
 
-    const incomingImages = images !== undefined ? images : existing.images;
-    const finalProductImages: string[] = [];
-    
-    // Tính toán ảnh sản phẩm
-    for (const url of incomingImages) {
-      const calc = this.calculateProductImagePath(id, url);
-      finalProductImages.push(calc.url);
-      if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
-    }
+      await this.prisma.$transaction(async (tx) => {
+        await tx.product.update({
+          where: { id },
+          data: {
+            ...productData,
+            slug: finalSlug, 
+            images: finalProductImages,
+          },
+        });
 
-    const removedProductImages = existing.images.filter((url: string) => !finalProductImages.includes(url));
-    pendingCleanups.push(...removedProductImages);
-
-    // ==========================================
-    // TRANSACTION ĐỂ UPDATE CẢ SẢN PHẨM & BIẾN THỂ CÙNG LÚC
-    // ==========================================
-    await this.prisma.$transaction(async (tx) => {
-      await tx.product.update({
-        where: { id },
-        data: {
-          ...productData,
-          slug: finalSlug, 
-          images: finalProductImages,
-        },
+        if (variants) {
+          // Lấy tên để phục vụ việc tự động tạo SKU nếu Admin tạo thêm biến thể mới lúc Update
+          const targetName = productData.name || existing.name;
+          await this.syncVariants(tx, id, targetName, variants, nextBasePrice, pendingMoves, pendingCleanups);
+        }
       });
 
-      if (variants) {
-        await this.syncVariants(tx, id, variants, nextBasePrice, pendingMoves, pendingCleanups);
+      if (customizations) {
+        await this.customizationsService.syncCustomizations(id, customizations);
       }
-    });
 
-    // Customizations chạy độc lập, nếu có lỗi thì UI vẫn xử lý được, 
-    // không liên quan đến file system.
-    if (customizations) {
-      await this.customizationsService.syncCustomizations(id, customizations);
-    }
-
-    // ==========================================
-    // CHẠY FILE SYSTEM SAU KHI GIAO DỊCH CHÍNH THÀNH CÔNG
-    // ==========================================
-    for (const move of pendingMoves) {
-      await this.moveFileSafe(move.from, move.to);
-      if (move.sourceDir !== resolve(this.publicRootDir, 'uploads', 'tmp')) {
-        await this.removeEmptyDirSafe(move.sourceDir);
+      for (const move of pendingMoves) {
+        await this.moveFileSafe(move.from, move.to);
+        if (move.sourceDir !== resolve(this.publicRootDir, 'uploads', 'tmp')) {
+          await this.removeEmptyDirSafe(move.sourceDir);
+        }
       }
-    }
-    
-    await this.cleanupProductImageUrls(pendingCleanups);
+      
+      await this.cleanupProductImageUrls(pendingCleanups);
 
-    return this.findOne(id);
+      return {
+        success: true,
+        message: this.i18n.t('products.success.product_updated'),
+        data: await this.findOne(id),
+      };
+    } catch (error: any) {
+      if (error instanceof BadRequestException || error instanceof NotFoundException) {
+        throw error;
+      }
+      if (error?.code === 'P2002') {
+        throw new BadRequestException(this.i18n.t('products.error.duplicate_sku'));
+      }
+
+      this.logger.error('Lỗi Database khi cập nhật sản phẩm:', error instanceof Error ? error.stack : undefined);
+      throw new InternalServerErrorException(this.i18n.t('products.error.product_update_failed'));
+    }
   }
 
   async updateStatus(id: number, status: any) {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
 
-    return this.prisma.product.update({
-      where: { id },
-      data: { status },
-    });
+    try {
+      const updatedProduct = await this.prisma.product.update({
+        where: { id },
+        data: { status },
+      });
+
+      return {
+        success: true,
+        message: this.i18n.t('products.success.status_updated'),
+        data: updatedProduct,
+      };
+    } catch (error: any) {
+      this.logger.error('Lỗi Database khi cập nhật trạng thái:', error instanceof Error ? error.stack : undefined);
+      throw new InternalServerErrorException(this.i18n.t('products.error.status_update_failed'));
+    }
   }
 
   async bulkUpdate(dto: { productIds: number[]; categoryId?: number; status?: string }) {
@@ -644,10 +728,21 @@ export class ProductsService {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
 
-    return this.prisma.product.update({
-      where: { id },
-      data: { status: 'ARCHIVED' },
-    });
+    try {
+      const removedProduct = await this.prisma.product.update({
+        where: { id },
+        data: { status: 'ARCHIVED' },
+      });
+
+      return {
+        success: true,
+        message: this.i18n.t('products.success.product_removed'),
+        data: removedProduct,
+      };
+    } catch (error: any) {
+      this.logger.error('Lỗi Database khi xóa sản phẩm:', error instanceof Error ? error.stack : undefined);
+      throw new InternalServerErrorException(this.i18n.t('products.error.product_remove_failed'));
+    }
   }
 
   // ==============================================================
