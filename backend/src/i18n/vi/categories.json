@@ -7,5 +7,23 @@
     "cannot_modify_system_category_slug": "Bạn không được phép đổi đường dẫn (slug) của danh mục hệ thống!",
     "cannot_delete_has_products": "Không thể xóa! Phát hiện {count} sản phẩm trong danh mục này hoặc danh mục con.",
     "parent_has_products": "Không thể chọn danh mục này làm cha vì nó đang trực tiếp chứa sản phẩm."
+  },
+  "validation": {
+    "name_string": "Tên danh mục phải là chuỗi ký tự",
+    "name_required": "Tên danh mục không được để trống",
+    "name_max_length": "Tên danh mục không được vượt quá 200 ký tự",
+    "slug_string": "Slug phải là chuỗi ký tự",
+    "slug_max_length": "Slug không được vượt quá 255 ký tự",
+    "description_string": "Mô tả phải là chuỗi ký tự",
+    "description_max_length": "Mô tả không được vượt quá 1000 ký tự",
+    "parent_id_int": "ID danh mục cha phải là số nguyên",
+    "is_active_boolean": "Trạng thái hoạt động phải là true hoặc false",
+    "position_int": "Vị trí phải là số nguyên",
+    "image_string": "Ảnh phải là chuỗi ký tự",
+    "image_url": "Ảnh phải là một URL hợp lệ",
+    "meta_title_string": "Meta Title phải là chuỗi ký tự",
+    "meta_title_max_length": "Meta Title không được vượt quá 100 ký tự",
+    "meta_desc_string": "Meta Description phải là chuỗi ký tự",
+    "meta_desc_max_length": "Meta Description không được vượt quá 300 ký tự"
   }
 }

@@ -1,54 +1,70 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, IsArray, ValidateNested, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, IsArray, ValidateNested, Min, IsNotEmpty, MaxLength } from 'class-validator';
+import { i18nValidationMessage } from 'nestjs-i18n';
 import { Type } from 'class-transformer';
 import { ProductStatus } from '@prisma/client';
 import { CreateVariantDto } from '../nested/variant.dto';
 import { CreateCustomizationDto } from '../nested/customization.dto';
 
 export class CreateProductDto {
-  @IsString()
+  @IsString({ message: i18nValidationMessage('products.validation.name_string') })
+  @IsNotEmpty({ message: i18nValidationMessage('products.validation.name_required') })
+  @MaxLength(200, { message: i18nValidationMessage('products.validation.name_max_length') })
   name!: string;
 
-  // BỔ SUNG TRƯỜNG SLUG Ở ĐÂY
+
   @IsOptional()
-  @IsString()
+  @IsString({ message: i18nValidationMessage('products.validation.slug_string') })
+  @MaxLength(255, { message: i18nValidationMessage('products.validation.slug_max_length') })
   slug?: string;
 
-  @IsNumber()
+
+  @IsNumber({}, { message: i18nValidationMessage('products.validation.category_id_number') })
+  @IsNotEmpty({ message: i18nValidationMessage('products.validation.category_id_required') })
   categoryId!: number;
 
+
   @IsOptional()
-  @IsString()
+  @IsString({ message: i18nValidationMessage('products.validation.description_string') })
   description?: string;
 
-  @IsNumber()
-  @Min(0)
+
+  @IsNumber({}, { message: i18nValidationMessage('products.validation.base_price_number') })
+  @Min(0, { message: i18nValidationMessage('products.validation.base_price_min') })
+  @IsNotEmpty({ message: i18nValidationMessage('products.validation.base_price_required') })
   basePrice!: number;
 
+
   @IsOptional()
-  @IsArray()
-  @IsString({ each: true })
+  @IsArray({ message: i18nValidationMessage('products.validation.images_array') })
+  @IsString({ each: true, message: i18nValidationMessage('products.validation.images_string') })
+  @MaxLength(5, { message: i18nValidationMessage('products.validation.images_max_count') })
   images?: string[];
 
+
   @IsOptional()
-  @IsBoolean()
+  @IsBoolean({ message: i18nValidationMessage('products.validation.is_private_boolean') })
   isPrivate?: boolean;
 
+
   @IsOptional()
-  @IsNumber()
+  @IsNumber({}, { message: i18nValidationMessage('products.validation.private_for_user_number') })
   privateForUserId?: number;
 
-  @IsOptional()
-  @IsEnum(ProductStatus)
-  status?: ProductStatus;
 
   @IsOptional()
-  @IsArray()
+  @IsEnum(ProductStatus, { message: i18nValidationMessage('products.validation.status_invalid') })
+  status?: ProductStatus;
+
+
+  @IsOptional()
+  @IsArray({ message: i18nValidationMessage('products.validation.variants_array') })
   @ValidateNested({ each: true })
   @Type(() => CreateVariantDto)
   variants?: CreateVariantDto[];
 
+
   @IsOptional()
-  @IsArray()
+  @IsArray({ message: i18nValidationMessage('products.validation.customizations_array') })
   @ValidateNested({ each: true })
   @Type(() => CreateCustomizationDto)
   customizations?: CreateCustomizationDto[];

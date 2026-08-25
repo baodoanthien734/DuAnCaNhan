@@ -1,6 +1,22 @@
 {
+  "validation": {
+    "file_required": "Please select a file to upload",
+    "file_invalid": "Invalid file",
+    "file_type_invalid": "File type not supported",
+    "file_size_exceeded": "File size exceeds the limit",
+    "image_required": "Please select an image to upload",
+    "image_invalid": "File is not a valid image",
+    "image_type_invalid": "Only JPG, PNG, WEBP formats are supported"
+  },
   "error": {
+    "upload_failed": "Upload failed",
+    "file_not_found": "File not found",
+    "delete_failed": "Delete failed",
     "no_file_uploaded": "No file was uploaded",
     "only_images_allowed": "Only image files are allowed"
+  },
+  "success": {
+    "upload_success": "Upload successful",
+    "delete_success": "Delete successful"
   }
 }

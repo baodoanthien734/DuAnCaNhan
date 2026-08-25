@@ -14,5 +14,13 @@
     "status_updated": "Order status updated successfully.",
     "order_cancelled": "Order cancelled successfully.",
     "payment_status_updated": "Payment status updated successfully."
+  },
+  "validation": {
+    "address_id_int": "Address ID must be an integer",
+    "address_id_required": "Please select a delivery address",
+    "payment_method_invalid": "Invalid payment method",
+    "payment_method_required": "Please select a payment method",
+    "note_string": "Note must be a string",
+    "note_max_length": "Note must not exceed 500 characters"
   }
 }

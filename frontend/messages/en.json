@@ -916,6 +916,16 @@
     "orders": "Order Management",
     "reviews": "Review Management",
     "customers": "Customer Management"
+    },
+    "charts": {
+      "revenue_7_days": "7-day revenue chart"
+    },
+    "sections": {
+      "recent_orders": "Recent orders",
+      "low_stock": "Low stock alerts"
+    },
+    "actions": {
+      "view_all": "View all"
     }
   }
 }

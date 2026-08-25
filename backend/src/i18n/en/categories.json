@@ -7,5 +7,23 @@
     "cannot_modify_system_category_slug": "You cannot modify the slug of the default system category!",
     "cannot_delete_has_products": "Cannot delete! Detected {count} products in this category or its subcategories.",
     "parent_has_products": "Cannot select this category as a parent because it directly contains products."
+  },
+  "validation": {
+    "name_string": "Category name must be a string",
+    "name_required": "Category name is required",
+    "name_max_length": "Category name must not exceed 200 characters",
+    "slug_string": "Slug must be a string",
+    "slug_max_length": "Slug must not exceed 255 characters",
+    "description_string": "Description must be a string",
+    "description_max_length": "Description must not exceed 1000 characters",
+    "parent_id_int": "Parent category ID must be an integer",
+    "is_active_boolean": "Active status must be true or false",
+    "position_int": "Position must be an integer",
+    "image_string": "Image must be a string",
+    "image_url": "Image must be a valid URL",
+    "meta_title_string": "Meta Title must be a string",
+    "meta_title_max_length": "Meta Title must not exceed 100 characters",
+    "meta_desc_string": "Meta Description must be a string",
+    "meta_desc_max_length": "Meta Description must not exceed 300 characters"
   }
 }
