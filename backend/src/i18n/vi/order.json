@@ -14,5 +14,13 @@
     "status_updated": "Cập nhật trạng thái đơn hàng thành công.",
     "order_cancelled": "Hủy đơn hàng thành công.",
     "payment_status_updated": "Đã cập nhật trạng thái thanh toán thành công."
+  },
+  "validation": {
+    "address_id_int": "ID địa chỉ phải là số nguyên",
+    "address_id_required": "Vui lòng chọn địa chỉ giao hàng",
+    "payment_method_invalid": "Phương thức thanh toán không hợp lệ",
+    "payment_method_required": "Vui lòng chọn phương thức thanh toán",
+    "note_string": "Ghi chú phải là chuỗi ký tự",
+    "note_max_length": "Ghi chú không được vượt quá 500 ký tự"
   }
 }

@@ -10,5 +10,21 @@
     "replied": "Reply saved successfully.",
     "deleted": "Review deleted successfully.",
     "updated": "Review updated successfully."
+  },
+  "validation": {
+    "product_id_int": "Product ID must be an integer",
+    "product_id_required": "Product ID is required",
+    "order_id_int": "Order ID must be an integer",
+    "order_id_required": "Order ID is required",
+    "rating_int": "Rating must be an integer",
+    "rating_min": "Minimum rating is 1 star",
+    "rating_max": "Maximum rating is 5 stars",
+    "rating_required": "Please select a rating",
+    "comment_string": "Comment must be a string",
+    "comment_max_length": "Comment must not exceed 1000 characters",
+    "images_array": "Images must be an array",
+    "images_string": "Image URL must be a string",
+    "images_url": "Image URL must be valid",
+    "images_max_count": "Maximum 5 images"
   }
 }

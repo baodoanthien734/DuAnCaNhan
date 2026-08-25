@@ -9,5 +9,16 @@
     "item_added": "Item added to cart successfully.",
     "item_updated": "Quantity updated successfully.",
     "item_removed": "Item removed from cart."
+  },
+  "validation": {
+    "product_id_int": "Product ID must be an integer",
+    "product_id_positive": "Product ID must be positive",
+    "product_id_required": "Product ID is required",
+    "variant_id_int": "Variant ID must be an integer",
+    "variant_id_positive": "Variant ID must be positive",
+    "quantity_int": "Quantity must be an integer",
+    "quantity_min": "Quantity must be at least 1",
+    "quantity_required": "Quantity is required",
+    "customizations_invalid": "Customization information is invalid"
   }
 }

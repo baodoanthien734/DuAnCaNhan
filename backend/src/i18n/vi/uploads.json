@@ -1,6 +1,22 @@
 {
+  "validation": {
+    "file_required": "Vui lòng chọn file để tải lên",
+    "file_invalid": "File không hợp lệ",
+    "file_type_invalid": "Loại file không được hỗ trợ",
+    "file_size_exceeded": "Kích thước file vượt quá giới hạn cho phép",
+    "image_required": "Vui lòng chọn ảnh để tải lên",
+    "image_invalid": "File không phải là ảnh hợp lệ",
+    "image_type_invalid": "Chỉ hỗ trợ các định dạng: JPG, PNG, WEBP"
+  },
   "error": {
+    "upload_failed": "Tải lên thất bại",
+    "file_not_found": "Không tìm thấy file",
+    "delete_failed": "Xóa file thất bại",
     "no_file_uploaded": "Không có file được tải lên",
     "only_images_allowed": "Chỉ chấp nhận hình ảnh"
+  },
+  "success": {
+    "upload_success": "Tải lên thành công",
+    "delete_success": "Xóa file thành công"
   }
 }

@@ -916,6 +916,16 @@
       "orders": "Quản lý Đơn hàng",
       "reviews": "Quản lý Đánh giá",
       "customers": "Quản lý Khách hàng"
+    },
+    "charts": {
+      "revenue_7_days": "Biểu đồ doanh thu 7 ngày qua"
+    },
+    "sections": {
+      "recent_orders": "Đơn hàng mới nhất",
+      "low_stock": "Cảnh báo sắp hết hàng"
+    },
+    "actions": {
+      "view_all": "Xem tất cả"
     }
   }
 }

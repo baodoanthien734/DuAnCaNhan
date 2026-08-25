@@ -9,5 +9,16 @@
     "item_added": "Đã thêm sản phẩm vào giỏ hàng.",
     "item_updated": "Cập nhật số lượng thành công.",
     "item_removed": "Đã xóa sản phẩm khỏi giỏ hàng."
+  },
+  "validation": {
+    "product_id_int": "ID sản phẩm phải là số nguyên",
+    "product_id_positive": "ID sản phẩm phải là số dương",
+    "product_id_required": "ID sản phẩm không được để trống",
+    "variant_id_int": "ID biến thể phải là số nguyên",
+    "variant_id_positive": "ID biến thể phải là số dương",
+    "quantity_int": "Số lượng phải là số nguyên",
+    "quantity_min": "Số lượng phải lớn hơn hoặc bằng 1",
+    "quantity_required": "Số lượng không được để trống",
+    "customizations_invalid": "Thông tin tùy chọn cá nhân hóa không hợp lệ"
   }
 }

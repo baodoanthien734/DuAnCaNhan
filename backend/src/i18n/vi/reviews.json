@@ -10,5 +10,21 @@
     "replied": "Đã lưu phản hồi thành công.",
     "deleted": "Đã xóa đánh giá.",
     "updated": "Cập nhật đánh giá thành công."
+  },
+  "validation": {
+    "product_id_int": "ID sản phẩm phải là số nguyên",
+    "product_id_required": "ID sản phẩm không được để trống",
+    "order_id_int": "ID đơn hàng phải là số nguyên",
+    "order_id_required": "ID đơn hàng không được để trống",
+    "rating_int": "Đánh giá phải là số nguyên",
+    "rating_min": "Đánh giá thấp nhất là 1 sao",
+    "rating_max": "Đánh giá cao nhất là 5 sao",
+    "rating_required": "Vui lòng chọn đánh giá",
+    "comment_string": "Bình luận phải là chuỗi ký tự",
+    "comment_max_length": "Bình luận không được vượt quá 1000 ký tự",
+    "images_array": "Danh sách ảnh phải là mảng",
+    "images_string": "URL ảnh phải là chuỗi ký tự",
+    "images_url": "URL ảnh phải hợp lệ",
+    "images_max_count": "Tối đa 5 ảnh"
   }
 }
