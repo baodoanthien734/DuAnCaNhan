@@ -38,20 +38,23 @@ export class PostsService {
 		postId: number,
 		filenameMap: Map<string, string>,
 	) {
+		// Replace the src of <img> tags in the HTML content with the corresponding stored filenames
 		return html.replace(/<img\b[^>]*>/gi, (imgTag) => {
+			// Extract the original filename from the data-filename attribute
 			const filenameMatch = imgTag.match(/data-filename=["']([^"']+)["']/i);
 			if (!filenameMatch) {
 				return imgTag;
 			}
 
 			const originalFilename = filenameMatch[1];
+			// Look up the stored filename in the map
 			const storedFilename = filenameMap.get(originalFilename) ?? filenameMap.get(basename(originalFilename));
 			if (!storedFilename) {
 				return imgTag;
 			}
-
+			// Construct the new image URL
 			const imageUrl = `/uploads/posts/${postId}/${storedFilename}`;
-
+			// Replace the src attribute in the <img> tag with the new image URL
 			if (/src=["'][^"']*["']/i.test(imgTag)) {
 				return imgTag.replace(/src=["'][^"']*["']/i, `src="${imageUrl}"`);
 			}
@@ -187,6 +190,7 @@ export class PostsService {
 				fs.mkdirSync(createdPostDir, { recursive: true });
 
 				let thumbnailUrl: string | null = null;
+				// Map to keep track of original filenames and their corresponding stored filenames
 				const filenameMap = new Map<string, string>();
 				const thumbnailFile = files.thumbnail?.[0];
 				const contentImages = files.contentImages ?? [];
@@ -201,8 +205,8 @@ export class PostsService {
 					const tempFilePath = file.path;
 					const targetFilePath = join(createdPostDir, file.filename);
 
-					fs.renameSync(tempFilePath, targetFilePath);
-					filenameMap.set(file.originalname, file.filename);
+					fs.renameSync(tempFilePath, targetFilePath); // Move the file to the post's directory
+					filenameMap.set(file.originalname, file.filename); // Map original filename to stored filename
 					filenameMap.set(basename(file.originalname), file.filename);
 				}
 

@@ -215,9 +215,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     // THAY ĐỔI 1: Bọc font-sans (vuông vắn) và text-[0.85rem] (khoảng 85% của text-base mặc định)
     <div className="font-sans text-[0.85rem] mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12 bg-slate-50/30">
       <Link href="/products" className="mb-8 inline-flex items-center gap-2 text-xs font-medium text-slate-500 transition hover:text-slate-900">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-3.5 w-3.5">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
-        </svg>
         {t('back')}
       </Link>
 

@@ -36,7 +36,7 @@
       "jewelry": "Jewelry",
       "home": "Home goods",
       "cardsAndBags": "Cards & Bags",
-      "viewAll": "View all"
+      "viewAll": "View all >"
     },
     "products": {
       "title": "Handcrafted products",
@@ -64,7 +64,7 @@
       "variants": "Variants",
       "customizations": "Customizations",
       "addToCart": "Add to Cart",
-      "back": "Back to products",
+      "back": "< Back to products",
       "required": "Required",
       "from": "From"
     },
@@ -512,7 +512,7 @@
     "adjust_stock_warning": "Please adjust the quantity of the highlighted items to continue."
   },
   "private_layout": {
-    "back_home": "Back to Home"
+    "back_home": "< Back to Home"
   },
   "language_switcher": {
     "label": "Language",
@@ -531,7 +531,7 @@
     "no_description": "...",
     "currency": "VND",
     "view_detail": "View details",
-    "back_to_products": "← Back to products",
+    "back_to_products": "< Back to products",
     "search_no_results": "No products found matching \"{query}\"",
     "search_view_all": "View all results for \"{query}\"",
     "search_result_for": "Search results for: \"{query}\"",
@@ -624,7 +624,7 @@
     "next": "Next"
     },
     "detail": {
-      "back": "← Back to list",
+      "back": "< Back to list",
       "title": "Order Detail",
       "update_status": "Update status:",
       "success_update": "Order status updated successfully!",
@@ -672,7 +672,7 @@
     "confirm_cancel": "Are you sure you want to cancel order #{code}?",
     "cancel_success": "Order has been successfully cancelled.",
     "detail": {
-      "back": "Back to orders",
+      "back": "< Back to orders",
       "title": "Order Details",
       "not_found": "Order not found!",
       "shipping_info": "Shipping Info",
@@ -729,7 +729,7 @@
       "CANCELLED": "Cancelled"
     },
     "detail": {
-      "back": "← Back to list",
+      "back": "< Back to list",
       "loading": "Loading customer details...",
       "not_found": "Customer not found.",
       "overview": "Overview",
@@ -831,12 +831,12 @@
   "description": "Discover the journey behind creating unique handcrafted items, tips for styling your living space, and the stories behind each product.",
   "loading": "Loading stories...",
   "empty": "No articles have been published yet.",
-  "back": "Back to list",
+  "back": "< Back to list",
   "not_found": "Article not found or has been deleted."
   },
   "admin_dashboard": {
     "badge": "Dashboard",
-    "greeting": "Welcome back, {name} 👋",
+    "greeting": "Welcome back, {name} ",
     "subtitle": "Here is an overview of today's business activity. Everything is running smoothly!",
     "status_title": "System Status",
     "status_desc": "All services are operating normally. The system is ready to receive orders.",

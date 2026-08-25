@@ -74,7 +74,7 @@ export default async function Home() {
                   {rootCat.name}
                 </h3>
                 <Link href={`/categories/${rootCat.slug}`} style={{ color: '#d97706', fontWeight: '600', textDecoration: 'none', fontSize: '15px' }} className="hover:underline">
-                  {t('categories.viewAll')} &rarr;
+                  {t('categories.viewAll')}
                 </Link>
               </div>
 

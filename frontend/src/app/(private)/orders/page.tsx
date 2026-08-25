@@ -1,23 +1,21 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react'; // Nhớ thêm useCallback nếu cần
+import { useEffect, useState, useCallback } from 'react'; 
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl'; 
-import { getMyOrders, cancelMyOrder } from '@/lib/orders-api'; // <-- Bổ sung cancelMyOrder
+import { getMyOrders, cancelMyOrder } from '@/lib/orders-api'; 
 import { resolveImageUrl } from '@/lib/utils';
-// Giả định bạn có hook dùng để báo lỗi/confirm, nếu không có thể xóa dòng này
 import { useModal } from '@/hooks/useModal';
 
 export default function MyOrdersPage() {
   const t = useTranslations('my_orders');
   const locale = useLocale(); 
-  const modal = useModal(); // <-- Khởi tạo modal
+  const modal = useModal(); 
 
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshTrigger, setRefreshTrigger] = useState(0); // <-- Thêm trigger để gọi lại API
+  const [refreshTrigger, setRefreshTrigger] = useState(0); 
 
-  // Đưa fetchOrders ra ngoài để tái sử dụng
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
@@ -43,9 +41,7 @@ export default function MyOrdersPage() {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
   };
 
-  // --- HÀM XỬ LÝ HỦY ĐƠN ---
   const handleCancelOrder = async (orderId: number, orderCode: string) => {
-    // Hỏi xác nhận
     const isConfirmed = await modal.confirm(
       t('confirm_cancel', { code: orderCode }) || `Bạn có chắc chắn muốn hủy đơn hàng #${orderCode} không?`
     );
@@ -54,7 +50,7 @@ export default function MyOrdersPage() {
       try {
         await cancelMyOrder(orderId);
         await modal.alert(t('cancel_success') || 'Đơn hàng đã được hủy thành công.');
-        setRefreshTrigger(prev => prev + 1); // Cập nhật lại danh sách
+        setRefreshTrigger(prev => prev + 1); 
       } catch (error: any) {
         const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi hủy đơn.';
         await modal.alert(errorMsg);
@@ -66,7 +62,8 @@ export default function MyOrdersPage() {
     return (
       <div className="flex min-h-[60vh] items-center justify-center bg-slate-50/30">
         <div className="flex flex-col items-center gap-3 text-slate-500">
-          <svg className="h-6 w-6 animate-spin text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          {/* FIX 1: Khóa cứng width/height cho icon Loading */}
+          <svg width="24" height="24" className="h-6 w-6 animate-spin text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
@@ -88,7 +85,8 @@ export default function MyOrdersPage() {
         {/* DANH SÁCH ĐƠN HÀNG */}
         {orders.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-3xl border border-slate-200 bg-white py-24 shadow-sm">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="mb-6 h-16 w-16 text-slate-300">
+            {/* FIX 2: Khóa cứng width/height cho icon Giỏ hàng rỗng */}
+            <svg width="64" height="64" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="mb-6 h-16 w-16 text-slate-300">
               <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" />
             </svg>
             <p className="mb-6 text-slate-500">{t('empty')}</p>
@@ -114,14 +112,14 @@ export default function MyOrdersPage() {
                       <span className="text-lg font-bold text-slate-900">#{order.code}</span>
                     </div>
                     <div className="mt-1 flex items-center gap-2 text-sm text-slate-500">
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
+                      {/* FIX 3: Khóa cứng width/height cho icon Đồng hồ (KẺ GÂY LỖI CHÍNH) */}
+                      <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       {t('order_date')} {new Date(order.createdAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN')}
                     </div>
                   </div>
                   
-                  {/* Khu vực Nhãn Trạng thái + Nút Hủy */}
                   <div className="flex items-center gap-3">
                     <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
                       order.status === 'CANCELLED' 
@@ -131,7 +129,6 @@ export default function MyOrdersPage() {
                       {t(`status.${order.status}`)}
                     </span>
                     
-                    {/* CHỈ HIỂN THỊ NÚT HỦY KHI PENDING_PAYMENT */}
                     {order.status === 'PENDING' && (
                       <button
                         onClick={() => handleCancelOrder(order.id, order.code)}
@@ -150,23 +147,25 @@ export default function MyOrdersPage() {
                     {order.items.slice(0, 2).map((item: any, idx: number) => (
                       <div 
                         key={idx} 
-                        className="relative flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
+                        className="relative flex h-20 w-20 flex-none items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
                       >
                         {item.imageUrl ? (
                           <img 
                             src={resolveImageUrl(item.imageUrl)} 
                             alt={item.productName} 
-                            className="h-full w-full object-cover mix-blend-multiply" 
+                            width={80} 
+                            height={80} 
+                            className="absolute inset-0 h-full w-full object-cover mix-blend-multiply" 
                           />
                         ) : (
-                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6 text-slate-400">
+                          <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-6 w-6 text-slate-400">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
                           </svg>
                         )}
                       </div>
                     ))}
                     {order.items.length > 2 && (
-                      <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-500">
+                      <div className="flex h-20 w-20 flex-none items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm font-bold text-slate-500">
                         +{order.items.length - 2}
                       </div>
                     )}
@@ -186,7 +185,8 @@ export default function MyOrdersPage() {
                       className="group inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition-all hover:border-slate-400 hover:bg-slate-50"
                     >
                       {t('view_detail')}
-                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4 transition-transform group-hover:translate-x-1">
+                      {/* FIX 5: Khóa cứng width/height cho Mũi tên */}
+                      <svg width="16" height="16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="h-4 w-4 transition-transform group-hover:translate-x-1">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     </Link>

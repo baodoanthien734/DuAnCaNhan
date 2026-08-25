@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { bulkUpdateProducts } from "@/lib/products-api";
 
@@ -26,7 +26,25 @@ export default function BulkEditModal({ isOpen, onClose, selectedIds, categories
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // --- STATE & REF CHO CUSTOM DROPDOWN ---
+  const [isCategoryOpen, setIsCategoryOpen] = useState(false);
+  const categoryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Lắng nghe sự kiện click ra ngoài để đóng dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
+        setIsCategoryOpen(false);
+      }
+    };
+    if (isCategoryOpen && isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isCategoryOpen, isOpen]);
+
   if (!isOpen) return null;
+
+  // Lấy ra Object danh mục đang được chọn (để hiển thị tên trên nút bấm)
+  const selectedCategoryObj = categories.find(c => c.id === categoryId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,23 +94,70 @@ export default function BulkEditModal({ isOpen, onClose, selectedIds, categories
         )}
 
         <div className="grid gap-6">
-          {/* Cập nhật Danh mục */}
-          <div>
+          {/* Cập nhật Danh mục (CUSTOM DROPDOWN GIỐNG PRODUCT FORM) */}
+          <div className="relative" ref={categoryDropdownRef}>
             <label className="mb-2 block text-sm font-bold text-slate-900">
               {t("bulkEdit.newCategory") || "Danh mục mới"}
             </label>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value === "" ? "" : Number(e.target.value))}
-              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 outline-none transition focus:border-slate-900 focus:ring-1 focus:ring-slate-900 text-sm"
+            
+            {/* Nút bấm (Trigger) */}
+            <button
+              type="button"
+              onClick={() => setIsCategoryOpen(!isCategoryOpen)}
+              className={`w-full flex justify-between items-center rounded-xl border px-4 py-2.5 text-left outline-none transition focus:border-slate-900 focus:ring-1 focus:ring-slate-900 bg-white ${isCategoryOpen ? 'border-slate-400' : 'border-slate-300'}`}
             >
-              <option value="">-- {t("bulkEdit.keepUnchanged") || "Giữ nguyên"} --</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.path || cat.name}
-                </option>
-              ))}
-            </select>
+              <div className="flex-1 overflow-hidden">
+                {selectedCategoryObj ? (
+                  <>
+                    <div className="text-sm font-semibold text-gray-900 truncate">{selectedCategoryObj.name}</div>
+                    <div className="text-[11px] text-gray-400 mt-0.5 truncate">{selectedCategoryObj.path}</div>
+                  </>
+                ) : (
+                  <div className="text-sm text-gray-600">-- {t("bulkEdit.keepUnchanged") || "Giữ nguyên"} --</div>
+                )}
+              </div>
+              <svg className={`ml-2 w-5 h-5 flex-shrink-0 text-gray-400 transition-transform ${isCategoryOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+
+            {/* Bảng thả xuống (Dropdown List) */}
+            {isCategoryOpen && (
+              <div className="absolute left-0 right-0 z-50 mt-1 bg-white border border-gray-200 rounded-lg shadow-xl max-h-60 overflow-y-auto">
+                {/* Option Giữ nguyên */}
+                <div
+                  onClick={() => {
+                    setCategoryId("");
+                    setIsCategoryOpen(false);
+                  }}
+                  className={`p-3 cursor-pointer transition hover:bg-slate-50 border-b border-gray-100 ${
+                    categoryId === "" ? 'bg-blue-50/50' : ''
+                  }`}
+                >
+                  <div className="text-sm font-semibold text-gray-900">-- {t("bulkEdit.keepUnchanged") || "Giữ nguyên"} --</div>
+                </div>
+
+                {/* Danh sách categories */}
+                {categories.map((cat) => {
+                  const isSelected = cat.id === categoryId;
+                  return (
+                    <div
+                      key={cat.id}
+                      onClick={() => {
+                        setCategoryId(cat.id);
+                        setIsCategoryOpen(false);
+                      }}
+                      className={`p-3 cursor-pointer transition hover:bg-slate-50 border-b border-gray-50 last:border-none ${
+                        isSelected ? 'bg-blue-50/80' : ''
+                      }`}
+                    >
+                      <div className="text-sm font-semibold text-gray-900">{cat.name}</div>
+                      <div className="text-[11px] text-gray-400 mt-0.5 break-words">{cat.path}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Cập nhật Trạng thái */}

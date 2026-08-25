@@ -36,8 +36,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       {/* Nút Back */}
       <div className="max-w-3xl mx-auto px-6 pt-12 pb-6">
         <Link href="/posts" className="inline-flex items-center gap-2 text-slate-500 hover:text-amber-600 transition-colors font-medium text-sm">
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
-          {t('back')}
+         {t('back')}
         </Link>
       </div>
 

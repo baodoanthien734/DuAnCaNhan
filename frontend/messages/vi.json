@@ -36,7 +36,7 @@
       "jewelry": "Trang sức",
       "home": "Đồ gia dụng",
       "cardsAndBags": "Thiệp & Túi",
-      "viewAll": "Xem tất cả"
+      "viewAll": "Xem tất cả >"
     },
     "products": {
       "title": "Sản phẩm thủ công",
@@ -64,7 +64,7 @@
       "variants": "Phân loại / Biến thể",
       "customizations": "Tùy chọn cá nhân hóa",
       "addToCart": "Thêm vào giỏ hàng",
-      "back": "Quay lại danh sách",
+      "back": "< Quay lại danh sách",
       "required": "Bắt buộc",
       "from": "Từ"
     },
@@ -512,7 +512,7 @@
     "adjust_stock_warning": "Vui lòng điều chỉnh số lượng sản phẩm đang bị lỗi đỏ để tiếp tục."
   },
   "private_layout": {
-    "back_home": "Về trang chủ"
+    "back_home": "< Về trang chủ"
   },
   "language_switcher": {
     "label": "Ngôn ngữ",
@@ -531,7 +531,7 @@
     "no_description": "...",
     "currency": "đ",
     "view_detail": "Xem chi tiết",
-    "back_to_products": "← Quay lại danh sách",
+    "back_to_products": "< Quay lại danh sách",
     "search_no_results": "Không tìm thấy sản phẩm nào khớp với \"{query}\"",
     "search_view_all": "Xem tất cả kết quả cho \"{query}\"",
     "search_result_for": "Kết quả tìm kiếm cho: \"{query}\"",
@@ -624,7 +624,7 @@
       "next": "Tiếp"
     },
     "detail": {
-      "back": "← Quay lại danh sách",
+      "back": "< Quay lại danh sách",
       "title": "Chi tiết đơn hàng",
       "update_status": "Cập nhật trạng thái:",
       "success_update": "Đã cập nhật trạng thái đơn hàng!",
@@ -672,7 +672,7 @@
     "confirm_cancel": "Bạn có chắc chắn muốn hủy đơn hàng #{code} không?",
     "cancel_success": "Đơn hàng đã được hủy thành công.",
     "detail": {
-      "back": "Quay lại danh sách",
+      "back": "< Quay lại danh sách",
       "title": "Chi tiết đơn hàng",
       "not_found": "Không tìm thấy đơn hàng!",
       "shipping_info": "Thông tin nhận hàng",
@@ -729,7 +729,7 @@
       "CANCELLED": "Đã hủy"
     },
     "detail": {
-      "back": "← Quay lại danh sách",
+      "back": "< Quay lại danh sách",
       "loading": "Đang tải chi tiết khách hàng...",
       "not_found": "Không tìm thấy khách hàng.",
       "overview": "Thông tin tổng quan",
@@ -831,12 +831,12 @@
   "description": "Khám phá hành trình tạo ra những món đồ thủ công độc bản, những bí quyết trang trí không gian sống và những câu chuyện đằng sau mỗi sản phẩm.",
   "loading": "Đang tải câu chuyện...",
   "empty": "Chưa có bài viết nào được xuất bản.",
-  "back": "Quay lại danh sách",
+  "back": "< Quay lại danh sách",
   "not_found": "Không tìm thấy bài viết hoặc bài viết đã bị xóa."
   },
   "admin_dashboard": {
     "badge": "Bảng điều khiển",
-    "greeting": "Chào mừng trở lại, {name} 👋",
+    "greeting": "Chào mừng trở lại, {name} ",
     "subtitle": "Đây là tổng quan về hoạt động kinh doanh của cửa hàng hôm nay. Mọi thứ đang diễn ra rất tuyệt vời!",
     "status_title": "Tình trạng hệ thống",
     "status_desc": "Tất cả dịch vụ đang hoạt động ổn định. Hệ thống sẵn sàng nhận đơn.",
