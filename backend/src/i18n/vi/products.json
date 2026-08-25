@@ -1,6 +1,7 @@
 {
   "success": {
-    "product_created": "Tạo sản phẩm và các tùy chọn thành công vào Database"
+    "product_created": "Tạo sản phẩm và các tùy chọn thành công vào Database",
+    "bulk_updated": "Đã cập nhật thành công {count} sản phẩm."
   },
   "error": {
     "product_not_found": "Sản phẩm không tồn tại",
@@ -8,6 +9,10 @@
     "product_save_failed": "Lỗi hệ thống khi lưu sản phẩm, vui lòng thử lại",
     "variant_price_must_be_greater_or_equal_base": "Giá biến thể phải lớn hơn hoặc bằng giá cơ bản ({basePrice}).",
     "product_images_limit_exceeded": "Tối đa chỉ được phép 5 ảnh chính cho một sản phẩm.",
-    "duplicate_slug": "Tên sản phẩm hoặc đường dẫn (slug) này đã tồn tại trong hệ thống."
+    "duplicate_slug": "Tên sản phẩm hoặc đường dẫn (slug) này đã tồn tại trong hệ thống.",
+    "product_ids_not_empty": "Danh sách ID sản phẩm không được để trống",
+    "no_products_selected": "Vui lòng chọn ít nhất một sản phẩm.",
+    "no_data_to_update": "Không có thông tin nào được chọn để cập nhật.",
+    "bulk_update_failed": "Có lỗi hệ thống xảy ra khi cập nhật hàng loạt."
   }
 }

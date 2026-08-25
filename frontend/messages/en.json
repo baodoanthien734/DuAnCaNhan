@@ -197,7 +197,9 @@
         "reorderSuccess": "Position updated",
         "deleteSuccess": "Category deleted",
         "reorderError": "Failed to reorder",
-        "deleteError": "Delete failed"
+        "deleteError": "Delete failed",
+        "createFrom": "Create subdirectory",
+        "cannotCreateHasProducts": "Cannot create because the category already contains products"
       },
       "pagination": {
         "prev": "Previous",
@@ -232,7 +234,7 @@
   "admin_products": {
     "list": {
       "title": "Products list",
-      "addButton": "+ Add product",
+      "addButton": "Add product",
       "searchPlaceholder": "Search by name...",
       "allCategories": "All categories",
       "allStatuses": "All statuses",
@@ -253,7 +255,15 @@
         "showCount": "Showing {count} / {total} products",
         "prev": "Previous",
         "next": "Next"
-      }
+      },
+      "bulkEditButton": "Bulk edit",
+      "noProductsSelected": "Please select at least 1 product.",
+      "selectedCount": "{count} products selected for action.",
+      "clearSelection": "Clear selection",
+      "cancelAddButton": "Cancel selection",
+      "addButtonAction": "Select",
+      "showSelectedOnly": "Show selected only",
+      "noSelectedOnThisPage": "No products selected on this page."
     },
     "row": {
       "uncategorized": "Uncategorized",
@@ -366,6 +376,18 @@
       "variantSkuHint": "Stock Keeping Unit. Must be unique.",
       "categoryHierarchyLabel": "Display structure:",
       "categoryNote": "Only leaf categories are available for selection. The product will be displayed in all parent categories related to the selected category."
+    },
+    "bulkEdit": {
+      "title": "Bulk Edit",
+      "subtitle": "You are making changes to {count} selected products.",
+      "newCategory": "New Category",
+      "newStatus": "New Status",
+      "keepUnchanged": "Keep unchanged",
+      "cancel": "Cancel",
+      "save": "Save changes",
+      "noChangesError": "Please select at least one item (Category or Status) to change.",
+      "submitError": "An error occurred during the bulk update.",
+      "successMessage": "Bulk update successful!"
     }
   },
   "editor": {
@@ -490,7 +512,7 @@
     "adjust_stock_warning": "Please adjust the quantity of the highlighted items to continue."
   },
   "private_layout": {
-    "back_home": "← Back to Home"
+    "back_home": "Back to Home"
   },
   "language_switcher": {
     "label": "Language",
@@ -646,8 +668,11 @@
     "CANCELLED": "Cancelled"
     },
     "load_error": "Error loading orders:",
+    "cancel_button": "Cancel Order",
+    "confirm_cancel": "Are you sure you want to cancel order #{code}?",
+    "cancel_success": "Order has been successfully cancelled.",
     "detail": {
-      "back": "← Back to orders",
+      "back": "Back to orders",
       "title": "Order Details",
       "not_found": "Order not found!",
       "shipping_info": "Shipping Info",

@@ -197,7 +197,9 @@
         "reorderSuccess": "Đã cập nhật vị trí",
         "deleteSuccess": "Đã xóa danh mục",
         "reorderError": "Lỗi khi sắp xếp",
-        "deleteError": "Lỗi khi xóa"
+        "deleteError": "Lỗi khi xóa",
+        "createFrom": "Tạo thư mục con",
+        "cannotCreateHasProducts": "Không thể tạo vì danh mục có chứa sản phẩm"
       },
       "pagination": {
         "prev": "Trước",
@@ -232,7 +234,7 @@
   "admin_products": {
     "list": {
       "title": "Danh sách Sản phẩm",
-      "addButton": "+ Thêm sản phẩm",
+      "addButton": "Thêm sản phẩm",
       "searchPlaceholder": "Tìm theo tên...",
       "allCategories": "Tất cả danh mục",
       "allStatuses": "Tất cả trạng thái",
@@ -253,7 +255,15 @@
         "showCount": "Hiển thị {count} / {total} sản phẩm",
         "prev": "Trước",
         "next": "Sau"
-      }
+      },
+      "bulkEditButton": "Chỉnh sửa hàng loạt",
+      "noProductsSelected": "Vui lòng chọn ít nhất 1 sản phẩm.",
+      "selectedCount": "Đã chọn {count} sản phẩm để thao tác.",
+      "clearSelection": "Hủy bỏ lựa chọn",
+      "cancelAddButton": "Bỏ chọn",
+      "addButtonAction": "Chọn",
+      "showSelectedOnly": "Chỉ hiện mục đã chọn",
+      "noSelectedOnThisPage": "Không có sản phẩm nào được chọn trên trang này."
     },
     "row": {
       "uncategorized": "Chưa phân loại",
@@ -366,6 +376,18 @@
       "variantSkuHint": "Mã quản lý kho. Không được trùng lặp.",
       "categoryHierarchyLabel": "Cấu trúc hiển thị:",
       "categoryNote": "Chỉ hiển thị các danh mục lá. Sản phẩm sẽ được hiển thị ở toàn bộ danh mục cấp cha liên quan đến danh mục được chọn."
+    },
+    "bulkEdit": {
+      "title": "Chỉnh sửa hàng loạt",
+      "subtitle": "Bạn đang thực hiện thay đổi cho {count} sản phẩm đã chọn.",
+      "newCategory": "Danh mục mới",
+      "newStatus": "Trạng thái mới",
+      "keepUnchanged": "Giữ nguyên",
+      "cancel": "Hủy bỏ",
+      "save": "Lưu thay đổi",
+      "noChangesError": "Vui lòng chọn ít nhất một mục (Danh mục hoặc Trạng thái) để thay đổi.",
+      "submitError": "Có lỗi xảy ra khi cập nhật hàng loạt.",
+      "successMessage": "Cập nhật hàng loạt thành công!"
     }
   },
   "editor": {
@@ -490,7 +512,7 @@
     "adjust_stock_warning": "Vui lòng điều chỉnh số lượng sản phẩm đang bị lỗi đỏ để tiếp tục."
   },
   "private_layout": {
-    "back_home": "← Về trang chủ"
+    "back_home": "Về trang chủ"
   },
   "language_switcher": {
     "label": "Ngôn ngữ",
@@ -646,8 +668,11 @@
       "CANCELLED": "Đã hủy"
     },
     "load_error": "Lỗi tải đơn hàng:",
+    "cancel_button": "Hủy Đơn",
+    "confirm_cancel": "Bạn có chắc chắn muốn hủy đơn hàng #{code} không?",
+    "cancel_success": "Đơn hàng đã được hủy thành công.",
     "detail": {
-      "back": "← Quay lại danh sách",
+      "back": "Quay lại danh sách",
       "title": "Chi tiết đơn hàng",
       "not_found": "Không tìm thấy đơn hàng!",
       "shipping_info": "Thông tin nhận hàng",

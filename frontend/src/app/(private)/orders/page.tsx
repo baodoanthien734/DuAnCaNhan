@@ -1,44 +1,68 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react'; // Nhớ thêm useCallback nếu cần
 import Link from 'next/link';
-import { useTranslations, useLocale } from 'next-intl'; // <-- Thêm useLocale ở đây
-import { getMyOrders } from '@/lib/orders-api';
+import { useTranslations, useLocale } from 'next-intl'; 
+import { getMyOrders, cancelMyOrder } from '@/lib/orders-api'; // <-- Bổ sung cancelMyOrder
 import { resolveImageUrl } from '@/lib/utils';
+// Giả định bạn có hook dùng để báo lỗi/confirm, nếu không có thể xóa dòng này
+import { useModal } from '@/hooks/useModal';
 
 export default function MyOrdersPage() {
   const t = useTranslations('my_orders');
-  const locale = useLocale(); // <-- Lấy ngôn ngữ hiện tại (en hoặc vi)
+  const locale = useLocale(); 
+  const modal = useModal(); // <-- Khởi tạo modal
+
   const [orders, setOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // <-- Thêm trigger để gọi lại API
 
-  useEffect(() => {
-    const fetchOrders = async () => {
-      try {
-        const data = await getMyOrders();
-        setOrders(data || []);
-      } catch (error) {
-        console.error(t('load_error') || 'Lỗi tải đơn hàng:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchOrders();
+  // Đưa fetchOrders ra ngoài để tái sử dụng
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getMyOrders();
+      setOrders(data || []);
+    } catch (error) {
+      console.error(t('load_error') || 'Lỗi tải đơn hàng:', error);
+    } finally {
+      setLoading(false);
+    }
   }, [t]);
 
-  // HÀM FORMAT TIỀN TỆ ĐỘNG THEO LOCALE (Giống trang chi tiết)
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders, refreshTrigger]);
+
   const formatCurrency = (value: number) => {
     if (locale === 'en') {
-      // 20,000 VND
       return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'VND' })
         .format(Number(value || 0))
         .replace('₫', 'VND');
     }
-    // 20.000 đ
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(Number(value || 0));
   };
 
-  if (loading) {
+  // --- HÀM XỬ LÝ HỦY ĐƠN ---
+  const handleCancelOrder = async (orderId: number, orderCode: string) => {
+    // Hỏi xác nhận
+    const isConfirmed = await modal.confirm(
+      t('confirm_cancel', { code: orderCode }) || `Bạn có chắc chắn muốn hủy đơn hàng #${orderCode} không?`
+    );
+
+    if (isConfirmed) {
+      try {
+        await cancelMyOrder(orderId);
+        await modal.alert(t('cancel_success') || 'Đơn hàng đã được hủy thành công.');
+        setRefreshTrigger(prev => prev + 1); // Cập nhật lại danh sách
+      } catch (error: any) {
+        const errorMsg = error.response?.data?.message || 'Có lỗi xảy ra khi hủy đơn.';
+        await modal.alert(errorMsg);
+      }
+    }
+  };
+
+  if (loading && orders.length === 0) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center bg-slate-50/30">
         <div className="flex flex-col items-center gap-3 text-slate-500">
@@ -83,7 +107,7 @@ export default function MyOrdersPage() {
                 className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md"
               >
                 {/* HEADER CỦA TỪNG ĐƠN HÀNG */}
-                <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 bg-slate-50/50 p-6">
+                <div className="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 bg-slate-50/50 p-6">
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-semibold uppercase tracking-wide text-slate-500">{t('order_code')}</span>
@@ -93,11 +117,12 @@ export default function MyOrdersPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="h-4 w-4">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      {/* ĐÃ FIX: Format ngày tháng động theo locale */}
                       {t('order_date')} {new Date(order.createdAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN')}
                     </div>
                   </div>
-                  <div>
+                  
+                  {/* Khu vực Nhãn Trạng thái + Nút Hủy */}
+                  <div className="flex items-center gap-3">
                     <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider ${
                       order.status === 'CANCELLED' 
                         ? 'bg-rose-50 text-rose-600 border border-rose-100' 
@@ -105,6 +130,16 @@ export default function MyOrdersPage() {
                     }`}>
                       {t(`status.${order.status}`)}
                     </span>
+                    
+                    {/* CHỈ HIỂN THỊ NÚT HỦY KHI PENDING_PAYMENT */}
+                    {order.status === 'PENDING' && (
+                      <button
+                        onClick={() => handleCancelOrder(order.id, order.code)}
+                        className="rounded-lg border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold uppercase text-red-600 shadow-sm transition hover:bg-red-100 hover:text-red-700"
+                      >
+                        {t('cancel_button') || 'Hủy Đơn'}
+                      </button>
+                    )}
                   </div>
                 </div>
 
@@ -142,7 +177,6 @@ export default function MyOrdersPage() {
                     <div>
                       <div className="text-xs font-semibold uppercase tracking-widest text-slate-500">{t('total_amount')}</div>
                       <div className="mt-1 text-2xl font-bold text-slate-900">
-                        {/* ĐÃ FIX: Gọi hàm formatCurrency */}
                         {formatCurrency(order.totalAmount)}
                       </div>
                     </div>

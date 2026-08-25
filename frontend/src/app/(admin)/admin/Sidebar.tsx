@@ -107,61 +107,71 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
         flexDirection: 'column',
         boxSizing: 'border-box',
         padding: '24px 14px',
-        overflow: 'visible',
+        // Đã đổi thành hidden vì không còn nút nào thò ra ngoài
+        overflow: 'hidden', 
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         color: '#ffffff',
       }}
     >
-      {/* Nút Toggle */}
-      <button
-        type="button"
-        onClick={() => {
-          setCollapsed(!collapsed);
-          setShowSettings(false);
-        }}
-        style={{
-          position: 'absolute',
-          right: '-14px',
-          top: '32px',
-          width: '28px',
-          height: '28px',
-          borderRadius: '50%',
-          backgroundColor: '#ffffff',
-          border: '1px solid #e0f2fe',
-          color: '#4592b6', 
-          cursor: 'pointer',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-          zIndex: 40,
-        }}
-      >
-        {collapsed ? (
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
-        ) : (
-          <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
-        )}
-      </button>
-
       {/* Header Sidebar */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: collapsed ? 'center' : 'flex-start', marginBottom: '32px', overflow: 'hidden' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '32px', width: '100%' }}>
         
-        {/* LOGO & BRAND NAME */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' }}>
-          <span style={{ fontSize: collapsed ? '24px' : '20px' }}>🍃</span>
-          {!collapsed && (
-            <h1 style={{ 
-              margin: 0, 
+        {/* LOGO, BRAND NAME & NÚT TOGGLE ĐƯỢC GOM CHUNG */}
+        <div style={{ 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: collapsed ? 'center' : 'space-between', 
+          flexDirection: collapsed ? 'column' : 'row',
+          width: '100%',
+          gap: collapsed ? '16px' : '0',
+          marginBottom: '20px' 
+        }}>
+          
+          {/* Logo & Tên */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: collapsed ? '24px' : '20px' }}>🍃</span>
+            {!collapsed && (
+              <h1 style={{ 
+                margin: 0, 
+                color: '#ffffff', 
+                fontSize: '22px', 
+                fontWeight: '800', 
+                letterSpacing: '0.5px',
+                whiteSpace: 'nowrap'
+              }}>
+                {brand ?? t('brand')}
+              </h1>
+            )}
+          </div>
+
+          {/* Nút Toggle nằm hẳn bên trong */}
+          <button
+            type="button"
+            onClick={() => {
+              setCollapsed(!collapsed);
+              setShowSettings(false);
+            }}
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '6px',
+              backgroundColor: 'rgba(255, 255, 255, 0.15)', // Đổi màu để hòa hợp với nền xanh
+              border: '1px solid rgba(255, 255, 255, 0.3)',
               color: '#ffffff', 
-              fontSize: '22px', 
-              fontWeight: '800', 
-              letterSpacing: '0.5px',
-              whiteSpace: 'nowrap'
-            }}>
-              {brand ?? t('brand')}
-            </h1>
-          )}
+              cursor: 'pointer',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              transition: 'all 0.2s ease',
+              flexShrink: 0
+            }}
+          >
+            {collapsed ? (
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" /></svg>
+            ) : (
+              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" /></svg>
+            )}
+          </button>
         </div>
 
         {/* AVATAR KHU VỰC ADMIN */}
@@ -175,7 +185,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
           borderRadius: '12px',
           transition: 'all 0.3s ease'
         }}>
-          {/* Vòng tròn Avatar - SỬ DỤNG clientUser */}
+          {/* Vòng tròn Avatar */}
           <div style={{ 
             flexShrink: 0,
             width: '36px', 
@@ -202,7 +212,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
             )}
           </div>
           
-          {/* Tên Admin và Chức vụ - SỬ DỤNG clientUser */}
+          {/* Tên Admin và Chức vụ */}
           {!collapsed && (
             <div style={{ display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
               <span style={{ 

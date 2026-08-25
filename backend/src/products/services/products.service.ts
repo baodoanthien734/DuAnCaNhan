@@ -618,4 +618,53 @@ export class ProductsService {
 
     return product;
   }
+
+  // ==========================================
+  // HÀM MỚI: BULK UPDATE (CHỈNH SỬA HÀNG LOẠT) 
+  // ==========================================
+  async bulkUpdate(dto: { productIds: number[]; categoryId?: number; status?: string }) {
+    const { productIds, categoryId, status } = dto;
+
+    if (!productIds || productIds.length === 0) {
+      throw new BadRequestException(this.i18n.t('products.error.no_products_selected', { defaultValue: 'Vui lòng chọn ít nhất một sản phẩm.' }));
+    }
+
+    const updateData: any = {};
+    
+    // Chỉ cập nhật những trường nào được Frontend gửi lên
+    if (categoryId !== undefined && categoryId !== null) {
+      updateData.categoryId = Number(categoryId);
+    }
+    
+    if (status !== undefined && status !== null) {
+      updateData.status = status;
+    }
+
+    // Nếu không có trường nào để cập nhật thì báo lỗi (tránh call Prisma vô ích)
+    if (Object.keys(updateData).length === 0) {
+      throw new BadRequestException(this.i18n.t('products.error.no_data_to_update', { defaultValue: 'Không có dữ liệu nào được chọn để cập nhật.' }));
+    }
+
+    try {
+      const result = await this.prisma.product.updateMany({
+        where: { id: { in: productIds } },
+        data: updateData,
+      });
+
+      this.logger.log(`Bulk update thành công: ${result.count} sản phẩm.`);
+
+      return {
+        success: true,
+        message: this.i18n.t('products.success.bulk_updated', { 
+          args: { count: result.count },
+          defaultValue: `Đã cập nhật thành công ${result.count} sản phẩm.`
+        }),
+        updatedCount: result.count,
+      };
+    } catch (error) {
+      this.logger.error('Lỗi Database khi Bulk Update:', error instanceof Error ? error.stack : undefined);
+      throw new InternalServerErrorException(this.i18n.t('products.error.bulk_update_failed', { defaultValue: 'Có lỗi xảy ra khi cập nhật hàng loạt.' }));
+    }
+  }
 }
+

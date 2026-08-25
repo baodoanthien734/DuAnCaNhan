@@ -221,6 +221,58 @@ export class OrdersService {
     return order;
   }
 
+  // THÊM HÀM MỚI: Khách hàng tự hủy đơn
+  async cancelOrder(userId: number, orderId: number) {
+    const order = await this.prisma.order.findFirst({
+      where: { 
+        id: orderId,
+        customerId: userId 
+      },
+      include: { items: true } // Lấy cả items để hoàn kho
+    });
+
+    if (!order) {
+      throw new NotFoundException(this.i18n.t('order.error.order_not_found'));
+    }
+
+    // Chỉ cho phép hủy nếu đơn hàng đang chờ thanh toán
+    if (order.status !== OrderStatus.PENDING) {
+      throw new BadRequestException(
+        this.i18n.t('order.error.cannot_cancel_status', { 
+          defaultValue: 'Chỉ có thể hủy đơn hàng khi đang chờ xác nhận.' 
+        })
+      );
+    }
+
+    // Dùng Transaction để đảm bảo vừa đổi trạng thái đơn, vừa hoàn lại kho an toàn
+    return this.prisma.$transaction(async (tx) => {
+      // 1. Đổi trạng thái thành CANCELLED
+      const cancelledOrder = await tx.order.update({
+        where: { id: orderId },
+        data: { status: 'CANCELLED' }
+      });
+
+      // 2. Hoàn lại tồn kho cho từng sản phẩm/biến thể
+      for (const item of order.items) {
+        if (item.variantId) {
+          // Hoàn kho cho Biến thể (Variant)
+          await tx.productVariant.update({
+            where: { id: item.variantId },
+            data: { stock: { increment: item.quantity } }
+          });
+        }
+        // Ghi chú: Nếu hệ thống của bạn có lưu stock ở bảng Product (dành cho sản phẩm không có biến thể), 
+        // bạn cần viết thêm logic hoàn kho ở đây.
+      }
+
+      return {
+        success: true,
+        message: this.i18n.t('order.success.order_cancelled', { defaultValue: 'Hủy đơn hàng thành công.' }),
+        data: cancelledOrder
+      };
+    });
+  }
+
   // ==========================================
   // PHẦN 2: DÀNH CHO QUẢN TRỊ VIÊN (ADMIN)
   // ==========================================

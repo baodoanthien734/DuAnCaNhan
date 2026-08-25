@@ -18,3 +18,8 @@ export const getMyOrderById = async (id: number) => {
   const response = await apiClient.get(`/orders/${id}`);
   return response.data;
 };
+
+export const cancelMyOrder = async (id: number) => {
+  const response = await apiClient.patch(`/orders/${id}/cancel`);
+  return response.data;
+};

@@ -7,6 +7,8 @@ import { useTranslations } from "next-intl";
 import { listProducts } from "@/lib/products-api";
 import { listCategories } from "@/lib/categories-api";
 import ProductTableRow from "./components/ProductTableRow";
+import BulkEditModal from "./components/BulkEditModal";
+import { useModal } from '@/hooks/useModal'; // Nhập useModal hook
 
 interface CategoryItem {
   id: number;
@@ -21,6 +23,7 @@ export default function ProductsListPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const modal = useModal(); // Khởi tạo useModal
 
   // State lưu dữ liệu
   const [products, setProducts] = useState<any[]>([]);
@@ -29,21 +32,70 @@ export default function ProductsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // State cho Custom Dropdown Category
+  // ==========================================
+  // STATE & LOGIC CHO BULK EDIT (CHỈNH SỬA HÀNG LOẠT)
+  // ==========================================
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [isStateLoaded, setIsStateLoaded] = useState(false); 
+  const [isBulkEditModalOpen, setIsBulkEditModalOpen] = useState(false);
+  
+  // State mới cho bộ lọc "Chỉ hiện sản phẩm đã chọn"
+  const [showSelectedOnly, setShowSelectedOnly] = useState(false); 
+
+  // Khởi tạo từ sessionStorage
+  useEffect(() => {
+    const stored = sessionStorage.getItem('bulk_edit_products');
+    if (stored) {
+      try {
+        setSelectedIds(JSON.parse(stored));
+      } catch (e) {
+        console.error("Lỗi parse sessionStorage", e);
+      }
+    }
+    setIsStateLoaded(true);
+  }, []);
+
+  // Cập nhật vào sessionStorage mỗi khi mảng ID thay đổi
+  useEffect(() => {
+    if (isStateLoaded) {
+      sessionStorage.setItem('bulk_edit_products', JSON.stringify(selectedIds));
+    }
+  }, [selectedIds, isStateLoaded]);
+
+  // Hàm Toggle (Thêm/Bớt) ID
+  const handleToggleSelect = (id: number) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(pid => pid !== id) : [...prev, id]
+    );
+  };
+
+  // Hàm bỏ chọn tất cả (Clear All)
+  const handleClearSelection = () => {
+    setSelectedIds([]);
+    setShowSelectedOnly(false); // Đóng luôn bộ lọc nếu bỏ chọn hết
+  };
+
+  // Nút mở Modal Chỉnh sửa hàng loạt (đã đổi thành async để dùng modal)
+  const handleOpenBulkEdit = async () => {
+    if (selectedIds.length === 0) {
+      await modal.alert(t("list.noProductsSelected"));
+      return;
+    }
+    setIsBulkEditModalOpen(true);
+  };
+  // ==========================================
+
   const [isCategoryOpen, setIsCategoryOpen] = useState(false);
   const categoryDropdownRef = useRef<HTMLDivElement>(null);
 
-  // Lấy các giá trị từ URL
   const currentQ = searchParams.get("q") || "";
   const currentCategory = searchParams.get("categoryId") || "";
   const currentStatus = searchParams.get("status") || "";
   const currentPage = Number(searchParams.get("page")) || 1;
   const take = 10; 
 
-  // Local State cho Search Debounce
   const [searchTerm, setSearchTerm] = useState(currentQ);
 
-  // Logic Debounce
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (searchTerm !== currentQ) {
@@ -54,7 +106,6 @@ export default function ProductsListPage() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchTerm, currentQ]);
 
-  // Logic Click outside cho Dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target as Node)) {
@@ -65,7 +116,6 @@ export default function ProductsListPage() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isCategoryOpen]);
 
-  // Tải và định dạng danh sách Danh mục (Giống ProductForm)
   useEffect(() => {
     listCategories().then((rawCategories: CategoryItem[]) => {
       const parentIds = new Set(rawCategories.map(c => c.parentId).filter(id => id != null));
@@ -91,7 +141,6 @@ export default function ProductsListPage() {
     }).catch(console.error);
   }, []);
 
-  // Tải danh sách Sản phẩm
   useEffect(() => {
     const fetchProducts = async () => {
       setIsLoading(true);
@@ -137,15 +186,45 @@ export default function ProductsListPage() {
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-800">{t("list.title")}</h1>
-        <Link 
-          href="/admin/products/create"
-          // Đổi màu nền nút Add theo yêu cầu
-          style={{ backgroundColor: '#4592b6' }}
-          className="hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
-        >
-          {t("list.addButton")}
-        </Link>
+        
+        {/* KHU VỰC NÚT ĐIỀU KHIỂN CHUNG */}
+        <div className="flex gap-3">
+          <button 
+            onClick={handleOpenBulkEdit}
+            disabled={selectedIds.length === 0}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+            </svg>
+            {t("list.bulkEditButton")} 
+            {selectedIds.length > 0 && <span className="bg-slate-900 text-white px-2 py-0.5 rounded-full text-xs">{selectedIds.length}</span>}
+          </button>
+
+          <Link 
+            href="/admin/products/create"
+            style={{ backgroundColor: '#4592b6' }}
+            className="hover:opacity-90 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
+          >
+            + {t("list.addButton")}
+          </Link>
+        </div>
       </div>
+
+      {/* THANH THÔNG BÁO KHI CÓ SẢN PHẨM ĐƯỢC CHỌN */}
+      {selectedIds.length > 0 && (
+        <div className="mb-6 rounded-xl bg-blue-50 border border-blue-100 p-4 flex justify-between items-center shadow-sm">
+          <span className="text-blue-800 text-sm font-medium">
+            {t("list.selectedCount", { count: selectedIds.length })}
+          </span>
+          <button 
+            onClick={handleClearSelection}
+            className="text-sm font-semibold text-blue-600 hover:text-blue-800 hover:underline"
+          >
+            {t("list.clearSelection")}
+          </button>
+        </div>
+      )}
 
       {/* Bộ lọc (Filters) */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap gap-4 items-center">
@@ -168,7 +247,6 @@ export default function ProductsListPage() {
             onClick={() => setIsCategoryOpen(!isCategoryOpen)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white text-left flex justify-between items-center focus:ring-2 focus:ring-[#4592b6] outline-none transition"
           >
-            {/* ĐÃ XÓA truncate Ở ĐÂY ĐỂ CHỮ NÚT BẤM CÓ THỂ RỚT DÒNG */}
             <div className="flex flex-col flex-1 mr-2">
               <span className="text-sm text-gray-700 break-words whitespace-normal leading-tight">
                 {selectedCategoryObj ? selectedCategoryObj.name : t("list.allCategories")}
@@ -207,8 +285,6 @@ export default function ProductsListPage() {
                     }`}
                   >
                     <div className="text-sm font-medium text-gray-800">{cat.name}</div>
-                    
-                    {/* ĐÃ XÓA truncate VÀ THÊM whitespace-normal ĐỂ ĐƯỜNG DẪN TỰ ĐỘNG XUỐNG DÒNG */}
                     <div className="text-[11px] text-gray-400 mt-0.5 break-words whitespace-normal leading-relaxed">
                       {cat.path}
                     </div>
@@ -219,7 +295,6 @@ export default function ProductsListPage() {
           )}
         </div>
 
-        {/* Lọc Trạng thái (Đã đẩy ra sau) */}
         <div className="w-48">
           <select
             value={currentStatus}
@@ -233,6 +308,21 @@ export default function ProductsListPage() {
           </select>
         </div>
 
+        {/* THÊM BỘ LỌC CHỈ HIỆN SẢN PHẨM ĐÃ CHỌN */}
+        <div className="flex items-center ml-auto">
+          <label className="flex items-center gap-2 cursor-pointer group">
+            <input 
+              type="checkbox" 
+              checked={showSelectedOnly}
+              onChange={(e) => setShowSelectedOnly(e.target.checked)}
+              disabled={selectedIds.length === 0}
+              className="w-4 h-4 rounded border-gray-300 text-[#4592b6] focus:ring-[#4592b6] disabled:opacity-50"
+            />
+            <span className={`text-sm font-medium transition ${showSelectedOnly ? 'text-[#4592b6]' : 'text-gray-600'} group-hover:text-gray-900`}>
+              {t("list.showSelectedOnly")}
+            </span>
+          </label>
+        </div>
       </div>
 
       {/* Bảng Dữ liệu */}
@@ -258,13 +348,26 @@ export default function ProductsListPage() {
                   <td colSpan={5} className="px-6 py-10 text-center text-gray-400">{t("list.empty")}</td>
                 </tr>
               ) : (
-                products.map((product) => (
+                products
+                  // Áp dụng bộ lọc
+                  .filter(product => showSelectedOnly ? selectedIds.includes(product.id) : true)
+                  .map((product) => (
                   <ProductTableRow 
                     key={product.id} 
                     product={product} 
+                    isSelected={selectedIds.includes(product.id)}
+                    onToggleSelect={() => handleToggleSelect(product.id)}
                     onRefresh={() => setRefreshTrigger(prev => prev + 1)} 
                   />
                 ))
+              )}
+              {/* Thông báo nếu bật lọc mà không có kết quả trên trang này */}
+              {!isLoading && showSelectedOnly && products.filter(p => selectedIds.includes(p.id)).length === 0 && (
+                <tr>
+                  <td colSpan={5} className="px-6 py-10 text-center text-gray-500 italic">
+                    {t("list.noSelectedOnThisPage")}
+                  </td>
+                </tr>
               )}
             </tbody>
           </table>
@@ -295,6 +398,21 @@ export default function ProductsListPage() {
           </div>
         )}
       </div>
+      
+      {/* BULK EDIT MODAL */}
+      <BulkEditModal 
+        isOpen={isBulkEditModalOpen}
+        onClose={() => setIsBulkEditModalOpen(false)}
+        selectedIds={selectedIds}
+        categories={leafCategories}
+        onSuccess={async () => {
+          setIsBulkEditModalOpen(false);
+          handleClearSelection(); // Xóa rỗng state và sessionStorage
+          setRefreshTrigger(prev => prev + 1); // Báo bảng tải lại dữ liệu mới
+          // Dùng modal.alert thay vì alert mặc định
+          await modal.alert(t("bulkEdit.successMessage") || "Cập nhật thành công!");
+        }}
+      />
     </div>
   );
 }
