@@ -463,7 +463,7 @@
 - `/` - Landing page với auth modal, hero section, featured products
 - `/products` - Product listing với search và filter
 - `/products/[slug]` - Product detail với variants, customizations
-- `/categories/[slug]` - Category page
+- `/[slug]` - Category page
 - `/posts` - Blog listing
 - `/posts/[slug]` - Blog detail
 

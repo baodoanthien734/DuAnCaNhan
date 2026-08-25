@@ -18,6 +18,14 @@ export default async function CategoryPage({ params }: PageProps) {
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
 
+  // Thêm dòng này để xem trình duyệt đang bắt bạn gọi API với cái tên gì:
+  console.log("=====> SLUG TRÌNH DUYỆT ĐANG YÊU CẦU LÀ:", slug);
+
+  // Chặn ngay những request file rác từ trình duyệt
+  if (slug === 'favicon.ico' || slug.includes('.')) {
+     notFound(); 
+  }
+
   let category: any = null;
   let products: any[] = [];
   let breadcrumbs: any[] = [];
@@ -30,10 +38,14 @@ export default async function CategoryPage({ params }: PageProps) {
     breadcrumbs = data.breadcrumbs || []; 
     childrenCategories = data.children || [];
   } catch (error) {
+    // Thêm log để biết API bị lỗi gì thay vì âm thầm văng 404
+    console.error(`❌ [CategoryPage] LỖI GỌI API VỚI SLUG "${slug}":`, error);
     notFound();
   }
 
   if (!category) {
+    // Thêm log để biết API chạy thành công nhưng không trả về category
+    console.error(`❌ [CategoryPage] KHÔNG TÌM THẤY CATEGORY NÀO KHỚP VỚI SLUG "${slug}"`);
     notFound();
   }
 
@@ -62,7 +74,7 @@ export default async function CategoryPage({ params }: PageProps) {
                   </span>
                 ) : (
                   <Link 
-                    href={`/categories/${crumb.slug}`} 
+                    href={`/${crumb.slug}`} 
                     className="text-gray-500 hover:text-gray-900 transition-colors no-underline"
                   >
                     {crumb.name}
@@ -93,7 +105,7 @@ export default async function CategoryPage({ params }: PageProps) {
                 return (
                   <Link 
                     key={child.id} 
-                    href={`/categories/${child.slug}`} 
+                    href={`/${child.slug}`} 
                     style={{ textDecoration: 'none', minWidth: '120px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}
                     className="group"
                   >
