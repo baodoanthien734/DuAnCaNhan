@@ -93,7 +93,7 @@ export class UsersService {
         createdAt: true,
         updatedAt: true,
         addresses: {
-          where: { isDeleted: false }, // THÊM DÒNG NÀY: Ẩn địa chỉ đã xóa
+          where: { isDeleted: false }, 
           orderBy: [{ isDefault: 'desc' }, { id: 'desc' }],
         },
       },
@@ -194,7 +194,7 @@ export class UsersService {
     return this.prisma.address.findMany({
       where: { 
         userId, 
-        isDeleted: false // THÊM DÒNG NÀY: Ẩn địa chỉ đã xóa
+        isDeleted: false 
       },
       orderBy: [{ isDefault: 'desc' }, { id: 'desc' }],
     });
@@ -206,7 +206,6 @@ export class UsersService {
     const createdAddress = await this.prisma.$transaction(async (tx) => {
       if (dto.isDefault) {
         await tx.address.updateMany({
-          // Chỉ tắt isDefault của những địa chỉ đang active
           where: { userId, isDefault: true, isDeleted: false }, 
           data: { isDefault: false },
         });
@@ -219,7 +218,6 @@ export class UsersService {
           phone: dto.phone,
           street: dto.street,
           ward: dto.ward,
-          // BỎ district: dto.district ở đây
           city: dto.city,
           isDefault: dto.isDefault ?? false,
         },
@@ -234,7 +232,6 @@ export class UsersService {
   }
 
   async removeAddress(userId: number, addressId: number) {
-    // Thêm điều kiện isDeleted: false để tránh xóa lại địa chỉ đã xóa
     const address = await this.prisma.address.findUnique({ 
       where: { id: addressId, isDeleted: false } 
     });
@@ -247,10 +244,9 @@ export class UsersService {
       throw new ForbiddenException(this.i18n.t('user.error.address_forbidden'));
     }
 
-    // THAY ĐỔI TỪ DELETE SANG UPDATE (XÓA MỀM)
     await this.prisma.address.update({ 
       where: { id: addressId },
-      data: { isDeleted: true, isDefault: false } // Sẵn tiện tắt isDefault đi
+      data: { isDeleted: true, isDefault: false } 
     });
 
     return {
@@ -260,7 +256,6 @@ export class UsersService {
   }
 
   async setDefaultAddress(userId: number, addressId: number) {
-    // Chỉ set default cho những địa chỉ chưa bị xóa
     const address = await this.prisma.address.findUnique({ 
       where: { id: addressId, isDeleted: false } 
     });

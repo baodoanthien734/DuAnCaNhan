@@ -181,7 +181,7 @@ export class PostsService {
                 let thumbnailUrl: string | null = null;
                 const filenameMap = new Map<string, string>();
 
-                // Chuẩn bị tính toán đường dẫn (Không dời file vật lý ở đây)
+                // Chuẩn bị tính toán đường dẫn 
                 const thumbnailFile = files.thumbnail?.[0];
                 const contentImages = files.contentImages ?? [];
 
@@ -200,7 +200,6 @@ export class PostsService {
 
                 const mappedContent = this.replaceInlineImageSources(dto.content, createdPost.id, filenameMap);
 
-                // Lần 2: Cập nhật lại HTML và ThumbnailURL
                 return tx.post.update({
                     where: { id: createdPost.id },
                     data: {

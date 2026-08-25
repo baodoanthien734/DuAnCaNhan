@@ -10,6 +10,5 @@ import { PublicProductsController } from './public-products.controller';
     ProductsService,
     ProductCustomizationsService
   ],
-  // Nếu có PrismaService, bạn sẽ import vào providers ở các bước sau
 })
 export class ProductsModule {}

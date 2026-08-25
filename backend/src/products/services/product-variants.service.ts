@@ -1,3 +1,19 @@
+/**
+ * @fileoverview Service quản lý đồng bộ biến thể sản phẩm (Product Variants)
+ * 
+ * Chức năng chính:
+ * - Sync variants từ frontend vào database
+ * - Thêm mới variant chưa có ID
+ * - Cập nhật variant đã có ID
+ * - Xóa variant không còn trong danh sách gửi lên
+ * 
+ * Thuật toán đồng bộ:
+ * 1. Lọc danh sách ID từ variants được gửi lên
+ * 2. Xóa các variant trong DB không có trong danh sách ID (DELETE cũ)
+ * 3. Duyệt qua variants gửi lên:
+ *    - Có ID → UPDATE
+ *    - Không có ID → CREATE
+ */
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 

@@ -42,7 +42,7 @@ export class ProductCustomizationsService {
             type: custom.type,
             isRequired: custom.isRequired,
             maxLength: custom.maxLength,
-            extraPrice: custom.extraPrice || 0, // <--- BỔ SUNG LƯU TIỀN KHI UPDATE
+            extraPrice: custom.extraPrice || 0, 
             // Sử dụng Nested Writes của Prisma để đồng bộ luôn mảng Choices (Tầng 2)
             choices: {
               deleteMany: { id: { notIn: incomingChoiceIds.length > 0 ? incomingChoiceIds : [0] } },
@@ -63,7 +63,7 @@ export class ProductCustomizationsService {
             type: custom.type,
             isRequired: custom.isRequired,
             maxLength: custom.maxLength,
-            extraPrice: custom.extraPrice || 0, // <--- BỔ SUNG LƯU TIỀN KHI TẠO MỚI THÊM
+            extraPrice: custom.extraPrice || 0, 
             choices: {
               create: choicesData.map((c: any) => ({ label: c.label, extraPrice: c.extraPrice })),
             },

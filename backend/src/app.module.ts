@@ -26,12 +26,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
     ScheduleModule.forRoot(),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'public'), // Trỏ đúng vào thư mục public ở root
-      serveRoot: '/', // URL truy cập sẽ bắt đầu từ root (vd: /uploads/posts/...)
+      serveRoot: '/', // URL truy cập sẽ bắt đầu từ root
     }),
     I18nModule.forRoot({
       fallbackLanguage: 'vi',
       loaderOptions: {
-        // 👇 ĐÃ SỬA: Thêm '..' để lùi ra một cấp (từ dist/src lùi ra dist, rồi mới chui vào i18n)
         path: join(__dirname, '..', 'i18n/'), 
         filePattern: '*.json',
       },
@@ -39,7 +38,6 @@ import { DashboardModule } from './dashboard/dashboard.module';
       resolvers: [
         { use: AcceptLanguageResolver, options: { matchType: 'strict-loose' } },
       ],
-      // 👇 ĐÃ SỬA: Dùng process.cwd() để luôn sinh file vào đúng thư mục gốc src/ dù chạy ở môi trường nào
       typesOutputPath: join(process.cwd(), 'src/generated/i18n.generated.ts'),
     }),
     PrismaModule,

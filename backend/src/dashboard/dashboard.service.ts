@@ -1,3 +1,14 @@
+/**
+ * @fileoverview Service cung cấp số liệu thống kê cho Admin Dashboard
+ * 
+ * Chức năng chính:
+ * - Tổng số đơn hàng (totalOrders)
+ * - Tổng doanh thu (totalRevenue) - chỉ tính đơn chưa bị hủy
+ * - Tổng số sản phẩm đang active (totalProducts)
+ * - Tổng số khách hàng (totalCustomers) - loại trừ ADMIN, MANAGER
+ * 
+ * Use case: Hiển thị cards thống kê trên trang admin dashboard
+ */
 import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { I18nService } from 'nestjs-i18n';
@@ -14,10 +25,8 @@ export class DashboardService {
 
   async getStats() {
     try {
-      // 1. Đếm tổng số đơn hàng
       const totalOrders = await this.prisma.order.count();
 
-      // 2. Tính tổng doanh thu (Chỉ tính các đơn chưa bị hủy)
       const revenueAggregation = await this.prisma.order.aggregate({
         _sum: { totalAmount: true },
         where: { 
@@ -26,14 +35,12 @@ export class DashboardService {
       });
       const totalRevenue = revenueAggregation._sum.totalAmount || 0;
 
-      // 3. Đếm tổng số sản phẩm đang hoạt động (ACTIVE)
       const totalProducts = await this.prisma.product.count({
         where: { 
           status: ProductStatus.ACTIVE 
         },
       });
 
-      // 4. Đếm tổng số khách hàng (Loại trừ các tài khoản có Role ADMIN / MANAGER)
       const totalCustomers = await this.prisma.user.count({
         where: {
           roles: {
@@ -51,7 +58,6 @@ export class DashboardService {
     } catch (error) {
       this.logger.error('Lỗi khi lấy dữ liệu thống kê dashboard:', error);
       
-      // Đã đổi sang namespace 'dashboard' khớp với file dashboard.json
       throw new InternalServerErrorException(
         this.i18n.t('dashboard.error.internal_server_error', { 
           defaultValue: 'Đã xảy ra lỗi khi tải dữ liệu thống kê.' 

@@ -129,7 +129,6 @@ export class CategoriesService implements OnModuleInit {
         orderBy: { position: 'asc' }, 
         skip: query.skip, 
         take: query.take,
-        // Đảm bảo rằng khi lấy danh sách, chúng ta cũng đếm số sản phẩm trong mỗi danh mục để hiển thị cho người quản trị biết
         include: {
           _count: {
             select: { products: true }
@@ -236,7 +235,6 @@ export class CategoriesService implements OnModuleInit {
       delete data.parentId; 
       delete data.position;
     } else {
-      // Logic Slug cho danh mục thường
       if (data.slug) {
         if (data.slug === existing.slug) {
           if (data.name && data.name !== existing.name) {
@@ -302,7 +300,6 @@ export class CategoriesService implements OnModuleInit {
       throw new BadRequestException(this.i18n.t('categories.error.cannot_delete_system_category'));
     }
 
-    // Lấy TOÀN BỘ danh mục (kể cả đã bị ẩn/xóa mềm) để đảm bảo không lọt đứa con nào
     const allCategories = await this.prisma.category.findMany();
 
     const getSubCategoryIds = (parentId: number): number[] => {
@@ -316,7 +313,6 @@ export class CategoriesService implements OnModuleInit {
 
     const allIdsToCheck = [id, ...getSubCategoryIds(id)];
 
-    // Đếm MỌI SẢN PHẨM (không quan tâm status)
     const productCount = await this.prisma.product.count({
       where: {
         categoryId: { in: allIdsToCheck },
@@ -331,7 +327,6 @@ export class CategoriesService implements OnModuleInit {
       );
     }
 
-    // Nếu lọt qua được (productCount === 0), tiến hành xóa mềm toàn bộ cây
     return this.prisma.category.updateMany({
       where: { id: { in: allIdsToCheck } },
       data: { isActive: false },
@@ -352,7 +347,7 @@ export class CategoriesService implements OnModuleInit {
     return this.prisma.category.findMany({
       where: { 
         isActive: true,
-        isSystem: false // Giấu khỏi khách hàng
+        isSystem: false 
       },
       orderBy: { position: 'asc' },
       include: {
@@ -368,7 +363,6 @@ export class CategoriesService implements OnModuleInit {
   }
 
   async findOneBySlugPublic(slug: string) {
-    // 1. Chặn ngay từ cửa: Không tìm danh mục hệ thống
     const category = await this.prisma.category.findFirst({
       where: { 
         slug, 
@@ -379,7 +373,6 @@ export class CategoriesService implements OnModuleInit {
 
     if (!category) throw new NotFoundException(this.i18n.t('categories.error.category_not_found'));
 
-    // 2. Lấy danh sách để tính toán cây/breadcrumbs, loại trừ danh mục hệ thống
     const allCategories = await this.prisma.category.findMany({
       where: { 
         isActive: true,

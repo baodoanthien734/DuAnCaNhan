@@ -14,7 +14,6 @@ export class AddCartItemDto {
   @Min(1)
   quantity!: number;
 
-  // JSON chứa các tùy chọn cá nhân hóa (như tên thêu, chọn charm...)
   @IsOptional()
   customizations?: any;
 }

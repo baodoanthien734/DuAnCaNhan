@@ -16,7 +16,6 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    // Nếu Route không khai báo @Roles() thì cho qua
     if (!requiredRoles) {
       return true;
     }
@@ -26,7 +25,6 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException(this.i18n.t('auth.error.forbidden_resource'));
     }
 
-    // Kiểm tra xem User có ít nhất 1 Role phù hợp không
     const hasRole = user.roles.some((role: string) => requiredRoles.includes(role));
     if (!hasRole) {
       throw new ForbiddenException(this.i18n.t('auth.error.insufficient_role'));

@@ -1,3 +1,24 @@
+/**
+ * @fileoverview Service quản lý sản phẩm với đầy đủ CRUD operations và file management
+ * 
+ * Chức năng chính:
+ * - Quản lý sản phẩm (Create, Read, Update, Delete, Bulk Update)
+ * - Quản lý biến thể sản phẩm với SKU tự động sinh hoặc nhập thủ công
+ * - Quản lý tùy chọn cá nhân hóa (SELECT, TEXT types)
+ * - Upload và quản lý file ảnh sản phẩm với transaction safety
+ * - Slug generation với duplicate detection
+ * - File moving từ tmp folder đến final destination
+ * - Cleanup orphaned files
+ * 
+ * SKU Handling Strategy:
+ * - Tự động sinh: PRODUCTNAME-VARIANTNAME (uppercase, không dấu)
+ * - Nhập thủ công: Validate trùng lặp
+ * - Đóng băng: Khi update sản phẩm, SKU cũ được giữ nguyên nếu không thay đổi
+ * 
+ * File Structure:
+ * - Products: public/uploads/products/{productId}-products/
+ * - Variants: public/uploads/products/{productId}-products/{variantId}-variant/
+ */
 import {
   BadRequestException,
   Injectable,
@@ -72,7 +93,6 @@ export class ProductsService {
     }
   }
 
-  // HÀM MỚI: Tự động sinh SKU từ Tên Sản Phẩm + Tên Biến Thể
   private async generateAutoSku(productName: string, variantName: string, currentVariantId?: number): Promise<string> {
     const baseSkuText = `${productName}-${variantName}`
       .normalize('NFD')
@@ -81,7 +101,7 @@ export class ProductsService {
       .replace(/Đ/g, 'D')
       .trim()
       .replace(/\s+/g, '-')
-      .replace(/[^a-zA-Z0-9\-]/g, '') // Chỉ giữ chữ và số và gạch ngang
+      .replace(/[^a-zA-Z0-9\-]/g, '') 
       .replace(/\-+/g, '-')
       .toUpperCase();
 
@@ -98,7 +118,6 @@ export class ProductsService {
     }
   }
 
-  // HÀM MỚI: Check trùng SKU nhập tay
   private async checkManualSku(sku: string, currentVariantId?: number): Promise<void> {
     const existing = await this.prisma.productVariant.findFirst({ where: { sku } });
     if (existing && existing.id !== currentVariantId) {
@@ -268,11 +287,11 @@ export class ProductsService {
     }
   }
 
-  // CẬP NHẬT: Nhận thêm biến productName để sinh SKU
+
   private async syncVariants(
     tx: any, 
     productId: number, 
-    productName: string, // <-- Biến này dùng để tạo SKU
+    productName: string, 
     variantsData: any[], 
     currentBasePrice: number, 
     pendingMoves: PendingFileMove[],
@@ -311,7 +330,7 @@ export class ProductsService {
         );
       }
 
-      // XỬ LÝ SKU KẾT HỢP (Dễ đọc + Đóng băng khi Update)
+ 
       let finalSku = '';
       if (variant.id) {
         const variantId = Number(variant.id);
@@ -359,7 +378,7 @@ export class ProductsService {
           where: { id: variantId },
           data: {
             name: variant.name,
-            sku: finalSku, // Gắn mã SKU đã xử lý
+            sku: finalSku, 
             price,
             stock: this.toNumber(variant.stock),
             image: finalImage,
@@ -374,7 +393,7 @@ export class ProductsService {
           data: {
             productId,
             name: variant.name,
-            sku: finalSku, // Gắn mã SKU đã xử lý
+            sku: finalSku, 
             price,
             stock: this.toNumber(variant.stock),
             image: null,
@@ -495,7 +514,6 @@ export class ProductsService {
         throw error;
       }
       
-      // BẮT LỖI PRISMA: Xử lý Unique Constraint (Trường hợp DB tự bắt trước)
       if (error?.code === 'P2002') {
         throw new BadRequestException(this.i18n.t('products.error.duplicate_sku'));
       }
