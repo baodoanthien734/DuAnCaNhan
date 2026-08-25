@@ -48,7 +48,6 @@ export default function AuthGroup() {
         const parsedUser = JSON.parse(userInfo) as User;
         setUser(parsedUser);
 
-        // Đồng bộ avatar mới nhất từ API profile để luôn hiển thị đúng ảnh đã upload.
         getProfile()
           .then((profile) => {
             const nextUser: User = {
@@ -59,9 +58,7 @@ export default function AuthGroup() {
             setUser(nextUser);
             localStorage.setItem('user_info', JSON.stringify(nextUser));
           })
-          .catch(() => {
-            // Không chặn UI nếu API profile lỗi tạm thời.
-          });
+          .catch(() => {});
       }
       catch (error) { localStorage.removeItem('user_info'); setUser(null); }
     }
@@ -78,6 +75,15 @@ export default function AuthGroup() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // ==========================================
+  // THÊM ĐOẠN NÀY LẮNG NGHE SỰ KIỆN MỞ GIỎ HÀNG
+  // ==========================================
+  useEffect(() => {
+    const handleOpenCart = () => setIsCartOpen(true);
+    window.addEventListener('open-cart', handleOpenCart);
+    return () => window.removeEventListener('open-cart', handleOpenCart);
+  }, []);
+
   const handleLogout = async () => {
     setUser(null);
     setIsUserMenuOpen(false);
@@ -91,7 +97,6 @@ export default function AuthGroup() {
   return (
     <div className="flex items-center gap-3 relative" ref={userMenuRef}>
       
-      {/* 🛒 Nút Giỏ Hàng (Dùng Icon Minimal) */}
       <button 
         onClick={() => setIsCartOpen(true)}
         className="w-10 h-10 rounded-full flex items-center justify-center text-slate-600 hover:bg-slate-100 transition-colors relative"
@@ -100,13 +105,11 @@ export default function AuthGroup() {
         <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
-        {/* Chấm cam báo có hàng (Giả lập) */}
         <span className="absolute top-2 right-2 w-2 h-2 bg-amber-500 rounded-full"></span>
       </button>
 
       {user ? (
         <>
-          {/* 👤 Avatar Nút bấm mở Menu */}
           <button 
             onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
             className="flex items-center gap-2 pl-2 pr-1 py-1 rounded-full border border-transparent hover:bg-slate-50 transition-colors"
@@ -123,7 +126,6 @@ export default function AuthGroup() {
             </div>
           </button>
 
-          {/* 📋 Dropdown Menu User */}
           {isUserMenuOpen && (
           <div className="absolute top-full right-0 mt-2 w-56 bg-white border border-slate-100 shadow-xl rounded-2xl py-2 z-50 overflow-hidden">
             
@@ -161,7 +163,6 @@ export default function AuthGroup() {
           )}
         </>
       ) : (
-        /* NẾU CHƯA ĐĂNG NHẬP */
         <div className="flex items-center gap-2">
           <button 
             onClick={() => { setInitialView('login'); setIsModalOpen(true); }} 

@@ -14,6 +14,13 @@ import { ProductCustomizationsService } from './product-customizations.service';
 import { basename, dirname, join, resolve } from 'path';
 import { promises as fs } from 'fs';
 
+// Định nghĩa kiểu dữ liệu cho các file đang xếp hàng chờ thuyên chuyển
+type PendingFileMove = {
+  from: string;
+  to: string;
+  sourceDir: string;
+};
+
 @Injectable()
 export class ProductsService {
   private readonly logger = new Logger(ProductsService.name);
@@ -30,7 +37,6 @@ export class ProductsService {
   // STRING & SLUG UTILITIES
   // ==============================================================
 
-  // Sinh slug từ tên sản phẩm, như bên categories
   private slugify(text: string) {
     return text
       .toString()
@@ -45,7 +51,6 @@ export class ProductsService {
       .replace(/\-+/g, '-');
   }
 
-  // Sinh slug tự động, đảm bảo không trùng lặp
   private async generateAutoSlug(name: string, currentId?: number): Promise<string> {
     const baseSlug = this.slugify(name);
     let slug = baseSlug;
@@ -61,7 +66,6 @@ export class ProductsService {
     }
   }
 
-  // Kiểm tra slug do người dùng nhập, đảm bảo không trùng lặp với sản phẩm khác
   private async checkManualSlug(slug: string, currentId?: number): Promise<void> {
     const existing = await this.prisma.product.findFirst({ where: { slug } });
     if (existing && existing.id !== currentId) {
@@ -73,20 +77,17 @@ export class ProductsService {
   // VALIDATION & HELPERS
   // ==============================================================
 
-  // Chuyển đổi giá trị sang number, nếu không hợp lệ thì trả về 0
   private toNumber(value: unknown): number {
     if (typeof value === 'number') return value;
     return Number(value || 0);
   }
 
-  // Kiểm tra số lượng hình ảnh giới thiệu của sản phẩm, không vượt quá 5
   private assertMainImagesLimit(images?: string[]) {
     if ((images || []).length > 5) {
       throw new BadRequestException(this.i18n.t('products.error.product_images_limit_exceeded'));
     }
   }
 
-  // Kiểm tra giá của các biến thể, đảm bảo không nhỏ hơn giá gốc của sản phẩm
   private assertVariantPrices(basePrice: number, variants?: Array<{ price?: number }>) {
     if (!variants || variants.length === 0) return;
 
@@ -106,7 +107,6 @@ export class ProductsService {
   // FILE SYSTEM MANAGEMENT (UPLOAD & CLEANUP)
   // ==============================================================
 
-  // Phân tích đường dẫn hình ảnh, trả về đường dẫn tương đối và tuyệt đối nếu hợp lệ
   private parseProductUploadPath(imageUrl: string): { relative: string; absolute: string } | null {
     if (!imageUrl) return null;
 
@@ -133,12 +133,11 @@ export class ProductsService {
     return { relative: pathname, absolute };
   }
 
-  // Đảm bảo thư mục tồn tại, nếu không thì tạo mới
   private async ensureDir(path: string) {
     await fs.mkdir(path, { recursive: true });
   }
 
-  // Di chuyển file một cách an toàn, xử lý trường hợp khác phân vùng (EXDEV)
+  // GIỮ NGUYÊN BẢN GỐC (Chưa bắt lỗi file tồn tại)
   private async moveFileSafe(from: string, to: string) {
     await this.ensureDir(dirname(to));
 
@@ -157,7 +156,6 @@ export class ProductsService {
     }
   }
 
-  // Xóa file một cách an toàn, bỏ qua lỗi nếu file không tồn tại
   private async removeFileSafe(filePath: string) {
     try {
       await fs.unlink(filePath);
@@ -168,7 +166,6 @@ export class ProductsService {
     }
   }
 
-  // Xóa thư mục nếu trống, bỏ qua lỗi nếu thư mục không tồn tại
   private async removeEmptyDirSafe(dirPath: string) {
     try {
       const entries = await fs.readdir(dirPath);
@@ -180,49 +177,44 @@ export class ProductsService {
     }
   }
 
-  // Di chuyển hình ảnh sản phẩm vào thư mục sản phẩm, trả về đường dẫn mới
-  private async moveImageToProductDir(productId: number, imageUrl: string) {
+  // HÀM MỚI 1: Tính toán đường dẫn Tương Lai cho ảnh Sản phẩm (Không di chuyển file)
+  private calculateProductImagePath(productId: number, imageUrl: string): { url: string; fileToMove: PendingFileMove | null } {
     const parsed = this.parseProductUploadPath(imageUrl);
-    if (!parsed) return imageUrl;
+    if (!parsed) return { url: imageUrl, fileToMove: null };
 
     const filename = basename(parsed.relative);
     const targetRelative = `uploads/products/${productId}-products/${filename}`;
     const targetAbsolute = resolve(this.publicRootDir, targetRelative);
 
     if (parsed.relative === targetRelative) {
-      return `/${targetRelative}`;
+      return { url: `/${targetRelative}`, fileToMove: null };
     }
 
-    await this.moveFileSafe(parsed.absolute, targetAbsolute);
-    const sourceDir = dirname(parsed.absolute);
-    if (sourceDir !== resolve(this.publicRootDir, 'uploads', 'tmp')) {
-      await this.removeEmptyDirSafe(sourceDir);
-    }
-    return `/${targetRelative}`;
+    return {
+      url: `/${targetRelative}`,
+      fileToMove: { from: parsed.absolute, to: targetAbsolute, sourceDir: dirname(parsed.absolute) },
+    };
   }
 
-  // Di chuyển hình ảnh biến thể vào thư mục biến thể, trả về đường dẫn mới
-  private async moveImageToVariantDir(productId: number, variantId: number, imageUrl: string) {
+  // HÀM MỚI 2: Tính toán đường dẫn Tương Lai cho ảnh Biến thể (Không di chuyển file)
+  private calculateVariantImagePath(productId: number, variantId: number, imageUrl: string): { url: string; fileToMove: PendingFileMove | null } {
     const parsed = this.parseProductUploadPath(imageUrl);
-    if (!parsed) return imageUrl;
+    if (!parsed) return { url: imageUrl, fileToMove: null };
 
     const filename = basename(parsed.relative);
     const targetRelative = `uploads/products/${productId}-products/${variantId}-variant/${filename}`;
     const targetAbsolute = resolve(this.publicRootDir, targetRelative);
 
     if (parsed.relative === targetRelative) {
-      return `/${targetRelative}`;
+      return { url: `/${targetRelative}`, fileToMove: null };
     }
 
-    await this.moveFileSafe(parsed.absolute, targetAbsolute);
-    const sourceDir = dirname(parsed.absolute);
-    if (sourceDir !== resolve(this.publicRootDir, 'uploads', 'tmp')) {
-      await this.removeEmptyDirSafe(sourceDir);
-    }
-    return `/${targetRelative}`;
+    return {
+      url: `/${targetRelative}`,
+      fileToMove: { from: parsed.absolute, to: targetAbsolute, sourceDir: dirname(parsed.absolute) },
+    };
   }
 
-  // Dọn dẹp các hình ảnh sản phẩm không còn sử dụng
   private async cleanupProductImageUrls(imageUrls: string[]) {
     for (const imageUrl of imageUrls) {
       const parsed = this.parseProductUploadPath(imageUrl);
@@ -236,28 +228,34 @@ export class ProductsService {
     }
   }
 
-  // Đồng bộ các biến thể của sản phẩm, tạo mới, cập nhật hoặc xóa nếu cần thiết
-  private async syncVariants(productId: number, variantsData: any[], currentBasePrice: number) {
-    const existingVariants = await this.prisma.productVariant.findMany({
+  // CẬP NHẬT: Nhận tx (Transaction Client) và các mảng chờ xử lý file
+  private async syncVariants(
+    tx: any, 
+    productId: number, 
+    variantsData: any[], 
+    currentBasePrice: number, 
+    pendingMoves: PendingFileMove[],
+    pendingCleanups: string[]
+  ) {
+    const existingVariants = await tx.productVariant.findMany({
       where: { productId },
       select: { id: true, image: true },
     });
 
-    const existingById = new Map(existingVariants.map((variant) => [variant.id, variant]));
-
-    const incomingIds = variantsData.filter((variant) => variant.id).map((variant) => Number(variant.id));
-    const toDelete = existingVariants.filter((variant) => !incomingIds.includes(variant.id));
+    const existingById = new Map(existingVariants.map((variant: any) => [variant.id, variant]));
+    const incomingIds = variantsData.filter((variant: any) => variant.id).map((variant: any) => Number(variant.id));
+    const toDelete = existingVariants.filter((variant: any) => !incomingIds.includes(variant.id));
 
     if (toDelete.length > 0) {
-      await this.prisma.productVariant.deleteMany({
+      await tx.productVariant.deleteMany({
         where: {
           productId,
-          id: { in: toDelete.map((variant) => variant.id) },
+          id: { in: toDelete.map((variant: any) => variant.id) },
         },
       });
-
-      await this.cleanupProductImageUrls(
-        toDelete.map((variant) => variant.image).filter((image): image is string => Boolean(image)),
+      // Gom vào danh sách chờ xóa rác
+      pendingCleanups.push(
+        ...toDelete.map((variant: any) => variant.image).filter((image: any): image is string => Boolean(image))
       );
     }
 
@@ -273,14 +271,18 @@ export class ProductsService {
 
       if (variant.id) {
         const variantId = Number(variant.id);
-        const previous = existingById.get(variantId);
+        const previous: any = existingById.get(variantId);
 
         let finalImage: string | null = variant.image ?? null;
         if (typeof finalImage === 'string' && finalImage.trim().length > 0) {
-          finalImage = await this.moveImageToVariantDir(productId, variantId, finalImage);
+          // Chỉ lấy đường dẫn tương lai, đẩy công việc move vào mảng chờ
+          const calc = this.calculateVariantImagePath(productId, variantId, finalImage);
+          finalImage = calc.url;
+          if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
         }
 
-        await this.prisma.productVariant.update({
+        // Lỗi SKU CŨ VẪN GIỮ NGUYÊN (Không cấp auto-sku)
+        await tx.productVariant.update({
           where: { id: variantId },
           data: {
             name: variant.name,
@@ -292,10 +294,11 @@ export class ProductsService {
         });
 
         if (previous?.image && previous.image !== finalImage) {
-          await this.cleanupProductImageUrls([previous.image]);
+          pendingCleanups.push(previous.image);
         }
       } else {
-        const created = await this.prisma.productVariant.create({
+        // Lỗi SKU CŨ VẪN GIỮ NGUYÊN (Không cấp auto-sku)
+        const created = await tx.productVariant.create({
           data: {
             productId,
             name: variant.name,
@@ -308,8 +311,12 @@ export class ProductsService {
 
         let finalImage: string | null = variant.image ?? null;
         if (typeof finalImage === 'string' && finalImage.trim().length > 0) {
-          finalImage = await this.moveImageToVariantDir(productId, created.id, finalImage);
-          await this.prisma.productVariant.update({
+          // Tính đường dẫn tương lai, gom việc dời file
+          const calc = this.calculateVariantImagePath(productId, created.id, finalImage);
+          finalImage = calc.url;
+          if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
+
+          await tx.productVariant.update({
             where: { id: created.id },
             data: { image: finalImage },
           });
@@ -322,13 +329,15 @@ export class ProductsService {
   // ADMIN FEATURES (CRUD & MANAGEMENT)
   // ==============================================================
 
-  // Tạo sản phẩm mới, bao gồm xử lý hình ảnh, biến thể và tuỳ chỉnh
   async create(createProductDto: CreateProductDto) {
     this.logger.log(`Bắt đầu tạo sản phẩm: ${createProductDto.name}`);
 
     const basePrice = this.toNumber(createProductDto.basePrice);
     this.assertMainImagesLimit(createProductDto.images);
     this.assertVariantPrices(basePrice, createProductDto.variants);
+
+    // MẢNG CHỜ XỬ LÝ FILE (Deferred Execution)
+    const pendingMoves: PendingFileMove[] = [];
 
     try {
       let finalSlug = '';
@@ -339,54 +348,80 @@ export class ProductsService {
         await this.checkManualSlug(finalSlug);
       }
 
-      const product = await this.prisma.product.create({
-        data: {
-          name: createProductDto.name,
-          slug: finalSlug,
-          categoryId: createProductDto.categoryId,
-          description: createProductDto.description,
-          basePrice: createProductDto.basePrice,
-          images: [],
-          isPrivate: createProductDto.isPrivate || false,
-          privateForUserId: createProductDto.privateForUserId,
-          status: createProductDto.status || 'ACTIVE',
-        },
+      // ==========================================
+      // BẮT ĐẦU TRANSACTION DB
+      // ==========================================
+      const product = await this.prisma.$transaction(async (tx) => {
+        const newProduct = await tx.product.create({
+          data: {
+            name: createProductDto.name,
+            slug: finalSlug,
+            categoryId: createProductDto.categoryId,
+            description: createProductDto.description,
+            basePrice: createProductDto.basePrice,
+            images: [],
+            isPrivate: createProductDto.isPrivate || false,
+            privateForUserId: createProductDto.privateForUserId,
+            status: createProductDto.status || 'ACTIVE',
+          },
+        });
+
+        // 1. Tính sẵn đường dẫn ảnh sản phẩm, lưu trực tiếp vào DB, đưa thao tác dời file vào mảng chờ
+        const finalProductImages: string[] = [];
+        for (const url of (createProductDto.images || [])) {
+          const calc = this.calculateProductImagePath(newProduct.id, url);
+          finalProductImages.push(calc.url);
+          if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
+        }
+
+        await tx.product.update({
+          where: { id: newProduct.id },
+          data: { images: finalProductImages },
+        });
+
+        // 2. Đồng bộ biến thể (Truyền pendingMoves xuống để gom nốt file)
+        if (createProductDto.variants && createProductDto.variants.length > 0) {
+          await this.syncVariants(tx, newProduct.id, createProductDto.variants, basePrice, pendingMoves, []);
+        }
+
+        // 3. Customizations
+        if (createProductDto.customizations && createProductDto.customizations.length > 0) {
+          for (const custom of createProductDto.customizations) {
+            await tx.productCustomization.create({
+              data: {
+                productId: newProduct.id,
+                name: custom.name,
+                type: custom.type,
+                isRequired: custom.isRequired || false,
+                maxLength: custom.maxLength,
+                extraPrice: custom.extraPrice || 0,
+                choices:
+                  custom.choices && custom.choices.length > 0
+                    ? {
+                        create: custom.choices.map((choice: any) => ({
+                          label: choice.label,
+                          extraPrice: choice.extraPrice || 0,
+                        })),
+                      }
+                    : undefined,
+              },
+            });
+          }
+        }
+
+        return newProduct;
       });
+      // ==========================================
+      // KẾT THÚC TRANSACTION (Commit thành công)
+      // ==========================================
 
-      const finalProductImages = await Promise.all(
-        (createProductDto.images || []).map((url) => this.moveImageToProductDir(product.id, url)),
-      );
-
-      await this.prisma.product.update({
-        where: { id: product.id },
-        data: { images: finalProductImages },
-      });
-
-      if (createProductDto.variants && createProductDto.variants.length > 0) {
-        await this.syncVariants(product.id, createProductDto.variants, basePrice);
-      }
-
-      if (createProductDto.customizations && createProductDto.customizations.length > 0) {
-        for (const custom of createProductDto.customizations) {
-          await this.prisma.productCustomization.create({
-            data: {
-              productId: product.id,
-              name: custom.name,
-              type: custom.type,
-              isRequired: custom.isRequired || false,
-              maxLength: custom.maxLength,
-              extraPrice: custom.extraPrice || 0,
-              choices:
-                custom.choices && custom.choices.length > 0
-                  ? {
-                      create: custom.choices.map((choice) => ({
-                        label: choice.label,
-                        extraPrice: choice.extraPrice || 0,
-                      })),
-                    }
-                  : undefined,
-            },
-          });
+      // ==========================================
+      // LÚC NÀY MỚI BẮT ĐẦU CHẠY FILE SYSTEM
+      // ==========================================
+      for (const move of pendingMoves) {
+        await this.moveFileSafe(move.from, move.to);
+        if (move.sourceDir !== resolve(this.publicRootDir, 'uploads', 'tmp')) {
+          await this.removeEmptyDirSafe(move.sourceDir);
         }
       }
 
@@ -404,7 +439,7 @@ export class ProductsService {
     }
   }
 
-  // Tìm kiếm sản phẩm với các bộ lọc, hỗ trợ phân trang
+  // Các hàm đọc (findAll, findOne...) giữ nguyên
   async findAll(query: FilterProductDto) {
     const { q, categoryId, status, skip, take } = query;
     const where: any = {};
@@ -444,7 +479,6 @@ export class ProductsService {
     return { items, total };
   }
 
-  // Lấy chi tiết sản phẩm theo ID
   async findOne(id: number) {
     const product = await this.prisma.product.findUnique({
       where: { id },
@@ -466,7 +500,7 @@ export class ProductsService {
     return product;
   }
 
-  // Cập nhật sản phẩm theo ID
+  // CẬP NHẬT: Update cũng sử dụng luồng Trì Hoãn File (Deferred Execution) tương tự Create
   async update(id: number, dto: UpdateProductDto) {
     const existing = await this.findOne(id);
 
@@ -499,36 +533,61 @@ export class ProductsService {
       }
     }
 
+    const pendingMoves: PendingFileMove[] = [];
+    const pendingCleanups: string[] = [];
+
     const incomingImages = images !== undefined ? images : existing.images;
-    const finalProductImages = await Promise.all(
-      incomingImages.map((url: string) => this.moveImageToProductDir(id, url)),
-    );
-
-    const removedProductImages = existing.images.filter((url) => !finalProductImages.includes(url));
-
-    await this.prisma.product.update({
-      where: { id },
-      data: {
-        ...productData,
-        slug: finalSlug, 
-        images: finalProductImages,
-      },
-    });
-
-    if (variants) {
-      await this.syncVariants(id, variants, nextBasePrice);
+    const finalProductImages: string[] = [];
+    
+    // Tính toán ảnh sản phẩm
+    for (const url of incomingImages) {
+      const calc = this.calculateProductImagePath(id, url);
+      finalProductImages.push(calc.url);
+      if (calc.fileToMove) pendingMoves.push(calc.fileToMove);
     }
 
+    const removedProductImages = existing.images.filter((url: string) => !finalProductImages.includes(url));
+    pendingCleanups.push(...removedProductImages);
+
+    // ==========================================
+    // TRANSACTION ĐỂ UPDATE CẢ SẢN PHẨM & BIẾN THỂ CÙNG LÚC
+    // ==========================================
+    await this.prisma.$transaction(async (tx) => {
+      await tx.product.update({
+        where: { id },
+        data: {
+          ...productData,
+          slug: finalSlug, 
+          images: finalProductImages,
+        },
+      });
+
+      if (variants) {
+        await this.syncVariants(tx, id, variants, nextBasePrice, pendingMoves, pendingCleanups);
+      }
+    });
+
+    // Customizations chạy độc lập, nếu có lỗi thì UI vẫn xử lý được, 
+    // không liên quan đến file system.
     if (customizations) {
       await this.customizationsService.syncCustomizations(id, customizations);
     }
 
-    await this.cleanupProductImageUrls(removedProductImages);
+    // ==========================================
+    // CHẠY FILE SYSTEM SAU KHI GIAO DỊCH CHÍNH THÀNH CÔNG
+    // ==========================================
+    for (const move of pendingMoves) {
+      await this.moveFileSafe(move.from, move.to);
+      if (move.sourceDir !== resolve(this.publicRootDir, 'uploads', 'tmp')) {
+        await this.removeEmptyDirSafe(move.sourceDir);
+      }
+    }
+    
+    await this.cleanupProductImageUrls(pendingCleanups);
 
     return this.findOne(id);
   }
 
-  // Cập nhật trạng thái sản phẩm
   async updateStatus(id: number, status: any) {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
@@ -539,7 +598,6 @@ export class ProductsService {
     });
   }
 
-  // Cập nhật hàng loạt sản phẩm
   async bulkUpdate(dto: { productIds: number[]; categoryId?: number; status?: string }) {
     const { productIds, categoryId, status } = dto;
 
@@ -582,7 +640,6 @@ export class ProductsService {
     }
   }
 
-  // Xóa mềm sản phẩm (đánh dấu là ARCHIVED)
   async remove(id: number) {
     const product = await this.prisma.product.findUnique({ where: { id } });
     if (!product) throw new NotFoundException(this.i18n.t('products.error.product_not_found'));
@@ -597,7 +654,6 @@ export class ProductsService {
   // PUBLIC FEATURES (STOREFRONT)
   // ==============================================================
 
-  // Tìm kiếm sản phẩm công khai với các bộ lọc, hỗ trợ phân trang
   async findAllPublic(query: { q?: string; categoryId?: string; skip?: number; take?: number }) {
     const { q, categoryId, skip, take } = query;
     
@@ -664,7 +720,6 @@ export class ProductsService {
     return { items, total };
   }
 
-  // Lấy chi tiết sản phẩm công khai theo slug
   async findOneBySlug(slug: string) {
     const product = await this.prisma.product.findFirst({
       where: { slug, status: 'ACTIVE' },
