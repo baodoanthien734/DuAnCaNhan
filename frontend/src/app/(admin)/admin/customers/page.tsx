@@ -28,7 +28,6 @@ export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<AdminCustomerRow[]>([]);
   const [total, setTotal] = useState(0);
   
-  // State Search giống CategoryList & ProductsList
   const [query, setQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [page, setPage] = useState(1);
@@ -55,7 +54,6 @@ export default function AdminCustomersPage() {
     [locale],
   );
 
-  // 1. LOGIC DEBOUNCE TÌM KIẾM (Gõ xong 0.5s tự động search và reset trang)
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (query !== searchInput) {
@@ -67,7 +65,6 @@ export default function AdminCustomersPage() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchInput, query]);
 
-  // 2. TẢI DỮ LIỆU
   const fetchCustomers = async () => {
     setLoading(true);
     try {
@@ -88,10 +85,8 @@ export default function AdminCustomersPage() {
 
   useEffect(() => {
     fetchCustomers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, query]);
 
-  // 3. KHÓA / MỞ KHÓA TÀI KHOẢN
   const handleToggleStatus = async (customer: AdminCustomerRow) => {
     const confirmed = customer.isActive
       ? await modal.confirm(t('confirm_lock', { name: customer.name || customer.email }), 'Xác nhận')

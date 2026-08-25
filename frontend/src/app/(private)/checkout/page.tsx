@@ -72,7 +72,6 @@ export default function CheckoutPage() {
       setAddresses(Array.isArray(updatedAddresses) ? updatedAddresses : []);
       
       if (updatedAddresses && updatedAddresses.length > 0) {
-        // Tự động chọn địa chỉ vừa mới thêm vào
         setSelectedAddressId(updatedAddresses[updatedAddresses.length - 1].id);
       }
     } catch (error: any) {

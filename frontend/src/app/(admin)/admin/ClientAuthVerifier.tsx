@@ -1,3 +1,23 @@
+/**
+ * @fileoverview Client-side Auth Verification Component
+ * 
+ * Chức năng chính:
+ * - Verify user có access token trên client side
+ * - Redirect nếu chưa login
+ * - Backup verification cho middleware
+ * 
+ * Use case:
+ * - Middleware chạy trên edge, có thể miss cookies
+ * - Component này verify trên client-side để đảm bảo
+ * 
+ * Props:
+ * - children: Child components chỉ render khi đã login
+ * 
+ * Logic:
+ * 1. Check accessToken cookie
+ * 2. Nếu không có → redirect về /
+ * 3. Nếu có → render children
+ */
 'use client';
 
 import { useEffect } from 'react';

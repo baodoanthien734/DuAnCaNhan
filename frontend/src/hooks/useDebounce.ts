@@ -1,4 +1,20 @@
-// This hook is used to debounce a value, meaning it will delay the update of the value until after a specified delay time has passed since the last time the value was changed. This is useful for scenarios like search input fields where you want to wait for the user to stop typing before making an API call or updating the state.
+/**
+ * @fileoverview Custom React Hook để debounce giá trị (trì hoãn cập nhật)
+ * 
+ * Use case:
+ * - Search input: Chỉ gọi API khi user ngừng gõ
+ * - Auto-complete: Tránh gọi API quá nhiều khi user đang gõ
+ * - Form validation: Chỉ validate khi user ngừng nhập
+ * 
+ * Mechanics:
+ * - Sử dụng setTimeout để delay update
+ * - Cleanup function clearTimeout khi value hoặc delay thay đổi
+ * - Trả về giá trị đã debounce
+ * 
+ * @example
+ * const debouncedSearch = useDebounce(searchTerm, 500);
+ * // Chỉ gọi API khi searchTerm ngừng thay đổi trong 500ms
+ */
 import { useState, useEffect } from 'react';
 
 // Hook này giúp trì hoãn việc cập nhật giá trị cho đến khi người dùng ngừng gõ sau một khoảng thời gian (delay)

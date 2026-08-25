@@ -1,4 +1,15 @@
-// src/lib/auth.ts
+/**
+ * @fileoverview Utilities quản lý authentication state và session
+ * 
+ * Chức năng chính:
+ * - getCurrentUser: Đọc user_info từ localStorage
+ * - setLoginData: Lưu tokens và user info sau login thành công
+ * - logout: Xóa session và gọi backend revoke refresh token
+ * 
+ * Storage Strategy:
+ * - Cookies: accessToken, refreshToken, userId (client-side, sameSite=lax)
+ * - localStorage: user_info (UI convenience)
+ */
 import Cookies from 'js-cookie';
 
 // 1. Lấy thông tin User lưu tạm trong localStorage (Dùng hiển thị Header, Avatar, Name...)

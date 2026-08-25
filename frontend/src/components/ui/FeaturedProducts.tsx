@@ -21,7 +21,6 @@ export default function FeaturedProducts({ categories, products, dict }: Feature
     ? products
     : products.filter(p => p.categoryId === activeCategoryId);
 
-  // Lấy ra thông tin danh mục đang được chọn (để lấy tên và slug làm link)
   const activeCategory = activeCategoryId 
     ? categories.find(c => c.id === activeCategoryId) 
     : null;
@@ -112,7 +111,6 @@ export default function FeaturedProducts({ categories, products, dict }: Feature
         </div>
       )}
 
-      {/* 👇 NÚT "XEM TẤT CẢ" VỪA ĐƯỢC THÊM VÀO ĐÂY 👇 */}
       {activeCategory && filteredProducts.length > 0 && (
         <div style={{ textAlign: 'center', marginTop: '40px' }}>
           <Link 

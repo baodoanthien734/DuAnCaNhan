@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom'; // 👉 MỚI: Import createPortal
+import { createPortal } from 'react-dom'; 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
@@ -17,7 +17,7 @@ interface CartDrawerProps {
 
 export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChange }: CartDrawerProps) {
   const t = useTranslations('cart');
-  const [mounted, setMounted] = useState(false); // 👉 MỚI: Tránh lỗi hydration của Next.js
+  const [mounted, setMounted] = useState(false);
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -88,7 +88,7 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChan
     }
   };
 
-  if (!isOpen || !mounted) return null; // 👉 MỚI: Check mounted
+  if (!isOpen || !mounted) return null; 
 
   const totalAmount = (cart?.items || []).reduce((sum: number, item: any) => {
     let itemPrice = Number(item.variant?.price || item.product.basePrice);
@@ -120,7 +120,6 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChan
     }
   };
 
-  // 👉 MỚI: Bọc toàn bộ return bằng createPortal
   return createPortal(
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,

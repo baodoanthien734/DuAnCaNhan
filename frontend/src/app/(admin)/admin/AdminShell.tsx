@@ -4,7 +4,6 @@ import { useTranslations } from 'next-intl';
 import Sidebar from './Sidebar';
 
 type AdminShellProps = {
-  // CẬP NHẬT: Thêm email và image để truyền qua cho Sidebar làm Avatar
   user: { 
     name?: string;
     email?: string;
@@ -30,7 +29,6 @@ export default function AdminShell({ user, children, brand, title }: AdminShellP
         color: '#111827',
       }}
     >
-      {/* Vẫn giữ nguyên, nhưng giờ biến user đã ôm đủ cả name, email, image */}
       <Sidebar user={user} brand={brand} title={title} />
 
       <main 

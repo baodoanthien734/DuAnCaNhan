@@ -16,7 +16,7 @@ export default function MyOrderDetailPage() {
   const t = useTranslations('my_orders');
   const tReview = useTranslations('user_reviews'); 
   const modal = useModal();
-  const locale = useLocale(); // Lấy ngôn ngữ hiện tại (vi hoặc en)
+  const locale = useLocale(); 
   
   const params = useParams();
   const orderId = Number(params.id);
@@ -63,11 +63,9 @@ export default function MyOrderDetailPage() {
   const formatCurrency = (value: number) => {
     const num = Number(value || 0);
     if (locale === 'en') {
-      // Định dạng số kiểu en-US (VD: 150,000) rồi nối ' VND' ra phía sau
       const formattedNum = new Intl.NumberFormat('en-US').format(num);
       return `${formattedNum} VND`;
     }
-    // Tiếng Việt giữ nguyên
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(num);
   };
 

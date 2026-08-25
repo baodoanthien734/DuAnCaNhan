@@ -11,14 +11,13 @@ export default function EditProductPage() {
   const t = useTranslations("admin_products");
   const modal = useModal();
   const router = useRouter();
-  const params = useParams(); // Lấy ID từ URL
+  const params = useParams(); 
   const id = Number(params.id);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [initialData, setInitialData] = useState<ProductFormValues | null>(null);
 
-  // Gọi API lấy dữ liệu chi tiết khi trang vừa load
   useEffect(() => {
     if (!id) return;
 
@@ -36,7 +35,7 @@ export default function EditProductPage() {
           })) || [],
           customizations: data.customizations?.map((c: any) => ({
             ...c,
-            extraPrice: Number(c.extraPrice || 0), // <--- 1. THÊM DÒNG NÀY ĐỂ LOAD DỮ LIỆU CŨ LÊN FORM
+            extraPrice: Number(c.extraPrice || 0), 
             choices: c.choices?.map((choice: any) => ({
               ...choice,
               extraPrice: Number(choice.extraPrice)
@@ -57,11 +56,9 @@ export default function EditProductPage() {
     fetchProductDetail();
   }, [id, router, t]);
 
-  // Hàm xử lý khi người dùng bấm "Cập nhật sản phẩm"
   const handleUpdate = async (data: any) => {
     setIsSubmitting(true);
     try {
-      // Dọn dẹp payload: Chỉ bốc đúng những trường cần thiết và giữ lại 'id'
       const payload = {
         name: data.name,
         slug: data.slug,
@@ -72,9 +69,8 @@ export default function EditProductPage() {
         status: data.status,
         images: data.images,
         
-        // Map qua mảng variants để lọc bỏ createdAt, updatedAt, productId...
         variants: data.variants.map((v: any) => ({
-          id: v.id, // Vô cùng quan trọng cho Backend Sync
+          id: v.id, 
           name: v.name,
           sku: v.sku,
           price: v.price,
@@ -82,14 +78,14 @@ export default function EditProductPage() {
           image: v.image,
         })),
 
-        // Làm tương tự với mảng customizations (cả tầng 1 và tầng 2)
+
         customizations: data.customizations.map((c: any) => ({
           id: c.id, 
           name: c.name,
           type: c.type,
           isRequired: c.isRequired,
           maxLength: c.maxLength,
-          extraPrice: c.extraPrice || 0, // <--- 2. THÊM DÒNG NÀY! ĐÂY LÀ CHỐT CHẶN CUỐI CÙNG!
+          extraPrice: c.extraPrice || 0, 
           choices: c.choices?.map((choice: any) => ({
             id: choice.id, 
             label: choice.label,
@@ -103,7 +99,6 @@ export default function EditProductPage() {
       router.push("/admin/products");
       
     } catch (error: any) {
-      // console.error("Lỗi khi cập nhật:", error);
       const resData = error.response?.data;
       if (resData?.message) {
         await modal.alert(t("form.updateValidationError", { message: JSON.stringify(resData.message, null, 2) }));
@@ -125,7 +120,6 @@ export default function EditProductPage() {
     );
   }
 
-  // Gọi Component dùng chung ra và truyền dữ liệu
   return (
     <ProductForm 
       initialData={initialData} 

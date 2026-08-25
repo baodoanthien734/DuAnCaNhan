@@ -2,7 +2,6 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { getPublicPosts } from '@/lib/public-posts-api';
 import { resolveImageUrl } from '@/lib/utils';
-// BỎ 'use client', biến thành Server Component
 export default async function PostsPage() {
   const t = await getTranslations('public_posts');
   

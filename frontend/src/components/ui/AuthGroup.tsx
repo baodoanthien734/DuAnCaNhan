@@ -9,7 +9,6 @@ import CartDrawer from '@/components/ui/CartDrawer';
 import { logout } from '@/lib/auth';
 import { getProfile } from '@/lib/user-api';
 import { resolveImageUrl } from '@/lib/utils';
-// MỚI: Import hàm getCart
 import { getCart } from '@/lib/cart-api';
 
 type User = {
@@ -27,8 +26,6 @@ export default function AuthGroup() {
   const [user, setUser] = useState<User | null>(null);
   const [isClient, setIsClient] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  
-  // MỚI: State lưu tổng số lượng sản phẩm trong giỏ
   const [cartItemCount, setCartItemCount] = useState(0);
 
   // State cho User Dropdown
@@ -103,8 +100,6 @@ export default function AuthGroup() {
   // Lắng nghe các sự kiện liên quan đến Giỏ hàng
   useEffect(() => {
     const handleOpenCart = () => setIsCartOpen(true);
-    
-    // MỚI: Lắng nghe sự kiện 'cart-updated' để cập nhật lại con số
     const handleCartUpdated = () => fetchCartCount();
 
     window.addEventListener('open-cart', handleOpenCart);
@@ -140,7 +135,6 @@ export default function AuthGroup() {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
         </svg>
         
-        {/* MỚI: Hiển thị chấm đỏ với con số, xử lý logic 99+ */}
         {cartItemCount > 0 && (
           <span className="absolute -top-1 -right-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-amber-500 px-1 text-[10px] font-bold text-white shadow-sm border-2 border-white">
             {cartItemCount > 99 ? '99+' : cartItemCount}
@@ -219,7 +213,6 @@ export default function AuthGroup() {
         </div>
       )}
 
-      {/* MỚI: Truyền hàm cập nhật số lượng xuống CartDrawer */}
       <CartDrawer 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 

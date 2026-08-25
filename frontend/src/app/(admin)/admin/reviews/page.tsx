@@ -28,14 +28,12 @@ export default function AdminReviewsPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   
-  // States cho Bộ lọc & Tìm kiếm
   const [query, setQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [ratingFilter, setRatingFilter] = useState('');
   const [replyFilter, setReplyFilter] = useState('');
   const [page, setPage] = useState(1);
 
-  // States cho Phản hồi
   const [replyingToId, setReplyingToId] = useState<number | null>(null);
   const [replyText, setReplyText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,7 +63,7 @@ export default function AdminReviewsPage() {
       const data = await getAdminReviews({ 
         q: query || undefined,
         rating: ratingFilter ? Number(ratingFilter) : undefined,
-        replyStatus: replyFilter || undefined, // Truyền xuống BE: 'replied' hoặc 'unreplied'
+        replyStatus: replyFilter || undefined,
         skip: (page - 1) * TAKE,
         take: TAKE 
       });

@@ -19,7 +19,6 @@ export default function CategoryList() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [showForm, setShowForm] = useState(false);
   
-  // STATE MỚI: Dùng để truyền parentId vào Form khi bấm "Tạo từ"
   const [initialParentIdForForm, setInitialParentIdForForm] = useState<number | null>(null);
 
   const [toast, setToast] = useState<string | null>(null);
@@ -102,14 +101,12 @@ export default function CategoryList() {
     }
   };
 
-  // HÀM MỚI: Xử lý khi bấm nút "Tạo danh mục con"
   const handleCreateFrom = (parentCategory: Category) => {
-    setEditing(null); // Reset trạng thái sửa (nếu có)
-    setInitialParentIdForForm(parentCategory.id); // Lưu ID của cha vào state
-    setShowForm(true); // Bật form lên
+    setEditing(null); 
+    setInitialParentIdForForm(parentCategory.id); 
+    setShowForm(true); 
   };
 
-  // HÀM MỚI: Reset lại các state liên quan đến form khi tắt
   const handleCloseForm = () => {
     setShowForm(false);
     setEditing(null);

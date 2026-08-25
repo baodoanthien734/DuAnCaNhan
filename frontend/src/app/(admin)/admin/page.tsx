@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server'; 
-import { getServerDashboardStats } from '@/lib/dashboard-api'; // IMPORT HÀM GỌI API
+import { getServerDashboardStats } from '@/lib/dashboard-api'; 
 
 async function getProfile(token: string) {
   try {
@@ -18,7 +18,6 @@ async function getProfile(token: string) {
   }
 }
 
-// Hàm hỗ trợ format tiền tệ (Ví dụ: 4.5M, 12K)
 function formatCompactNumber(number: number) {
   return Intl.NumberFormat('en-US', {
     notation: "compact",
@@ -40,10 +39,8 @@ export default async function AdminPage() {
     redirect('/'); 
   }
 
-  // Khởi tạo bộ dịch
   const t = await getTranslations('admin_dashboard');
 
-  // GỌI API LẤY THỐNG KÊ (Dùng token của Admin)
   const statsData = await getServerDashboardStats(token);
   console.log("Dữ liệu từ API:", statsData);
 

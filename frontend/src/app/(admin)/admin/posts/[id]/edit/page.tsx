@@ -13,30 +13,24 @@ type ToastState = {
 } | null;
 
 export default function AdminPostEditPage({ params }: { params: Promise<{ id: string }> }) {
-  // Sử dụng React.use() để unwrap param id từ URL
   const { id } = use(params);
   
-  // Trỏ đúng namespace "posts.edit" trong i18n
   const t = useTranslations('posts.edit');
   const router = useRouter();
 
-  // State lưu dữ liệu form
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
   const [content, setContent] = useState('');
   const [isPublished, setIsPublished] = useState(false);
   
-  // State quản lý file
   const [thumbnailFile, setThumbnailFile] = useState<File | null>(null);
   const [oldThumbnailUrl, setOldThumbnailUrl] = useState<string | null>(null);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
   
-  // State quản lý UI
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toast, setToast] = useState<ToastState>(null);
 
-  // Fallback URL cho ảnh (thay đổi port nếu backend của bạn khác)
   const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:3001';
 
   function showToast(type: 'success' | 'error', message: string) {
@@ -53,11 +47,10 @@ export default function AdminPostEditPage({ params }: { params: Promise<{ id: st
   }
 
   useEffect(() => {
-    let isMounted = true; // Tránh lỗi memory leak khi component unmount
+    let isMounted = true; 
 
     async function fetchPostData() {
       try {
-        // Gọi API lấy dữ liệu theo ID
         const post = await getPostById(id);
         
         if (isMounted && post) {
@@ -65,9 +58,7 @@ export default function AdminPostEditPage({ params }: { params: Promise<{ id: st
           setSummary(post.summary || '');
           setIsPublished(Boolean(post.isPublished));
           
-          // Xử lý đường dẫn ảnh trong nội dung HTML
           let parsedContent = post.content || '';
-          // Nối API_BASE_URL vào trước tất cả các src="/uploads..."
 
           parsedContent = parsedContent.replace(/src="\/uploads/g, `src="${baseUrl}/uploads`);
           setContent(parsedContent);
@@ -77,14 +68,13 @@ export default function AdminPostEditPage({ params }: { params: Promise<{ id: st
         console.error('Lỗi khi tải bài viết:', error);
         if (isMounted) {
           showToast('error', t('toastFetchError'));
-          // Nếu không tìm thấy bài viết (lỗi 404), tự động đá về trang danh sách
           setTimeout(() => {
             router.push('/admin/posts');
           }, 1500);
         }
       } finally {
         if (isMounted) {
-          setIsLoading(false); // Tắt hiệu ứng loading để hiện Form
+          setIsLoading(false); 
         }
       }
     }

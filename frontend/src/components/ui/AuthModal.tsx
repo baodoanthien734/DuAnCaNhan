@@ -1,7 +1,27 @@
+/**
+ * @fileoverview Modal xác thực - Login/Register với OTP flow
+ * 
+ * Chức năng chính:
+ * - Login form (email + password)
+ * - Register flow (email → OTP → password + name)
+ * - Switch giữa Login và Register
+ * - Error handling với translations
+ * 
+ * Flow:
+ * 1. User click "Đăng nhập" → Open modal
+ * 2. Choose Login hoặc Register
+ * 3. Register: Enter email → Send OTP → Enter OTP → Create password
+ * 4. Login: Enter email + password → Login success → Set auth data
+ * 
+ * Props:
+ * - isOpen: Boolean modal đang mở
+ * - onClose: Function để đóng modal
+ * - onSuccess: Callback sau khi login/register thành công
+ */
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom'; // 1. Import createPortal
+import { createPortal } from 'react-dom';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { apiClient } from '@/lib/api-client';
@@ -40,7 +60,7 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [countdown, setCountdown] = useState<number>(0);
 
-  // 2. Set mounted = true khi component đã render trên Client
+  // Set mounted = true khi component đã render trên Client
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -186,10 +206,10 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
     }
   };
 
-  // 3. Nếu chưa mở HOẶC chưa mount xong thì không render gì cả
+  // Nếu chưa mở HOẶC chưa mount xong thì không render gì cả
   if (!isOpen || !mounted) return null;
 
-  // 4. Bọc toàn bộ giao diện bằng createPortal
+  // Bọc toàn bộ giao diện bằng createPortal
   return createPortal(
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm transition-opacity" onClick={onClose}>
       <div 
@@ -313,6 +333,6 @@ export default function AuthModal({ isOpen, onClose, initialView = 'login' }: Au
         )}
       </div>
     </div>,
-    document.body // Gắn thẳng vào <body>
+    document.body 
   );
 }

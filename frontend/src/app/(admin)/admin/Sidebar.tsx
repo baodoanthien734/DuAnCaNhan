@@ -17,7 +17,6 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   
-  // STATE MỚI: Quản lý thông tin user phía Client để lấy ảnh từ localStorage
   const [clientUser, setClientUser] = useState(user);
 
   const pathname = usePathname();
@@ -44,7 +43,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
     }
   }, [user]);
 
-  // LOGIC ĐỔI NGÔN NGỮ ĐÃ ĐƯỢC NÂNG CẤP
+  // LOGIC ĐỔI NGÔN NGỮ ĐƠN GIẢN: Cập nhật Cookie, xử lý URL, refresh trang
   const handleLanguageChange = (newLocale: string) => {
     if (newLocale === locale) return;
     
@@ -69,7 +68,6 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
     setShowSettings(false);
   };
 
-  // Logic click ra ngoài để đóng Popup Settings
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (popupRef.current && !popupRef.current.contains(event.target as Node)) {
@@ -107,7 +105,6 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
         flexDirection: 'column',
         boxSizing: 'border-box',
         padding: '24px 14px',
-        // Đã đổi thành hidden vì không còn nút nào thò ra ngoài
         overflow: 'hidden', 
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         color: '#ffffff',

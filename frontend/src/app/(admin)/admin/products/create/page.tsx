@@ -20,7 +20,6 @@ export default function CreateProductPage() {
       await modal.alert(t("form.createSuccess"));
       router.push('/admin/products');
     } catch (error: any) {
-      // console.error("Lỗi kết nối:", error);
       const resData = error.response?.data;
       if (error.response?.status === 401 || error.response?.status === 403) {
         await modal.alert(t("form.createAuthError"));

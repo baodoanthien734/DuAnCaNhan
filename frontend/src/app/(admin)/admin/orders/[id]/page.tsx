@@ -23,10 +23,8 @@ export default function AdminOrderDetailPage() {
   }, [orderId]);
 
   const handleStatusChange = async (newStatus: string) => {
-    // MỚI: Hiện cảnh báo nếu Admin chọn Hủy đơn hàng
     if (newStatus === 'CANCELLED') {
       const isConfirm = await modal.confirm(t('detail.confirm_cancel'));
-      // Nếu Admin bấm "Hủy bỏ" trên popup cảnh báo -> Dừng lại, không làm gì cả
       if (!isConfirm) return; 
     }
 
@@ -36,12 +34,10 @@ export default function AdminOrderDetailPage() {
       
       let newPaymentStatus = order.paymentStatus;
       
-      // AUTO-TRIGGER 1: Giao thành công COD -> Tự động PAID
       if (newStatus === 'DELIVERED' && order.paymentMethod === 'COD' && order.paymentStatus === 'UNPAID') {
           newPaymentStatus = 'PAID';
       }
-      
-      // AUTO-TRIGGER 2: Hủy đơn hàng -> Tự động UNPAID (Nếu trước đó đang PAID)
+
       if (newStatus === 'CANCELLED' && order.paymentStatus === 'PAID') {
           newPaymentStatus = 'UNPAID';
       }
