@@ -139,30 +139,40 @@ export default async function CategoryPage({ params }: PageProps) {
               return (
                 <div 
                   key={item.id} 
-                  className="bg-white rounded-[24px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)]"
+                  className="bg-white rounded-[24px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.04)] transition-all duration-200 hover:-translate-y-1 hover:shadow-[0_12px_30px_rgba(0,0,0,0.08)] group flex flex-col"
                 >
-                  <Link href={`/products/${item.slug}`} style={{ display: 'block', textDecoration: 'none' }}>
+                  <Link href={`/products/${item.slug}`} style={{ textDecoration: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
+                    
+                    {/* Phần Hình Ảnh */}
                     <div style={{ height: '220px', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#f8fafc', overflow: 'hidden' }}>
                       {imageUrl ? (
-                        <img src={imageUrl} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={imageUrl} alt={item.name} className="transition-transform duration-500 group-hover:scale-105" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
-                        <span style={{ fontSize: '40px' }}>📦</span>
+                        <span style={{ fontSize: '40px', opacity: 0.5 }}>📦</span>
                       )}
                     </div>
-                    <div style={{ padding: '24px' }}>
-                      <h4 style={{ margin: '0 0 8px', fontSize: '18px', color: '#111827', fontWeight: '700' }}>{item.name}</h4>
-                      <p style={{ margin: '0 0 16px', color: '#6b7280', fontSize: '14px', lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+
+                    {/* Phần Nội Dung (Tên, Mô tả, Giá) */}
+                    <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+                      <h4 className="group-hover:text-amber-600 transition-colors" style={{ margin: '0 0 8px', fontSize: '18px', color: '#111827', fontWeight: '700' }}>
+                        {item.name}
+                      </h4>
+                      
+                      <p style={{ margin: '0 0 16px', color: '#6b7280', fontSize: '14px', lineHeight: '1.6', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', flexGrow: 1 }}>
                         {item.description || tProducts('no_description')}
                       </p>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      
+                      {/* Đã sửa justify-content thành justifyContent */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '12px', borderTop: '1px solid #f8fafc' }}>
                         <span style={{ fontSize: '18px', fontWeight: '800', color: '#b45309' }}>
                           {Number(item.basePrice).toLocaleString()} {tProducts('currency')}
                         </span>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#111827', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        <div className="group-hover:bg-slate-900 group-hover:text-white transition-colors duration-300" style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: '#111827', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                         </div>
                       </div>
                     </div>
+                    
                   </Link>
                 </div>
               );

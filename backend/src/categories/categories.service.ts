@@ -16,6 +16,10 @@ export class CategoriesService implements OnModuleInit {
     private readonly i18n: I18nService,
   ) {}
 
+  // ==============================================================
+  // LIFECYCLE & INITIALIZATION
+  // ==============================================================
+
   // Lifecycle hook: Tự động chạy mỗi khi server khởi động
   async onModuleInit() {
     const systemCat = await this.prisma.category.findFirst({
@@ -36,21 +40,12 @@ export class CategoriesService implements OnModuleInit {
     }
   }
 
+  // ==============================================================
+  // PRIVATE UTILITIES (FILE & SLUG MANAGEMENT)
+  // ==============================================================
+
   private async ensureDir(path: string) {
     await fs.mkdir(path, { recursive: true });
-  }
-
-  private slugify(text: string) {
-    return text
-      .toString()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .replace(/đ/g, 'd').replace(/Đ/g, 'D')
-      .toLowerCase()
-      .trim()
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9\-]/g, '')
-      .replace(/\-+/g, '-');
   }
 
   private async removeFileSafe(filePath: string) {
@@ -76,6 +71,20 @@ export class CategoriesService implements OnModuleInit {
     return `/${relativePath}`;
   }
 
+  private slugify(text: string) {
+    return text
+      .toString()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .replace(/Đ/g, 'D')
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/[^a-z0-9\-]/g, '')
+      .replace(/\-+/g, '-');
+  }
+
   private async generateAutoSlug(name: string, currentId?: number): Promise<string> {
     const baseSlug = this.slugify(name);
     let slug = baseSlug;
@@ -98,10 +107,17 @@ export class CategoriesService implements OnModuleInit {
     }
   }
 
+  // ==============================================================
+  // ADMIN FEATURES (CRUD & MANAGEMENT)
+  // ==============================================================
+
   async findAll(query: { q?: string; parentId?: number; skip?: number; take?: number }) {
     const where: any = { isActive: true };
     if (query.q) {
-      where.OR = [{ name: { contains: query.q, mode: 'insensitive' } }, { slug: { contains: query.q, mode: 'insensitive' } }];
+      where.OR = [
+        { name: { contains: query.q, mode: 'insensitive' } },
+        { slug: { contains: query.q, mode: 'insensitive' } },
+      ];
     }
     if (typeof query.parentId !== 'undefined') {
       where.parentId = Number(query.parentId);
@@ -119,7 +135,6 @@ export class CategoriesService implements OnModuleInit {
             select: { products: true }
           }
         }
-        // ----------------------------------------------------
       }),
       this.prisma.category.count({ where }),
     ]);
@@ -136,7 +151,7 @@ export class CategoriesService implements OnModuleInit {
   async create(dto: CreateCategoryDto, file?: Express.Multer.File) {
     const data: any = { ...dto };
 
-    // --- ĐOẠN CODE BỔ SUNG: CHẶN TẠO CON NẾU CHA ĐANG CÓ SẢN PHẨM ---
+    // Chặn tạo danh mục con nếu danh mục cha đang trực tiếp chứa sản phẩm
     if (data.parentId) {
       const parentIdNum = Number(data.parentId);
       const productCountInParent = await this.prisma.product.count({
@@ -151,7 +166,6 @@ export class CategoriesService implements OnModuleInit {
         );
       }
     }
-    // -----------------------------------------------------------------
     
     if (!data.slug) {
       data.slug = await this.generateAutoSlug(data.name);
@@ -193,7 +207,7 @@ export class CategoriesService implements OnModuleInit {
     const existing = await this.findOne(id);
     const data: any = { ...dto };
 
-    // --- ĐOẠN CODE BỔ SUNG: CHẶN KHI ĐỔI SANG CHA MỚI ĐANG CÓ SẢN PHẨM ---
+    // Chặn khi đổi sang danh mục cha mới mà danh mục đó đang trực tiếp chứa sản phẩm
     if (data.parentId && Number(data.parentId) !== existing.parentId) {
       const parentIdNum = Number(data.parentId);
       const productCountInParent = await this.prisma.product.count({
@@ -208,7 +222,6 @@ export class CategoriesService implements OnModuleInit {
         );
       }
     }
-    // -----------------------------------------------------------------------
 
     // --- BẢO VỆ DANH MỤC HỆ THỐNG ---
     if (existing.isSystem) {
@@ -289,7 +302,7 @@ export class CategoriesService implements OnModuleInit {
       throw new BadRequestException(this.i18n.t('categories.error.cannot_delete_system_category'));
     }
 
-    //Lấy TOÀN BỘ danh mục (kể cả đã bị ẩn/xóa mềm) để đảm bảo không lọt đứa con nào
+    // Lấy TOÀN BỘ danh mục (kể cả đã bị ẩn/xóa mềm) để đảm bảo không lọt đứa con nào
     const allCategories = await this.prisma.category.findMany();
 
     const getSubCategoryIds = (parentId: number): number[] => {
@@ -303,21 +316,12 @@ export class CategoriesService implements OnModuleInit {
 
     const allIdsToCheck = [id, ...getSubCategoryIds(id)];
 
-    //Đếm MỌI SẢN PHẨM (không quan tâm status)
+    // Đếm MỌI SẢN PHẨM (không quan tâm status)
     const productCount = await this.prisma.product.count({
       where: {
         categoryId: { in: allIdsToCheck },
       },
     });
-
-    // ==========================================
-    // CAMERA GIÁM SÁT: HÃY NHÌN VÀO TERMINAL CỦA NESTJS
-    // ==========================================
-    console.log('--- DEBUG XÓA DANH MỤC ---');
-    console.log(`1. ID đang yêu cầu xóa: ${id}`);
-    console.log(`2. Mảng ID con cháu tìm được:`, allIdsToCheck);
-    console.log(`3. Tổng số sản phẩm đếm được: ${productCount}`);
-    console.log('---------------------------');
 
     if (productCount > 0) {
       throw new BadRequestException(
@@ -340,18 +344,22 @@ export class CategoriesService implements OnModuleInit {
     );
   }
 
+  // ==============================================================
+  // PUBLIC FEATURES (STOREFRONT)
+  // ==============================================================
+
   async findAllPublic() {
     return this.prisma.category.findMany({
       where: { 
         isActive: true,
-        isSystem: false // <--- THÊM DÒNG NÀY ĐỂ GIẤU KHỎI KHÁCH HÀNG
+        isSystem: false // Giấu khỏi khách hàng
       },
       orderBy: { position: 'asc' },
       include: {
         children: {
           where: { 
             isActive: true,
-            isSystem: false // <--- THÊM VÀO CẢ ĐÂY NỮA (Phòng hờ)
+            isSystem: false
           },
           orderBy: { position: 'asc' },
         },
@@ -360,22 +368,22 @@ export class CategoriesService implements OnModuleInit {
   }
 
   async findOneBySlugPublic(slug: string) {
-    // 1. Chặn ngay từ cửa: Không tìm danh mục hệ thống!
+    // 1. Chặn ngay từ cửa: Không tìm danh mục hệ thống
     const category = await this.prisma.category.findFirst({
       where: { 
         slug, 
         isActive: true,
-        isSystem: false // <--- Bổ sung cờ bảo vệ ở đây
+        isSystem: false
       },
     });
 
     if (!category) throw new NotFoundException(this.i18n.t('categories.error.category_not_found'));
 
-    // 2. Khi lấy danh sách để tính toán cây/breadcrumbs, cũng phải loại trừ danh mục hệ thống
+    // 2. Lấy danh sách để tính toán cây/breadcrumbs, loại trừ danh mục hệ thống
     const allCategories = await this.prisma.category.findMany({
       where: { 
         isActive: true,
-        isSystem: false // <--- Bổ sung cờ bảo vệ ở đây
+        isSystem: false
       },
       orderBy: { position: 'asc' },
     });

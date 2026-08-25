@@ -18,6 +18,11 @@ export class ReviewsService {
     private readonly i18n: I18nService
   ) {}
 
+  // ==============================================================
+  // FILE SYSTEM MANAGEMENT (UPLOAD & CLEANUP)
+  // ==============================================================
+
+  // Giải quyết đường dẫn tuyệt đối của hình ảnh đánh giá dựa trên URL
   private resolveReviewImageFilePath(imageUrl: string): string | null {
     if (!imageUrl) return null;
 
@@ -44,6 +49,7 @@ export class ReviewsService {
     return absolutePath;
   }
 
+  // Dọn dẹp các hình ảnh đánh giá không còn được sử dụng 
   private cleanupReviewImages(imageUrls: string[]) {
     if (!Array.isArray(imageUrls) || imageUrls.length === 0) return;
 
@@ -61,14 +67,17 @@ export class ReviewsService {
     }
   }
 
-  // 1. NGƯỜI DÙNG TẠO ĐÁNH GIÁ
+  // ==============================================================
+  // USER FEATURES (STOREFRONT)
+  // ==============================================================
+
+  // 1. Tạo đánh giá mới cho sản phẩm
   async create(userId: number, dto: CreateReviewDto) {
-    // Kiểm tra xem User có thực sự đã mua sản phẩm này trong đơn hàng đó và đã nhận hàng chưa
     const validOrder = await this.prisma.order.findFirst({
       where: {
         id: dto.orderId,
         customerId: userId,
-        status: 'DELIVERED', // Bắt buộc phải nhận hàng xong mới được đánh giá
+        status: 'DELIVERED', 
         items: {
           some: { productId: dto.productId }
         }
@@ -79,7 +88,6 @@ export class ReviewsService {
       throw new BadRequestException(await this.i18n.translate('reviews.error.not_eligible'));
     }
 
-    // Kiểm tra xem đã đánh giá cho đơn hàng này chưa (Mỗi SP trong 1 đơn chỉ đánh giá 1 lần)
     const existingReview = await this.prisma.review.findFirst({
       where: {
         customerId: userId,
@@ -92,7 +100,6 @@ export class ReviewsService {
       throw new BadRequestException(await this.i18n.translate('reviews.error.already_reviewed'));
     }
 
-    // Tạo đánh giá
     const review = await this.prisma.review.create({
       data: {
         customerId: userId,
@@ -110,8 +117,9 @@ export class ReviewsService {
       data: review
     };
   }
-    // Cập nhật đánh giá
-    async update(userId: number, reviewId: number, dto: UpdateReviewDto) {
+
+  // 2. Cập nhật đánh giá của người dùng
+  async update(userId: number, reviewId: number, dto: UpdateReviewDto) {
     const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
     if (!review) throw new NotFoundException(await this.i18n.translate('reviews.error.not_found'));
 
@@ -138,10 +146,10 @@ export class ReviewsService {
         message: await this.i18n.translate('reviews.success.updated'),
         data: updated,
     };
-    }
+  }
 
-    // Xóa đánh giá của chính mình
-    async removeByUser(userId: number, reviewId: number) {
+  // 3. Xoá đánh giá từ phía của người dùng
+  async removeByUser(userId: number, reviewId: number) {
     const review = await this.prisma.review.findUnique({ where: { id: reviewId } });
     if (!review) throw new NotFoundException(await this.i18n.translate('reviews.error.not_found'));
 
@@ -156,9 +164,9 @@ export class ReviewsService {
         success: true,
         message: await this.i18n.translate('reviews.success.deleted'),
     };
-    }
+  }
 
-  // 2. LẤY DANH SÁCH ĐÁNH GIÁ (CHO PUBLIC - CHI TIẾT SẢN PHẨM)
+  // 4. Hiển thị toàn bộ đánh giá cho một sản phẩm
   async findAllByProduct(productId: number, query: { skip?: number; take?: number }) {
     const skip = query.skip ? Number(query.skip) : 0;
     const take = query.take ? Number(query.take) : 10;
@@ -171,14 +179,13 @@ export class ReviewsService {
         orderBy: { createdAt: 'desc' },
         include: {
           customer: {
-            select: { id: true, name: true, email: true } // Ẩn password và các trường nhạy cảm
+            select: { id: true, name: true, email: true } 
           }
         }
       }),
       this.prisma.review.count({ where: { productId } })
     ]);
 
-    // Tính điểm trung bình
     const aggregate = await this.prisma.review.aggregate({
       _avg: { rating: true },
       where: { productId }
@@ -191,16 +198,18 @@ export class ReviewsService {
     };
   }
 
-  // 3. LẤY DANH SÁCH ĐÁNH GIÁ (CHO ADMIN)
+  // ==============================================================
+  // ADMIN FEATURES (MANAGEMENT & MODERATION)
+  // ==============================================================
+
+  // 1. Lấy danh sách đánh giá với các bộ lọc, hỗ trợ phân trang
   async findAllForAdmin(query: { q?: string; productId?: string; rating?: string; replyStatus?: string; skip?: number; take?: number }) {
     const where: any = {};
 
-    // Lọc theo Sản phẩm (Nếu có)
     if (query.productId) {
       where.productId = Number(query.productId);
     }
 
-    // Lọc theo Tìm kiếm (Tên, Email hoặc Mã đơn hàng)
     if (query.q) {
       where.OR = [
         { customer: { name: { contains: query.q, mode: 'insensitive' } } },
@@ -209,12 +218,10 @@ export class ReviewsService {
       ];
     }
 
-    // Lọc theo Số sao (rating)
     if (query.rating && !isNaN(Number(query.rating))) {
       where.rating = Number(query.rating);
     }
 
-    // Lọc theo Trạng thái phản hồi (Đã trả lời / Chưa trả lời)
     if (query.replyStatus === 'replied') {
       where.adminReply = { not: null };
     } else if (query.replyStatus === 'unreplied') {
@@ -238,7 +245,8 @@ export class ReviewsService {
 
     return { items, total };
   }
-  // 4. ADMIN TRẢ LỜI ĐÁNH GIÁ
+
+  // 2. Trả lời đánh giá từ phía Admin
   async replyByAdmin(id: number, dto: ReplyReviewDto) {
     const review = await this.prisma.review.findUnique({ where: { id } });
     
@@ -249,7 +257,7 @@ export class ReviewsService {
     const updatedReview = await this.prisma.review.update({
       where: { id },
       data: {
-        adminReply: dto.adminReply, // Lưu phản hồi của Admin
+        adminReply: dto.adminReply, 
       }
     });
 
@@ -260,7 +268,7 @@ export class ReviewsService {
     };
   }
 
-  // 5. ADMIN XÓA ĐÁNH GIÁ (Vi phạm chuẩn mực)
+  // 3. Xoá đánh giá từ phía Admin
   async remove(id: number) {
     const review = await this.prisma.review.findUnique({ where: { id } });
     if (!review) throw new NotFoundException(await this.i18n.translate('reviews.error.not_found'));
