@@ -8,7 +8,7 @@ import { getMyOrderById } from '@/lib/orders-api';
 import { deleteReview } from '@/lib/reviews-api';
 import ReviewModal from '@/components/ui/ReviewModal';
 import { useModal } from '@/hooks/useModal';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 const STEPS = ['PENDING', 'PROCESSING', 'SHIPPING', 'DELIVERED'];
 
@@ -199,7 +199,7 @@ export default function MyOrderDetailPage() {
                   <Link href={group.productSlug ? `/products/${group.productSlug}` : '#'} style={{ flexShrink: 0 }}>
                     <div style={{ width: '80px', height: '80px', borderRadius: '8px', backgroundColor: '#f3f4f6', overflow: 'hidden', border: '1px solid #e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       {group.imageUrl ? (
-                        <img src={resolveProductImageUrl(group.imageUrl)} alt={group.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={resolveImageUrl(group.imageUrl)} alt={group.productName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       ) : (
                         <span style={{ fontSize: '24px' }}>📦</span>
                       )}

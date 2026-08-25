@@ -4,7 +4,7 @@
 import React, { useRef } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface ProductCarouselProps {
   products: any[];
@@ -46,7 +46,7 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }} 
       >
         {products.map((item) => {
-          const imageUrl = item.images && item.images.length > 0 ? resolveProductImageUrl(item.images[0]) : null;
+          const imageUrl = item.images && item.images.length > 0 ? resolveImageUrl(item.images[0]) : null;
 
           return (
             <div

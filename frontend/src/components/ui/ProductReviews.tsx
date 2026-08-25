@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { getProductReviews } from '@/lib/reviews-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface ProductReviewsProps {
   productId: number;
@@ -118,7 +119,11 @@ export default function ProductReviews({ productId }: ProductReviewsProps) {
                   <div className="flex gap-3 mt-4 overflow-x-auto">
                     {review.images.map((img, idx) => (
                       <div key={idx} className="w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border border-gray-200">
-                        <img src={img} alt="Review image" className="w-full h-full object-cover" />
+                        <img 
+                          src={resolveImageUrl(img)} 
+                          alt="Review image" 
+                          className="w-full h-full object-cover" 
+                        />
                       </div>
                     ))}
                   </div>

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
 import { getPublicProductsByCategorySlug } from '@/lib/public-api';
 import { notFound } from 'next/navigation';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface PageProps {
   params: Promise<{
@@ -88,7 +88,7 @@ export default async function CategoryPage({ params }: PageProps) {
             </h2>
             <div style={{ display: 'flex', gap: '20px', overflowX: 'auto', paddingBottom: '16px', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
               {childrenCategories.map(child => {
-                const childImgUrl = child.image ? resolveProductImageUrl(child.image) : null;
+                const childImgUrl = child.image ? resolveImageUrl(child.image) : null;
                 
                 return (
                   <Link 
@@ -134,7 +134,7 @@ export default async function CategoryPage({ params }: PageProps) {
             gap: '24px'
           }}>
             {products.map((item) => {
-              const imageUrl = item.images && item.images.length > 0 ? resolveProductImageUrl(item.images[0]) : null;
+              const imageUrl = item.images && item.images.length > 0 ? resolveImageUrl(item.images[0]) : null;
 
               return (
                 <div 

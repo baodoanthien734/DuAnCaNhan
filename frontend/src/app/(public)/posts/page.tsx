@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { getPublicPosts, resolvePostImageUrl } from '@/lib/public-posts-api';
-
+import { getPublicPosts } from '@/lib/public-posts-api';
+import { resolveImageUrl } from '@/lib/utils';
 // BỎ 'use client', biến thành Server Component
 export default async function PostsPage() {
   const t = await getTranslations('public_posts');
@@ -41,7 +41,7 @@ export default async function PostsPage() {
                 <div className="aspect-[4/3] w-full overflow-hidden bg-slate-100 relative">
                   {post.thumbnail ? (
                     <img 
-                      src={resolvePostImageUrl(post.thumbnail)} 
+                      src={resolveImageUrl(post.thumbnail)} 
                       alt={post.title} 
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />

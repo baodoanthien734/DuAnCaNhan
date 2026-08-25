@@ -1,4 +1,14 @@
-import { apiClient } from './api-client';
+import axios from 'axios';
+
+// 1. Tạo một cổng Axios thuần túy, không kẹp Token, không đánh chặn
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const publicAxios = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
 
 export interface PublicPost {
   id: number;
@@ -14,19 +24,11 @@ export interface PublicPost {
 }
 
 export async function getPublicPosts(params?: { q?: string; skip?: number; take?: number }) {
-  const resp = await apiClient.get('/posts', { params });
+  const resp = await publicAxios.get('/posts', { params });
   return resp.data; 
 }
 
 export async function getPublicPostBySlug(slug: string) {
-  const resp = await apiClient.get(`/posts/${slug}`);
+  const resp = await publicAxios.get(`/posts/${slug}`);
   return resp.data;
-}
-
-export function resolvePostImageUrl(imageUrl?: string | null) {
-  if (!imageUrl) return '';
-  if (/^https?:\/\//i.test(imageUrl)) return imageUrl;
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-  const normalizedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`;
-  return `${API_BASE_URL}${normalizedPath}`;
 }

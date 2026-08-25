@@ -2,9 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { listCategories, Category, removeCategory, reorderCategories, resolveCategoryImageUrl } from '../../../../lib/categories-api';
+import { listCategories, Category, removeCategory, reorderCategories } from '../../../../lib/categories-api';
 import CategoryForm from './CategoryForm';
 import { useModal } from '@/hooks/useModal';
+import { resolveImageUrl } from '@/lib/utils';
 
 export default function CategoryList() {
   const t = useTranslations('admin_categories');
@@ -166,7 +167,7 @@ export default function CategoryList() {
                             <tr style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.2s' }}>
                               <td style={{ padding: '12px 16px' }}>
                                 {node.image ? (
-                                  <img src={resolveCategoryImageUrl(node.image)} alt={node.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
+                                  <img src={resolveImageUrl(node.image)} alt={node.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
                                 ) : (
                                   <div style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb' }} />
                                 )}
@@ -229,7 +230,7 @@ export default function CategoryList() {
                       <tr key={c.id} style={{ borderBottom: '1px solid #f3f4f6', transition: 'background-color 0.2s' }}>
                         <td style={{ padding: '12px 16px' }}>
                           {c.image ? (
-                            <img src={resolveCategoryImageUrl(c.image)} alt={c.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
+                            <img src={resolveImageUrl(c.image)} alt={c.name} style={{ width: 44, height: 44, objectFit: 'cover', borderRadius: 8, border: '1px solid #e5e7eb' }} />
                           ) : (
                             <div style={{ width: 44, height: 44, borderRadius: 8, backgroundColor: '#f3f4f6', border: '1px solid #e5e7eb' }} />
                           )}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { getPublicProducts } from '@/lib/public-api';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 import { useDebounce } from '@/hooks/useDebounce'; 
 
 export default function LiveSearch() {
@@ -102,7 +102,7 @@ export default function LiveSearch() {
           ) : (
             <div className="max-h-[60vh] overflow-y-auto custom-scrollbar">
               {results.map((item) => {
-                const imgUrl = item.images?.[0] ? resolveProductImageUrl(item.images[0]) : null;
+                const imgUrl = item.images?.[0] ? resolveImageUrl(item.images[0]) : null;
                 return (
                   <Link 
                     key={item.id} 

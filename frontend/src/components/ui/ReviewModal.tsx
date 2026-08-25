@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { uploadReviewImage, submitReview, updateReview } from '@/lib/reviews-api';
 import { useModal } from '@/hooks/useModal';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -224,7 +225,7 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
             <div className="flex gap-3 flex-wrap">
               {existingImageUrls.map((url, idx) => (
                 <div key={idx} className="relative w-20 h-20 border border-gray-200 rounded-lg overflow-hidden">
-                  <img src={url} alt="Preview" className="w-full h-full object-cover" />
+                  <img src={resolveImageUrl(url)} alt="Preview" className="w-full h-full object-cover" />
                   <button
                     type="button"
                     onClick={() => removeExistingImage(idx)}

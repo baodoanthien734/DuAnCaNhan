@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { getTranslations } from 'next-intl/server';
-import { getPublicPostBySlug, resolvePostImageUrl } from '@/lib/public-posts-api';
+import { getPublicPostBySlug } from '@/lib/public-posts-api';
+import { resolveImageUrl } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 
 interface PageProps {
@@ -67,7 +68,7 @@ export default async function PostDetailPage({ params }: PageProps) {
         <div className="max-w-5xl mx-auto px-6 mb-16">
           <div className="aspect-[21/9] w-full rounded-[32px] overflow-hidden bg-slate-100 shadow-lg">
             <img 
-              src={resolvePostImageUrl(post.thumbnail)} 
+              src={resolveImageUrl(post.thumbnail)} 
               alt={post.title} 
               className="w-full h-full object-cover"
             />

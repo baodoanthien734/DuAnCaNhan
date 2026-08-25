@@ -73,20 +73,6 @@ export async function reorderCategories(updates: { id: number; position: number 
   return resp.data;
 }
 
-// Hàm xử lý nối domain backend vào link ảnh
-export function resolveCategoryImageUrl(url?: string | null) {
-  if (!url) return '';
-  // Nếu url đã có sẵn http (link ngoài) hoặc là blob preview (từ dạng file) thì giữ nguyên
-  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('blob:') || url.startsWith('data:')) {
-    return url;
-  }
-  
-  // Tự động lấy URL backend từ biến môi trường, hoặc fallback về localhost:3001
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'http://localhost:3001';
-  
-  return `${baseUrl}${url.startsWith('/') ? '' : '/'}${url}`;
-}
-
 export default {
   listCategories,
   getCategory,

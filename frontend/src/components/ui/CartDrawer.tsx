@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import Cookies from 'js-cookie';
 import { getCart, updateCartItem, removeCartItem } from '@/lib/cart-api';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface CartDrawerProps {
   isOpen: boolean;
@@ -137,7 +137,7 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin }: CartDraw
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {cart.items.map((item: any) => {
-                const img = item.variant?.image ? resolveProductImageUrl(item.variant.image) : (item.product.images?.[0] ? resolveProductImageUrl(item.product.images[0]) : null);
+                const img = item.variant?.image ? resolveImageUrl(item.variant.image) : (item.product.images?.[0] ? resolveImageUrl(item.product.images[0]) : null);
                 const unitPrice = Number(item.variant?.price || item.product.basePrice);
                 const stock = item.variant?.stock || 0;
                 const isOutOfStock = item.quantity > stock;

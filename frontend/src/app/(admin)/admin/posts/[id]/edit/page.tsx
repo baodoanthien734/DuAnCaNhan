@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import TiptapEditor from '@/components/ui/TiptapEditor';
 import { getPostById, updatePost } from '@/lib/posts-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 type ToastState = {
   type: 'success' | 'error';
@@ -221,8 +222,8 @@ export default function AdminPostEditPage({ params }: { params: Promise<{ id: st
             {(thumbnailFile || oldThumbnailUrl) && (
               <div className="mb-2">
                 <img 
-                  src={thumbnailFile ? URL.createObjectURL(thumbnailFile) : `${API_BASE_URL}${oldThumbnailUrl}`} 
-                  alt="Current thumbnail" 
+                  src={thumbnailFile ? URL.createObjectURL(thumbnailFile) : resolveImageUrl(oldThumbnailUrl)} 
+                  alt="Current thumbnail"
                   className="h-24 w-32 rounded-lg object-cover border border-slate-200"
                 />
               </div>

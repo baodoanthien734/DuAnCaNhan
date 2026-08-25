@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { getPublicCategories } from '@/lib/public-api';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 type Category = {
   id: number;
@@ -111,7 +111,7 @@ export default function CategoryDropdown() {
           {/* CỘT TRÁI: Danh sách Danh mục Root */}
           <div className="w-2/5 bg-gray-50 border-r border-gray-100 flex flex-col p-2">
             {rootCategories.map((root) => {
-              const rootImageUrl = root.image ? resolveProductImageUrl(root.image) : null;
+              const rootImageUrl = root.image ? resolveImageUrl(root.image) : null;
               const isActive = activeRootId === root.id;
 
               return (
@@ -168,7 +168,7 @@ export default function CategoryDropdown() {
                 ) : (
                   <div className="grid grid-cols-2 gap-4">
                     {activeSubcategories.map(sub => {
-                      const subImageUrl = sub.image ? resolveProductImageUrl(sub.image) : null;
+                      const subImageUrl = sub.image ? resolveImageUrl(sub.image) : null;
                       return (
                         <Link 
                           key={sub.id} 

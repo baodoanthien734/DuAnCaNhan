@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import { Category, createCategory, updateCategory, listCategories, resolveCategoryImageUrl } from '../../../../lib/categories-api';
+import { Category, createCategory, updateCategory, listCategories } from '../../../../lib/categories-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface Props {
   initial?: Category | null;
@@ -217,7 +218,7 @@ export default function CategoryForm({ initial = null, onSaved, onCancel }: Prop
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(
-    initial?.image ? resolveCategoryImageUrl(initial.image) : null
+    initial?.image ? resolveImageUrl(initial.image) : null
   );
   
   const [removeImage, setRemoveImage] = useState(false); 

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { addToCart } from '@/lib/cart-api';
-import { resolveProductImageUrl } from '@/lib/products-api';
+import { resolveImageUrl } from '@/lib/utils';
 
 type ProductVariant = {
   id: number;
@@ -54,11 +54,11 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const [message, setMessage] = useState<{ type: 'error' | 'success'; text: string } | null>(null);
 
   const allImages = useMemo(() => {
-    const productImages = (product.images || []).map((image) => resolveProductImageUrl(image)).filter(Boolean);
+    const productImages = (product.images || []).map((image) => resolveImageUrl(image)).filter(Boolean);
     const variantImages = (product.variants || [])
       .map((variant) => variant.image)
       .filter((image): image is string => Boolean(image))
-      .map((image) => resolveProductImageUrl(image));
+      .map((image) => resolveImageUrl(image));
 
     return [...productImages, ...variantImages];
   }, [product.images, product.variants]);
@@ -85,7 +85,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
     setMessage(null);
 
     if (variant.image) {
-      const targetImage = resolveProductImageUrl(variant.image);
+      const targetImage = resolveImageUrl(variant.image);
       const targetIndex = allImages.findIndex((image) => image === targetImage);
       if (targetIndex !== -1) {
         setCurrentIndex(targetIndex);
