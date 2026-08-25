@@ -45,7 +45,7 @@ export default async function ProductsPage({
   return (
     <div className="bg-[#fcfbf9] min-h-screen pb-24 font-sans text-slate-900">
       
-      {/* HEADER CỦA TRANG VÀ THANH TÌM KIẾM (Đã thu nhỏ padding) */}
+      {/* HEADER CỦA TRANG VÀ THANH TÌM KIẾM */}
       <div className="bg-white border-b border-slate-100 py-8 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>
@@ -67,7 +67,7 @@ export default async function ProductsPage({
 
       <main className="max-w-7xl mx-auto px-6 mt-8">
         
-        {/* LỌC NHANH DANH MỤC GỐC (Thu nhỏ nút bấm) */}
+        {/* LỌC NHANH DANH MỤC GỐC */}
         <div className="flex gap-2.5 overflow-x-auto pb-5 no-scrollbar mb-6">
           <Link
             href="/products"
@@ -96,7 +96,6 @@ export default async function ProductsPage({
         {/* LƯỚI SẢN PHẨM NGHỆ THUẬT */}
         {products.length === 0 ? (
           <div className="text-center py-24 bg-white rounded-3xl border border-dashed border-slate-200">
-            {/* Đã thay Emoji 🔍 bằng SVG nét đen chuyên nghiệp */}
             <svg 
               className="w-14 h-14 text-slate-900 opacity-20 mx-auto mb-4" 
               fill="none" 
@@ -131,7 +130,7 @@ export default async function ProductsPage({
                       )}
                     </div>
                     
-                    {/* PHẦN NỘI DUNG (Thu nhỏ chữ, padding) */}
+                    {/* PHẦN NỘI DUNG */}
                     <div className="p-5 flex flex-col flex-grow">
                       <h4 className="text-base font-bold text-slate-900 mb-1.5 line-clamp-1 group-hover:text-amber-600 transition-colors">
                         {item.name}

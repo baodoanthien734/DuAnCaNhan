@@ -7,11 +7,9 @@ import { deleteProduct, updateProductStatus } from "@/lib/products-api";
 import { useModal } from '@/hooks/useModal';
 import { resolveImageUrl } from '@/lib/utils';
 
-// Định nghĩa nhanh type dựa theo cấu trúc Prisma của bạn
 interface ProductTableRowProps {
   product: any;
   onRefresh: () => void;
-  // Khai báo thêm prop cho Bulk Edit
   isSelected: boolean;
   onToggleSelect: () => void;
 }
@@ -62,7 +60,6 @@ export default function ProductTableRow({ product, onRefresh, isSelected, onTogg
 
   return (
     <React.Fragment>
-      {/* THAY ĐỔI: Highlight dòng nếu isSelected = true */}
       <tr className={`border-b hover:bg-gray-50 transition items-start ${
         isSelected 
           ? 'bg-emerald-50/50 border-emerald-100' 

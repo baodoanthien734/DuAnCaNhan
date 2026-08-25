@@ -75,13 +75,13 @@ export default function CategoryDropdown() {
           background: 'transparent',
           border: 'none',
           cursor: 'pointer',
-          fontSize: '14px', // Đã chỉnh về 14px cho bằng với Home, Products
+          fontSize: '14px', 
           fontFamily: 'inherit',
           fontWeight: '600',
           display: 'flex',
           alignItems: 'center',
           gap: '4px',
-          padding: 0 // Bỏ padding thừa
+          padding: 0 
         }}
       >
         {t('categories')}
@@ -102,9 +102,9 @@ export default function CategoryDropdown() {
           className="absolute mt-6 bg-white border border-gray-100 shadow-2xl rounded-xl z-50 flex overflow-hidden"
           style={{ 
             top: '100%',
-            left: '50%', // Thuật toán căn giữa so với nút bấm
+            left: '50%', 
             transform: 'translateX(-50%)',
-            width: '600px', // Khổ rộng 600px chia 2 cột an toàn
+            width: '600px',
             minHeight: '300px' 
           }}
         >

@@ -1,3 +1,25 @@
+/**
+ * @fileoverview TipTap Rich Text Editor Component cho blog posts
+ * 
+ * Chức năng chính:
+ * - WYSIWYG editor với TipTap
+ * - Support: Bold, Italic, Heading, Lists, Image, Link...
+ * - Image upload với drag & drop
+ * - Content output: HTML hoặc JSON
+ * 
+ * Features:
+ * - Toolbar với formatting buttons
+ * - Image upload: Drag & drop hoặc paste
+ * - Auto-resize images
+ * - Clean HTML output
+ * 
+ * Props:
+ * - content: Initial content (HTML string)
+ * - onChange: Callback khi content thay đổi
+ * - placeholder: Placeholder text khi editor rỗng
+ * 
+ * Usage trong admin posts create/edit pages
+ */
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';

@@ -1,3 +1,23 @@
+/**
+ * @fileoverview Next.js Middleware xử lý authentication và locale
+ * 
+ * Chức năng chính:
+ * - Route protection: Chặn truy cập vào protected routes khi chưa login
+ * - Redirect logged-in users khỏi auth routes
+ * - Locale detection và cookie management
+ * - Token validation khi truy cập protected routes
+ * 
+ * Public Routes: /login, /register, /verify-otp, /send-otp
+ * Protected Routes: /admin, /checkout, /profile, /orders
+ * 
+ * Flow:
+ * 1. Detect locale từ URL hoặc cookie
+ * 2. Redirect URL có locale prefix về URL không prefix
+ * 3. Set NEXT_LOCALE cookie nếu chưa có
+ * 4. Kiểm tra protected route → validate token → redirect về / nếu invalid
+ * 5. Kiểm tra public route → redirect về / nếu đã login
+ */
+
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 

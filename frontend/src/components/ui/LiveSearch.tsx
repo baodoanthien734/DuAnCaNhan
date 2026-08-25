@@ -21,7 +21,7 @@ export default function LiveSearch() {
   
   const searchRef = useRef<HTMLDivElement>(null);
 
-  // 💡 SỬ DỤNG HOOK: Từ khóa sẽ chỉ cập nhật sau khi người dùng dừng gõ 400ms
+  // SỬ DỤNG HOOK: Từ khóa sẽ chỉ cập nhật sau khi người dùng dừng gõ 400ms
   const debouncedQuery = useDebounce(query, 400);
 
   useEffect(() => {

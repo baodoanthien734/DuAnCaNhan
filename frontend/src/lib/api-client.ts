@@ -1,3 +1,23 @@
+/**
+ * @fileoverview Axios instance với interceptors xử lý authentication và token refresh
+ * 
+ * Chức năng chính:
+ * - Request interceptor: Tự động gắn Bearer token và Accept-Language header
+ * - Response interceptor: Xử lý 401 với auto-refresh token flow
+ * - Queue mechanism: Các request chờ đợi trong lúc refresh token
+ * - Session cleanup: Xóa tokens và redirect về login khi refresh fail
+ * 
+ * Bypass URLs: Các API auth trả 401 thì ném lỗi thẳng (không refresh):
+ * - /auth/login, /auth/register, /auth/send-otp, /auth/verify-otp
+ * 
+ * Refresh Flow:
+ * 1. Detect 401
+ * 2. Kiểm tra không phải bypass URL và không phải refresh endpoint
+ * 3. Gọi API /auth/refresh với userId và refreshToken
+ * 4. Lưu tokens mới vào cookies
+ * 5. Retry request cũ với token mới
+ * 6. Giải phóng queue các request đang chờ
+ */
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import { showGlobalAlert } from './modal-bridge';

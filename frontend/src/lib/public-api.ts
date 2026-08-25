@@ -1,6 +1,26 @@
+/**
+ * @fileoverview API client cho public endpoints (không cần authentication)
+ * 
+ * Chức năng chính:
+ * - Products: Xem sản phẩm public
+ * - Categories: Xem danh mục public
+ * - Posts: Xem blog public
+ * - Cart: Validate guest cart
+ * 
+ * Đặc điểm:
+ * - Không gắn Bearer token
+ * - Chỉ trả về active published content
+ * - Hỗ trợ search, filter, pagination
+ * 
+ * Endpoints:
+ * - GET /public/products - List sản phẩm active
+ * - GET /public/products/:slug - Chi tiết sản phẩm
+ * - GET /public/categories - Tree danh mục
+ * - GET /public/posts - Bài viết published
+ * - POST /public/cart/validate - Validate guest cart
+ */
 import axios from 'axios';
 
-// Lấy URL của backend từ biến môi trường hoặc dùng mặc định
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 const publicApi = axios.create({

@@ -14,7 +14,6 @@ export default function AddressModal({ isOpen, onClose, onSubmit }: AddressModal
     phone: '',
     street: '',
     ward: '',
-    // ĐÃ XÓA district
     city: '',
     isDefault: true 
   });
@@ -62,7 +61,6 @@ export default function AddressModal({ isOpen, onClose, onSubmit }: AddressModal
             onChange={(e) => setFormData({...formData, phone: e.target.value})}
             style={inputStyle} />
 
-          {/* Đưa Phường/Xã và Tỉnh/Thành phố lên cùng 1 hàng */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', width: '100%' }}>
              <input required placeholder="Phường / Xã" value={formData.ward}
                onChange={(e) => setFormData({...formData, ward: e.target.value})}

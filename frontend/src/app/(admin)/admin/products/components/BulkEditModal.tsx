@@ -15,7 +15,7 @@ interface BulkEditModalProps {
   onClose: () => void;
   selectedIds: number[];
   categories: CategoryOption[];
-  onSuccess: () => void; // Hàm gọi khi update thành công (để clear state và refresh bảng)
+  onSuccess: () => void; 
 }
 
 export default function BulkEditModal({ isOpen, onClose, selectedIds, categories, onSuccess }: BulkEditModalProps) {

@@ -15,7 +15,6 @@ export default function AdminOrdersPage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  // States cho Bộ lọc & Tìm kiếm
   const [query, setQuery] = useState('');
   const [searchInput, setSearchInput] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -46,7 +45,6 @@ export default function AdminOrdersPage() {
     [locale],
   );
 
-  // 1. Logic Debounce Tìm kiếm
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
       if (query !== searchInput) {
@@ -57,7 +55,6 @@ export default function AdminOrdersPage() {
     return () => clearTimeout(delayDebounceFn);
   }, [searchInput, query]);
 
-  // 2. Load Dữ liệu
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
@@ -65,7 +62,7 @@ export default function AdminOrdersPage() {
         const res = await getAdminOrders({
           q: query || undefined,
           status: statusFilter || undefined,
-          dateRange: dateFilter || undefined, // Truyền xuống BE: 'today', '7days', 'month', 'year'
+          dateRange: dateFilter || undefined, 
           skip: (page - 1) * TAKE,
           take: TAKE
         });

@@ -8,7 +8,7 @@ import { listProducts } from "@/lib/products-api";
 import { listCategories } from "@/lib/categories-api";
 import ProductTableRow from "./components/ProductTableRow";
 import BulkEditModal from "./components/BulkEditModal";
-import { useModal } from '@/hooks/useModal'; // Nhập useModal hook
+import { useModal } from '@/hooks/useModal'; 
 
 interface CategoryItem {
   id: number;

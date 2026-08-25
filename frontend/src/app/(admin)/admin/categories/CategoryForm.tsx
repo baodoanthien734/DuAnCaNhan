@@ -12,9 +12,6 @@ interface Props {
   onCancel?: () => void;
 }
 
-// =====================================================================
-// COMPONENT: MENU ĐA CẤP (DẠNG CỘT) ĐÃ FIX BUG MỒ CÔI (ORPHAN NODES)
-// =====================================================================
 type CategoryTreeNode = Category & { children: CategoryTreeNode[] };
 
 const CascadingCategorySelect = ({

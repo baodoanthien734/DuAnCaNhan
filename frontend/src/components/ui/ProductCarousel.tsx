@@ -14,10 +14,9 @@ export default function ProductCarousel({ products }: ProductCarouselProps) {
   const tProducts = useTranslations('products');
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Hàm xử lý cuộn mượt mà
   const scroll = (direction: 'left' | 'right') => {
     if (carouselRef.current) {
-      const scrollAmount = 300; // Khoảng cách trượt mỗi lần bấm
+      const scrollAmount = 300;
       carouselRef.current.scrollBy({
         left: direction === 'left' ? -scrollAmount : scrollAmount,
         behavior: 'smooth',
