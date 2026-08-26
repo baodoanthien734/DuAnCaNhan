@@ -24,6 +24,9 @@
     "meta_title_string": "Meta Title must be a string",
     "meta_title_max_length": "Meta Title must not exceed 100 characters",
     "meta_desc_string": "Meta Description must be a string",
-    "meta_desc_max_length": "Meta Description must not exceed 300 characters"
+    "meta_desc_max_length": "Meta Description must not exceed 300 characters",
+    "name_invalid_format": "Category name cannot contain only numbers or special characters.",
+    "images_invalid_format": "Image must be in JPG, JPEG, PNG, WEBP, or GIF format",
+    "slug_invalid_format": "Invalid slug format. Use only lowercase letters, numbers, and hyphens."
   }
 }

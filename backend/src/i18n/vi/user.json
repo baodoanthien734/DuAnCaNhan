@@ -29,7 +29,8 @@
     "address_forbidden": "Bạn không có quyền truy cập địa chỉ này",
     "avatar_invalid_file_type": "Chỉ cho phép tải lên tệp ảnh đại diện",
     "avatar_upload_failed": "Tải ảnh đại diện thất bại",
-    "avatar_delete_failed": "Xóa ảnh đại diện cũ thất bại"
+    "avatar_delete_failed": "Xóa ảnh đại diện cũ thất bại",
+    "only_images_allowed": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...)."
   },
   "success": {
     "profile_updated": "Cập nhật hồ sơ thành công",

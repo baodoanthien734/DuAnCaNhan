@@ -25,6 +25,7 @@
     "images_array": "Images must be an array",
     "images_string": "Image URL must be a string",
     "images_url": "Image URL must be valid",
-    "images_max_count": "Maximum 5 images"
+    "images_max_count": "Maximum 5 images",
+    "images_invalid_format": "Image must be in JPG, JPEG, PNG, WEBP, or GIF format"
   }
 }

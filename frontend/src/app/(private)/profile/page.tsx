@@ -118,12 +118,26 @@ export default function ProfilePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // 1. Kiểm tra định dạng (Chỉ cho phép ảnh)
+    if (!file.type.startsWith('image/')) {
+      setAlert({ type: 'error', text: t('invalidFileType') });
+      event.target.value = ''; // Reset input để có thể chọn lại
+      return;
+    }
+
+    // 2. Kiểm tra dung lượng (Tối đa 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setAlert({ type: 'error', text: t('fileTooLarge') });
+      event.target.value = ''; 
+      return;
+    }
+
     try {
       const preview = await readFileAsDataUrl(file);
       setAvatarPreview(preview);
       setAvatarFile(file);
       setRemoveAvatar(false);
-      setAlert(null);
+      setAlert(null); // Xóa mọi cảnh báo cũ nếu upload hợp lệ
     } catch {
       setAlert({ type: 'error', text: t('avatarUploadFailed') });
     }

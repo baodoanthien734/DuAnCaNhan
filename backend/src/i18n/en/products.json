@@ -23,6 +23,7 @@
     "bulk_update_failed": "A system error occurred while performing bulk update."
   },
   "validation": {
+    "name_invalid_format": "Name cannot contain only numbers or special characters.",
     "name_string": "Product name must be a string",
     "name_required": "Product name is required",
     "name_max_length": "Product name must not exceed 200 characters",
@@ -74,6 +75,9 @@
     "customization_extra_price_min": "Extra price must be greater than or equal to 0",
     "customization_choices_required_for_select": "Choices are required for SELECT type",
     "customization_choices_array": "Choices must be an array",
-    "customization_id_number": "Customization ID must be a number"
+    "customization_id_number": "Customization ID must be a number",
+    "images_invalid_format": "Image must be in JPG, JPEG, PNG, WEBP, or GIF format",
+    "slug_invalid_format": "Invalid slug format. Use only lowercase letters, numbers, and hyphens.",
+    "sku_invalid_format": "Invalid SKU format. Only letters, numbers, hyphens (-), and underscores (_) are allowed."
   }
 }

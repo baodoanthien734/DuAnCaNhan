@@ -23,6 +23,7 @@
     "bulk_update_failed": "Có lỗi hệ thống xảy ra khi cập nhật hàng loạt."
   },
   "validation": {
+    "name_invalid_format": "Tên không được chỉ chứa toàn số hoặc ký tự đặc biệt.",
     "name_string": "Tên sản phẩm phải là chuỗi ký tự",
     "name_required": "Tên sản phẩm không được để trống",
     "name_max_length": "Tên sản phẩm không được vượt quá 200 ký tự",
@@ -74,6 +75,9 @@
     "customization_extra_price_min": "Phụ phí phải lớn hơn hoặc bằng 0",
     "customization_choices_required_for_select": "Danh sách lựa chọn là bắt buộc cho loại SELECT",
     "customization_choices_array": "Danh sách lựa chọn phải là mảng",
-    "customization_id_number": "ID tùy chọn phải là số"
+    "customization_id_number": "ID tùy chọn phải là số",
+    "images_invalid_format": "Ảnh phải có định dạng JPG, JPEG, PNG, WEBP hoặc GIF",
+    "slug_invalid_format": "Đường dẫn (slug) không hợp lệ. Chỉ chấp nhận chữ thường, số, không dấu và cách nhau bằng dấu gạch ngang.",
+    "sku_invalid_format": "Mã SKU không hợp lệ. Chỉ chấp nhận chữ cái, số, dấu gạch ngang (-) và dấu gạch dưới (_)."
   }
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Patch, Query, Req, UploadedFiles, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Patch, Query, Req, UploadedFiles, UseGuards, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import * as fs from 'fs';
@@ -42,22 +42,31 @@ export class PostsController {
 
 	@Post()
 	@UseInterceptors(
-		FileFieldsInterceptor(
-			[
-				{ name: 'thumbnail', maxCount: 1 },
-				{ name: 'contentImages', maxCount: 10 },
-			],
-			{
-			storage: diskStorage({
-				destination: TMP_UPLOAD_DIR,
-				filename: (_req, file, callback) => {
-					const originalName = basename(file.originalname);
-					callback(null, `${Date.now()}-${originalName}`);
-				},
-			}),
-			},
-		),
-	)
+        FileFieldsInterceptor(
+            [
+                { name: 'thumbnail', maxCount: 1 },
+                { name: 'contentImages', maxCount: 10 },
+            ],
+            {
+                storage: diskStorage({
+                    destination: TMP_UPLOAD_DIR,
+                    filename: (_req, file, callback) => {
+                        const originalName = basename(file.originalname);
+                        callback(null, `${Date.now()}-${originalName}`);
+                    },
+                }),
+                // THÊM: Chặn file mã độc
+                fileFilter: (_req, file, callback) => {
+                    if (!file.mimetype.startsWith('image/')) {
+                        return callback(new BadRequestException('posts.error.only_images_allowed'), false);
+                    }
+                    callback(null, true);
+                },
+                // THÊM: Chặn file vượt quá 5MB
+                limits: { fileSize: 5 * 1024 * 1024 },
+            },
+        ),
+    )
 	async create(
 		@Body() dto: CreatePostDto,
 		@UploadedFiles()
@@ -82,6 +91,14 @@ export class PostsController {
                         callback(null, `${Date.now()}-${originalName}`);
                     },
                 }),
+                // THÊM CHẶN VÀO ĐÂY
+                fileFilter: (_req, file, callback) => {
+                    if (!file.mimetype.startsWith('image/')) {
+                        return callback(new BadRequestException('posts.error.only_images_allowed'), false);
+                    }
+                    callback(null, true);
+                },
+                limits: { fileSize: 5 * 1024 * 1024 },
             },
         ),
     )

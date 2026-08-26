@@ -13,6 +13,7 @@
     "post_create_failed": "Không thể tạo bài viết. Vui lòng thử lại",
     "post_not_found": "Bài viết không tồn tại",
     "post_not_found_with_id": "Không tìm thấy bài viết với ID: {id}",
-    "post_update_failed": "Cập nhật bài viết thất bại. Vui lòng thử lại."
+    "post_update_failed": "Cập nhật bài viết thất bại. Vui lòng thử lại.",
+    "only_images_allowed": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...)."
   }
 }

@@ -223,8 +223,21 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
     
     if (slotsLeft <= 0) return;
 
-    let filesToProcess = files.filter(f => f.type.startsWith('image/'));
+    // 1. Kiểm tra định dạng (Lọc ra ảnh chuẩn, nếu có file rác thì báo lỗi)
+    const validFormatFiles = files.filter(f => f.type.startsWith('image/'));
+    if (validFormatFiles.length < files.length) {
+      await modal.alert(t("form.invalidFileType")); // Cảnh báo file sai định dạng
+    }
+
+    // 2. Kiểm tra dung lượng (Tối đa 5MB)
+    const validSizeFiles = validFormatFiles.filter(f => f.size <= 5 * 1024 * 1024);
+    if (validSizeFiles.length < validFormatFiles.length) {
+      await modal.alert(t("form.fileTooLarge")); // Cảnh báo file quá nặng
+    }
+
+    let filesToProcess = validSizeFiles;
     
+    // 3. Kiểm tra số lượng vượt giới hạn
     if (filesToProcess.length > slotsLeft) {
       filesToProcess = filesToProcess.slice(0, slotsLeft);
       await modal.alert(t("form.imageLimitExceeded"));
@@ -295,6 +308,20 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
   const handleVariantImageUpload = async (index: number, e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // THÊM: Kiểm tra định dạng ảnh
+    if (!file.type.startsWith('image/')) {
+      await modal.alert(t("form.invalidFileType"));
+      e.target.value = '';
+      return;
+    }
+
+    // THÊM: Kiểm tra dung lượng (VD: 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      await modal.alert(t("form.fileTooLarge"));
+      e.target.value = '';
+      return;
+    }
 
     setUploadingVariantIndex(index);
     try {

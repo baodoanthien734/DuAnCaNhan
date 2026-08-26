@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsBoolean, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsBoolean, IsNotEmpty, MaxLength, Matches } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
@@ -7,12 +7,16 @@ export class CreateCategoryDto {
   @IsString({ message: i18nValidationMessage('categories.validation.name_string') })
   @IsNotEmpty({ message: i18nValidationMessage('categories.validation.name_required') })
   @MaxLength(200, { message: i18nValidationMessage('categories.validation.name_max_length') })
+  @Matches(/[a-zA-Z\p{L}]/u, { message: i18nValidationMessage('categories.validation.name_invalid_format') })
   name!: string;
 
 
   @IsOptional()
   @IsString({ message: i18nValidationMessage('categories.validation.slug_string') })
   @MaxLength(255, { message: i18nValidationMessage('categories.validation.slug_max_length') })
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { 
+    message: i18nValidationMessage('categories.validation.slug_invalid_format') 
+  })
   slug?: string;
 
 
@@ -42,6 +46,10 @@ export class CreateCategoryDto {
 
   @IsOptional()
   @IsString({ message: i18nValidationMessage('categories.validation.image_string') })
+  @Matches(/\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i, { 
+      each: true, 
+      message: i18nValidationMessage('categories.validation.image_invalid_format')
+  }) 
   image?: string;
 
 
@@ -52,7 +60,7 @@ export class CreateCategoryDto {
 
 
   @IsOptional()
-  @IsString({ message: i18nValidationMessage('categories.validation_meta_desc_string') })
+  @IsString({ message: i18nValidationMessage('categories.validation.meta_desc_string') })
   @MaxLength(300, { message: i18nValidationMessage('categories.validation.meta_desc_max_length') })
   metaDesc?: string;
 

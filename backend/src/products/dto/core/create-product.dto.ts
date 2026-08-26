@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, IsArray, ValidateNested, Min, IsNotEmpty, MaxLength, ArrayMaxSize } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, IsArray, ValidateNested, Min, IsNotEmpty, MaxLength, ArrayMaxSize, Matches } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { Type } from 'class-transformer';
 import { ProductStatus } from '@prisma/client';
@@ -9,12 +9,18 @@ export class CreateProductDto {
   @IsString({ message: i18nValidationMessage('products.validation.name_string') })
   @IsNotEmpty({ message: i18nValidationMessage('products.validation.name_required') })
   @MaxLength(200, { message: i18nValidationMessage('products.validation.name_max_length') })
+  @Matches(/[a-zA-Z\p{L}]/u, { 
+    message: i18nValidationMessage('products.validation.name_invalid_format') 
+  })
   name!: string;
 
 
   @IsOptional()
   @IsString({ message: i18nValidationMessage('products.validation.slug_string') })
   @MaxLength(255, { message: i18nValidationMessage('products.validation.slug_max_length') })
+  @Matches(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, { 
+    message: i18nValidationMessage('products.validation.slug_invalid_format') 
+  })
   slug?: string;
 
 
@@ -38,6 +44,10 @@ export class CreateProductDto {
   @IsArray({ message: i18nValidationMessage('products.validation.images_array') })
   @IsString({ each: true, message: i18nValidationMessage('products.validation.images_string') })
   @ArrayMaxSize(5, { message: i18nValidationMessage('products.validation.images_max_count') }) 
+  @Matches(/\.(jpg|jpeg|png|webp|gif)(\?.*)?$/i, { 
+    each: true, 
+    message: i18nValidationMessage('products.validation.images_invalid_format')
+  })
   images?: string[];
 
 

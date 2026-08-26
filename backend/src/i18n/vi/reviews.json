@@ -25,6 +25,7 @@
     "images_array": "Danh sách ảnh phải là mảng",
     "images_string": "URL ảnh phải là chuỗi ký tự",
     "images_url": "URL ảnh phải hợp lệ",
-    "images_max_count": "Tối đa 5 ảnh"
+    "images_max_count": "Tối đa 5 ảnh",
+    "images_invalid_format": "Ảnh phải có định dạng JPG, JPEG, PNG, WEBP hoặc GIF"
   }
 }

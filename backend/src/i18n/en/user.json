@@ -29,7 +29,8 @@
     "address_forbidden": "You do not have permission to access this address",
     "avatar_invalid_file_type": "Only image files are allowed for avatar upload",
     "avatar_upload_failed": "Failed to upload avatar",
-    "avatar_delete_failed": "Failed to delete old avatar"
+    "avatar_delete_failed": "Failed to delete old avatar",
+    "only_images_allowed": "Only image formats are allowed (JPG, PNG, WEBP...)."
   },
   "success": {
     "profile_updated": "Profile updated successfully",

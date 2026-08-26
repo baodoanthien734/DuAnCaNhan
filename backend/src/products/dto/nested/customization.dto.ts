@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, ValidateNested, ValidateIf, Min, IsArray, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, ValidateNested, ValidateIf, Min, IsArray, IsNotEmpty, MaxLength, Matches } from 'class-validator';
 import { Type } from 'class-transformer';
 import { CustomizationType } from '@prisma/client';
 import { i18nValidationMessage } from 'nestjs-i18n';
@@ -27,6 +27,9 @@ export class CreateCustomizationDto {
   @IsString({ message: i18nValidationMessage('products.validation.customization_name_string') })
   @IsNotEmpty({ message: i18nValidationMessage('products.validation.customization_name_required') })
   @MaxLength(100, { message: i18nValidationMessage('products.validation.customization_name_max_length') })
+  @Matches(/[a-zA-Z\p{L}]/u, { 
+    message: i18nValidationMessage('products.validation.name_invalid_format') 
+  })
   name!: string;
 
 

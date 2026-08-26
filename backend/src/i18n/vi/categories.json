@@ -24,6 +24,9 @@
     "meta_title_string": "Meta Title phải là chuỗi ký tự",
     "meta_title_max_length": "Meta Title không được vượt quá 100 ký tự",
     "meta_desc_string": "Meta Description phải là chuỗi ký tự",
-    "meta_desc_max_length": "Meta Description không được vượt quá 300 ký tự"
+    "meta_desc_max_length": "Meta Description không được vượt quá 300 ký tự",
+    "name_invalid_format": "Tên danh mục không được chỉ chứa toàn số hoặc ký tự đặc biệt.",
+    "images_invalid_format": "Ảnh phải có định dạng JPG, JPEG, PNG, WEBP hoặc GIF",
+    "slug_invalid_format": "Đường dẫn (slug) không hợp lệ. Chỉ chấp nhận chữ thường, số, không dấu và cách nhau bằng dấu gạch ngang."
   }
 }
