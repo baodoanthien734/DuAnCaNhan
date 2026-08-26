@@ -28,7 +28,6 @@ export class CreateVariantDto {
 
   @IsOptional()
   @IsString({ message: i18nValidationMessage('products.validation.variant_image_string') })
-  @IsUrl({}, { message: i18nValidationMessage('products.validation.variant_image_url') })
   image?: string;
 
 

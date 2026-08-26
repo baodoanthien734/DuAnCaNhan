@@ -22,6 +22,5 @@ export class AddCartItemDto {
 
 
   @IsOptional()
-  @IsNotEmpty({ message: i18nValidationMessage('cart.validation.customizations_invalid') })
   customizations?: any;
 }

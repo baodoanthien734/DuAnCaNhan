@@ -1,4 +1,4 @@
-import { IsInt, IsNotEmpty, IsOptional, IsString, IsArray, Min, Max, MaxLength, IsUrl } from 'class-validator';
+import { IsInt, IsNotEmpty, IsOptional, IsString, IsArray, Min, Max, MaxLength, IsUrl, ArrayMaxSize } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
 
@@ -29,7 +29,6 @@ export class CreateReviewDto {
   @IsOptional()
   @IsArray({ message: i18nValidationMessage('reviews.validation.images_array') })
   @IsString({ each: true, message: i18nValidationMessage('reviews.validation.images_string') })
-  @IsUrl({}, { each: true, message: i18nValidationMessage('reviews.validation.images_url') })
-  @MaxLength(5, { message: i18nValidationMessage('reviews.validation.images_max_count') })
+  @ArrayMaxSize(3, { message: i18nValidationMessage('reviews.validation.images_max_count') }) 
   images?: string[];
 }
