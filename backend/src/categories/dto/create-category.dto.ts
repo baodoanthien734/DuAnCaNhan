@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsInt, IsBoolean, IsNotEmpty, MaxLength, IsUrl, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsInt, IsBoolean, IsNotEmpty, MaxLength } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { i18nValidationMessage } from 'nestjs-i18n';
 
@@ -42,7 +42,6 @@ export class CreateCategoryDto {
 
   @IsOptional()
   @IsString({ message: i18nValidationMessage('categories.validation.image_string') })
-  @IsUrl({}, { message: i18nValidationMessage('categories.validation.image_url') })
   image?: string;
 
 
@@ -56,4 +55,8 @@ export class CreateCategoryDto {
   @IsString({ message: i18nValidationMessage('categories.validation_meta_desc_string') })
   @MaxLength(300, { message: i18nValidationMessage('categories.validation.meta_desc_max_length') })
   metaDesc?: string;
+
+  @IsOptional()
+  @IsString()
+  removeImage?: string;
 }

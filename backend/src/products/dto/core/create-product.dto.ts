@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, IsArray, ValidateNested, Min, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsBoolean, IsEnum, IsArray, ValidateNested, Min, IsNotEmpty, MaxLength, ArrayMaxSize } from 'class-validator';
 import { i18nValidationMessage } from 'nestjs-i18n';
 import { Type } from 'class-transformer';
 import { ProductStatus } from '@prisma/client';
@@ -37,7 +37,7 @@ export class CreateProductDto {
   @IsOptional()
   @IsArray({ message: i18nValidationMessage('products.validation.images_array') })
   @IsString({ each: true, message: i18nValidationMessage('products.validation.images_string') })
-  @MaxLength(5, { message: i18nValidationMessage('products.validation.images_max_count') })
+  @ArrayMaxSize(5, { message: i18nValidationMessage('products.validation.images_max_count') }) 
   images?: string[];
 
 
