@@ -13,6 +13,7 @@
     "post_create_failed": "Unable to create post. Please try again",
     "post_not_found": "Post not found",
     "post_not_found_with_id": "Post with ID {id} was not found",
-    "post_update_failed": "Failed to update post. Please try again."
+    "post_update_failed": "Failed to update post. Please try again.",
+    "only_images_allowed": "Only image formats are allowed (JPG, PNG, WEBP...)."
   }
 }

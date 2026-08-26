@@ -32,7 +32,25 @@ export default function AdminPostCreatePage() {
   }
 
   function handleThumbnailChange(event: React.ChangeEvent<HTMLInputElement>) {
-    const nextFile = event.target.files?.[0] ?? null;
+    const nextFile = event.target.files?.[0];
+    
+    if (!nextFile) {
+      setThumbnailFile(null);
+      return;
+    }
+
+    if (!nextFile.type.startsWith('image/')) {
+      showToast('error', t('toastInvalidFileType')); 
+      event.target.value = ''; 
+      return;
+    }
+
+    if (nextFile.size > 5 * 1024 * 1024) {
+      showToast('error', t('toastFileTooLarge'));
+      event.target.value = ''; 
+      return;
+    }
+
     setThumbnailFile(nextFile);
   }
 
@@ -73,14 +91,13 @@ export default function AdminPostCreatePage() {
       if (error.response?.status === 401 || error.response?.status === 403) {
         showToast('error', t('toastAuthError'));
       } else if (responseMessage) {
+        const errorText = Array.isArray(responseMessage)
+          ? '\n- ' + responseMessage.join('\n- ')
+          : responseMessage;
+
         showToast(
           'error',
-          t('toastValidationError', {
-            message:
-              typeof responseMessage === 'string'
-                ? responseMessage
-                : JSON.stringify(responseMessage, null, 2),
-          }),
+          t('toastValidationError', { message: errorText })
         );
       } else {
         showToast('error', t('toastGenericError'));
@@ -103,11 +120,11 @@ export default function AdminPostCreatePage() {
       <form onSubmit={onSubmit} className="grid gap-6 rounded-[28px] bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)]">
         {toast ? (
           <div
-            className={
+            className={`whitespace-pre-wrap ${
               toast.type === 'success'
                 ? 'rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700'
                 : 'rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700'
-            }
+            }`}
           >
             {toast.message}
           </div>

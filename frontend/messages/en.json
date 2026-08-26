@@ -236,7 +236,9 @@
       "chooseFileButton": "Select image to upload",
       "noFileChosen": "No file selected",
       "metaTitlePlaceholder": "SEO title displayed in the browser (e.g., Buy handmade gifts at great prices)...",
-      "metaDescriptionPlaceholder": "Short SEO-optimized summary of the category content (max 160 characters)..."
+      "metaDescriptionPlaceholder": "Short SEO-optimized summary of the category content (max 160 characters)...",
+      "invalidFileType": "Only image formats are allowed (JPG, PNG, WEBP...).",
+      "fileTooLarge": "Image size must not exceed 5MB."
     }
   },
   "admin_products": {
@@ -393,7 +395,12 @@
       "imageCount": "{count}/5 images",
       "imageLimitExceeded": "You can upload a maximum of 5 images.",
       "imageUploadError": "Error uploading image. Please try again.",
-      "variantImageUploadError": "Error uploading variant image."
+      "variantImageUploadError": "Error uploading variant image.",
+      "errorVariantPrefix": "Variant {index}",
+      "errorCustomizationPrefix": "Customization {index}",
+      "errorChoicePrefix": "Customization {cIdx} (Choice {chIdx})",
+      "invalidFileType": "Only image formats (JPG, PNG, WEBP...) are allowed.",
+      "fileTooLarge": "The image size must not exceed 5MB."
     },
     "bulkEdit": {
       "title": "Bulk Edit",
@@ -415,7 +422,9 @@
     "bold": "Bold",
     "italic": "Italic",
     "bullet_list": "Bullet List",
-    "upload_image": "Upload Image"
+    "upload_image": "Upload Image",
+    "invalid_file_type": "Only image formats (JPG, PNG, WEBP...) are allowed.",
+    "file_too_large": "Images larger than 5MB cannot be inserted."
   },
   "posts": {
     "create": {
@@ -441,7 +450,9 @@
       "toastSuccess": "Post created successfully. Redirecting...",
       "toastAuthError": "Your session has expired or you do not have permission to create posts.",
       "toastValidationError": "Validation error: {message}",
-      "toastGenericError": "Unable to create the post right now. Please try again later."
+      "toastGenericError": "Unable to create the post right now. Please try again later.",
+      "toastInvalidFileType": "Only image formats are allowed (JPG, PNG, WEBP...)",
+      "toastFileTooLarge": "Image size must not exceed 5MB."
     },
     "list": {
       "header": {
@@ -497,7 +508,9 @@
       "toastAuthError": "Session expired or you do not have permission to edit this post.",
       "toastValidationError": "Validation error: {message}",
       "toastGenericError": "Cannot update the post at this time. Please try again later.",
-      "toastFetchError": "Failed to load post data. Please check again."
+      "toastFetchError": "Failed to load post data. Please check again.",
+      "toastInvalidFileType": "Only image formats are allowed (JPG, PNG, WEBP...)",
+      "toastFileTooLarge": "Image size must not exceed 5MB."
     }
   },
   "cart": {
@@ -618,7 +631,9 @@
     "addressDeleted": "Address deleted successfully",
     "addressCreated": "Address added successfully",
     "profileUpdated": "Profile updated successfully",
-    "defaultAddressUpdated": "Default address updated successfully"
+    "defaultAddressUpdated": "Default address updated successfully",
+    "invalidFileType": "Only image formats are allowed (JPG, PNG, WEBP...).",
+    "fileTooLarge": "Image size must not exceed 5MB."
   },
   "admin_orders": {
     "list_title": "Order Management",
@@ -877,7 +892,12 @@
     "confirm_delete": "Are you sure you want to delete this review?",
     "success_update": "Review updated successfully!",
     "success_delete": "Review deleted successfully!",
-    "err_action": "Unable to perform this action."
+    "err_action": "Unable to perform this action.",
+    "err_invalid_file_type": "Only image formats are allowed (JPG, PNG, WEBP...).",
+    "err_file_too_large": "Image size must not exceed 5MB.",
+    "err_limit_exceeded": "You can upload a maximum of 3 images per review.",
+    "add_image_btn": "Add image",
+    "image_hint": "Selected {count}/3 images. You can drag and drop images here."
   },
   "public_reviews": {
     "title": "Product Reviews",

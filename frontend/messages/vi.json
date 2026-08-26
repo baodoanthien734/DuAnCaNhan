@@ -236,7 +236,9 @@
       "chooseFileButton": "Chọn ảnh tải lên",
       "noFileChosen": "Chưa có tệp nào được chọn",
       "metaTitlePlaceholder": "Tiêu đề SEO hiển thị trên trình duyệt (VD: Mua Quà tặng thủ công giá tốt)...",
-      "metaDescriptionPlaceholder": "Đoạn văn ngắn tối ưu SEO tóm tắt nội dung danh mục (tối đa 160 ký tự)..."
+      "metaDescriptionPlaceholder": "Đoạn văn ngắn tối ưu SEO tóm tắt nội dung danh mục (tối đa 160 ký tự)...",
+      "invalidFileType": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...).",
+      "fileTooLarge": "Dung lượng ảnh không được vượt quá 5MB."
     }
   },
   "admin_products": {
@@ -393,7 +395,12 @@
       "imageCount": "{count}/5 ảnh",
       "imageLimitExceeded": "Bạn chỉ được tải lên tối đa 5 ảnh.",
       "imageUploadError": "Lỗi khi tải ảnh lên. Vui lòng thử lại.",
-      "variantImageUploadError": "Lỗi khi tải ảnh biến thể lên."
+      "variantImageUploadError": "Lỗi khi tải ảnh biến thể lên.",
+      "errorVariantPrefix": "Biến thể {index}",
+      "errorCustomizationPrefix": "Tùy chọn {index}",
+      "errorChoicePrefix": "Tùy chọn {cIdx} (Lựa chọn {chIdx})",
+      "invalidFileType": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...).",
+      "fileTooLarge": "Dung lượng ảnh không được vượt quá 5MB."
     },
     "bulkEdit": {
       "title": "Chỉnh sửa hàng loạt",
@@ -415,7 +422,9 @@
     "bold": "In đậm",
     "italic": "In nghiêng",
     "bullet_list": "Danh sách chấm tròn",
-    "upload_image": "Tải ảnh lên"
+    "upload_image": "Tải ảnh lên",
+    "invalid_file_type": "Chỉ cho phép chèn định dạng ảnh (JPG, PNG, WEBP...).",
+    "file_too_large": "Không thể chèn ảnh nặng quá 5MB."
   },
   "posts": {
     "create": {
@@ -441,7 +450,9 @@
       "toastSuccess": "Tạo bài viết thành công. Đang chuyển hướng...",
       "toastAuthError": "Phiên đăng nhập đã hết hạn hoặc bạn không có quyền tạo bài viết.",
       "toastValidationError": "Lỗi xác thực dữ liệu: {message}",
-      "toastGenericError": "Không thể tạo bài viết lúc này. Vui lòng thử lại sau."
+      "toastGenericError": "Không thể tạo bài viết lúc này. Vui lòng thử lại sau.",
+      "toastInvalidFileType": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...)",
+      "toastFileTooLarge": "Dung lượng ảnh không được vượt quá 5MB."
     },
     "list": {
       "header": {
@@ -497,7 +508,9 @@
       "toastAuthError": "Phiên đăng nhập đã hết hạn hoặc bạn không có quyền sửa bài viết.",
       "toastValidationError": "Lỗi xác thực dữ liệu: {message}",
       "toastGenericError": "Không thể cập nhật bài viết lúc này. Vui lòng thử lại sau.",
-      "toastFetchError": "Không thể tải dữ liệu bài viết cũ. Vui lòng kiểm tra lại."
+      "toastFetchError": "Không thể tải dữ liệu bài viết cũ. Vui lòng kiểm tra lại.",
+      "toastInvalidFileType": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...)",
+      "toastFileTooLarge": "Dung lượng ảnh không được vượt quá 5MB."
     }
   },
   "cart": {
@@ -618,7 +631,9 @@
     "addressDeleted": "Đã xóa địa chỉ thành công",
     "addressCreated": "Đã thêm địa chỉ thành công",
     "profileUpdated": "Đã cập nhật hồ sơ thành công",
-    "defaultAddressUpdated": "Đã cập nhật địa chỉ mặc định"
+    "defaultAddressUpdated": "Đã cập nhật địa chỉ mặc định",
+    "invalidFileType": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...).",
+    "fileTooLarge": "Dung lượng ảnh không được vượt quá 5MB."
   },
   "admin_orders": {
     "list_title": "Quản lý Đơn hàng",
@@ -877,7 +892,12 @@
     "confirm_delete": "Bạn có chắc chắn muốn xóa đánh giá này không?",
     "success_update": "Đã cập nhật đánh giá thành công!",
     "success_delete": "Đã xóa đánh giá thành công!",
-    "err_action": "Không thể thực hiện thao tác này."
+    "err_action": "Không thể thực hiện thao tác này.",
+    "err_invalid_file_type": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...).",
+    "err_file_too_large": "Dung lượng ảnh không được vượt quá 5MB.",
+    "err_limit_exceeded": "Bạn chỉ được tải lên tối đa 3 ảnh cho mỗi đánh giá.",
+    "add_image_btn": "Thêm ảnh",
+    "image_hint": "Đã chọn {count}/3 ảnh. Bạn có thể kéo thả ảnh vào đây."
   },
   "public_reviews": {
     "title": "Đánh giá sản phẩm",

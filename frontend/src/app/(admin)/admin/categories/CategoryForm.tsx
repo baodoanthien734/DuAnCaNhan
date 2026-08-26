@@ -243,9 +243,22 @@ export default function CategoryForm({ initial = null, defaultParentId = null, o
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (!file.type.startsWith('image/')) {
+      setError(t('form.invalidFileType')); 
+      e.target.value = ''; 
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      setError(t('form.fileTooLarge'));
+      e.target.value = '';
+      return;
+    }
+
     setImageFile(file);
     setPreviewUrl(URL.createObjectURL(file)); 
     setRemoveImage(false); 
+    setError(null); 
   }
 
   function handleRemoveImage() {
@@ -288,8 +301,9 @@ export default function CategoryForm({ initial = null, defaultParentId = null, o
       onSaved && onSaved(saved);
     } catch (err: any) {
       const backendMessage = err.response?.data?.message;
+      
       const displayError = Array.isArray(backendMessage) 
-        ? backendMessage[0] 
+        ? '- ' + backendMessage.join('\n- ') 
         : backendMessage;
 
       setError(displayError || err?.message || t('form.saveError'));
@@ -300,7 +314,11 @@ export default function CategoryForm({ initial = null, defaultParentId = null, o
 
   return (
     <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20, marginTop: 12 }}>
-      {error && <div style={{ color: '#b91c1c', backgroundColor: '#fee2e2', padding: '12px', borderRadius: 8 }}>{error}</div>}
+      {error && (
+        <div style={{ color: '#b91c1c', backgroundColor: '#fee2e2', padding: '12px', borderRadius: 8, whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+          {error}
+        </div>
+      )}
 
       {/* Parent Category */}
       <div style={{ display: 'grid', gap: 6 }}>

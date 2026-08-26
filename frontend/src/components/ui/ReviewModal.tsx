@@ -38,10 +38,10 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
   const [rating, setRating] = useState<number>(0);
   const [hoverRating, setHoverRating] = useState<number>(0);
   
-  // Quản lý ảnh cũ + ảnh mới theo 2 state độc lập để không mất đồng bộ khi edit
   const [existingImageUrls, setExistingImageUrls] = useState<string[]>([]);
   const [newImagePreviews, setNewImagePreviews] = useState<LocalImagePreview[]>([]);
   
+  const [isDragging, setIsDragging] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,7 +61,6 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
     });
   }, [isOpen, existingReview, reset]);
 
-  // Cleanup object URLs để tránh memory leak
   useEffect(() => {
     return () => {
       newImagePreviews.forEach((item) => URL.revokeObjectURL(item.previewUrl));
@@ -72,24 +71,65 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
 
   const totalImages = existingImageUrls.length + newImagePreviews.length;
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-
+  // --- HÀM XỬ LÝ VÀ BẢO VỆ FILE (DÙNG CHUNG CHO CHỌN FILE & KÉO THẢ) ---
+  const processImageFiles = async (files: File[]) => {
     const remainingSlots = Math.max(0, 3 - totalImages);
-    if (remainingSlots === 0) {
-      e.target.value = '';
-      return;
+    if (remainingSlots === 0) return;
+
+    // 1. Kiểm tra định dạng (Chỉ lấy file ảnh)
+    const validFormatFiles = files.filter(f => f.type.startsWith('image/'));
+    if (validFormatFiles.length < files.length) {
+      await modal.alert(t('err_invalid_file_type'));
     }
 
-    const filesArray = Array.from(e.target.files).slice(0, remainingSlots);
-    const nextPreviews = filesArray.map((file) => ({
+    // 2. Kiểm tra dung lượng (Tối đa 5MB)
+    const validSizeFiles = validFormatFiles.filter(f => f.size <= 5 * 1024 * 1024);
+    if (validSizeFiles.length < validFormatFiles.length) {
+      await modal.alert(t('err_file_too_large'));
+    }
+
+    // 3. Giới hạn số lượng còn lại (tối đa 3 ảnh)
+    let filesToProcess = validSizeFiles;
+    if (filesToProcess.length > remainingSlots) {
+      filesToProcess = filesToProcess.slice(0, remainingSlots);
+      await modal.alert(t('err_limit_exceeded'));
+    }
+
+    if (filesToProcess.length === 0) return;
+
+    const nextPreviews = filesToProcess.map((file) => ({
       id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
       file,
       previewUrl: URL.createObjectURL(file),
     }));
 
     setNewImagePreviews((prev) => [...prev, ...nextPreviews]);
-    e.target.value = '';
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      await processImageFiles(Array.from(e.target.files));
+      e.target.value = '';
+    }
+  };
+
+  // --- LOGIC KÉO THẢ (DRAG & DROP) ---
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      await processImageFiles(Array.from(e.dataTransfer.files));
+    }
   };
 
   const removeExistingImage = (index: number) => {
@@ -102,13 +142,11 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
       if (target) {
         URL.revokeObjectURL(target.previewUrl);
       }
-
       return prev.filter((item) => item.id !== id);
     });
   };
 
   const onSubmit = async (data: ReviewFormData) => {
-    // 1. Kiểm tra số sao trước tiên
     if (rating === 0) {
       await modal.alert(t('err_rating'));
       return;
@@ -116,7 +154,6 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
 
     setIsSubmitting(true);
     try {
-      // 2. Xử lý phần upload các file ảnh MỚI (nếu người dùng chọn thêm file từ máy)
       const newUploadedImageUrls: string[] = [];
       for (const imageItem of newImagePreviews) {
         try {
@@ -132,10 +169,8 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
         }
       }
 
-      // Tổng hợp danh sách ảnh cuối cùng: ảnh cũ giữ lại + ảnh mới upload.
       const finalImages = [...existingImageUrls, ...newUploadedImageUrls];
 
-      // 3. Phân nhánh: Sửa (Update) hoặc Tạo mới (Create)
       let savedData: any = null;
       if (existingReview) {
         const res = await updateReview(existingReview.id, {
@@ -157,7 +192,6 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
         await modal.alert(t('success'));
       }
 
-      // 4. Dọn dẹp form sau khi thành công
       reset();
       setRating(0);
       setExistingImageUrls([]);
@@ -200,7 +234,7 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
                   onMouseLeave={() => setHoverRating(0)}
                   onClick={() => setRating(star)}
                   className="text-3xl focus:outline-none transition-colors"
-                  style={{ color: star <= (hoverRating || rating) ? '#facc15' : '#e5e7eb' }} // yellow-400 : gray-200
+                  style={{ color: star <= (hoverRating || rating) ? '#facc15' : '#e5e7eb' }}
                 >
                   ★
                 </button>
@@ -219,46 +253,62 @@ export default function ReviewModal({ isOpen, onClose, productId, orderId, produ
             ></textarea>
           </div>
 
-          {/* Image Upload */}
+          {/* Image Upload & Drag Drop Area */}
           <div className="mb-6">
             <label className="block text-sm font-semibold text-gray-700 mb-2">{t('image_label')}</label>
-            <div className="flex gap-3 flex-wrap">
-              {existingImageUrls.map((url, idx) => (
-                <div key={idx} className="relative w-20 h-20 border border-gray-200 rounded-lg overflow-hidden">
-                  <img src={resolveImageUrl(url)} alt="Preview" className="w-full h-full object-cover" />
-                  <button
-                    type="button"
-                    onClick={() => removeExistingImage(idx)}
-                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-black"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+            
+            <div 
+              onDragOver={handleDragOver}
+              onDragEnter={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`p-4 border-2 border-dashed rounded-xl transition-colors duration-200 ${
+                isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-gray-50/50'
+              }`}
+            >
+              <div className="flex gap-3 flex-wrap items-center">
+                {existingImageUrls.map((url, idx) => (
+                  <div key={idx} className="relative w-20 h-20 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                    <img src={resolveImageUrl(url)} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeExistingImage(idx)}
+                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-black"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
 
-              {newImagePreviews.map((item) => (
-                <div key={item.id} className="relative w-20 h-20 border border-gray-200 rounded-lg overflow-hidden">
-                  <img src={item.previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                {newImagePreviews.map((item) => (
+                  <div key={item.id} className="relative w-20 h-20 border border-gray-200 rounded-lg overflow-hidden bg-white shadow-sm">
+                    <img src={item.previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => removeNewImage(item.id)}
+                      className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-black"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                
+                {totalImages < 3 && (
                   <button
                     type="button"
-                    onClick={() => removeNewImage(item.id)}
-                    className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-black"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-blue-500 hover:text-blue-500 bg-white transition shadow-sm"
                   >
-                    ✕
+                    <span className="text-2xl leading-none">+</span>
+                    <span className="text-[10px] mt-1">{t('add_image_btn')}</span>
                   </button>
-                </div>
-              ))}
-              
-              {totalImages < 3 && (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-20 h-20 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-blue-500 hover:text-blue-500 transition"
-                >
-                  <span className="text-2xl leading-none">+</span>
-                </button>
-              )}
+                )}
+              </div>
+              <p className="text-xs text-gray-400 mt-3 text-center">
+                {t('image_hint', { count: totalImages, max: 3 })}
+              </p>
             </div>
+
             <input
               type="file"
               ref={fileInputRef}

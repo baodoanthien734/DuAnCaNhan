@@ -27,6 +27,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Image from '@tiptap/extension-image';
 import { useTranslations } from 'next-intl';
+import { useModal } from '@/hooks/useModal'; // 1. IMPORT USEMODAL VÀO ĐÂY
 
 type TiptapEditorProps = {
   content: string;
@@ -106,6 +107,7 @@ function stripBase64FromHtml(htmlString: string): string {
 
 export default function TiptapEditor({ content, onImageAdded, onContentChange }: TiptapEditorProps) {
   const t = useTranslations('editor');
+  const modal = useModal(); // 2. KHỞI TẠO MODAL
   const inputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isEditorEmpty, setIsEditorEmpty] = useState(!content || content === '<p></p>');
@@ -125,12 +127,12 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
     onCreate: ({ editor }) => {
       setIsEditorEmpty(editor.isEmpty);
       const cleanHtml = stripBase64FromHtml(editor.getHTML());
-      onContentChange?.(editor.getHTML());
+      onContentChange?.(cleanHtml);
     },
     onUpdate: ({ editor }) => {
       setIsEditorEmpty(editor.isEmpty);
       const cleanHtml = stripBase64FromHtml(editor.getHTML());
-      onContentChange?.(editor.getHTML());
+      onContentChange?.(cleanHtml);
     },
     editorProps: {
       attributes: {
@@ -170,7 +172,9 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
     if (content !== editor.getHTML()) {
       editor.commands.setContent(content || '<p></p>', { emitUpdate: false });
       setIsEditorEmpty(editor.isEmpty);
-      onContentChange?.(editor.getHTML());
+      // Lưu ý nhỏ: Tốt nhất chỗ này nên để `cleanHtml` luôn cho an toàn tuyệt đối
+      const cleanHtml = stripBase64FromHtml(editor.getHTML()); 
+      onContentChange?.(cleanHtml);
     }
   }, [content, editor, onContentChange]);
 
@@ -180,7 +184,15 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
     }
 
     for (const file of files) {
+      // 1. Chặn file không phải ảnh (Báo lỗi bằng custom modal)
       if (!isImageFile(file)) {
+        await modal.alert(t('invalid_file_type')); // 3. ĐÃ THAY THẾ
+        continue;
+      }
+
+      // 2. Chặn file vượt quá 5MB (Báo lỗi bằng custom modal)
+      if (file.size > 5 * 1024 * 1024) {
+        await modal.alert(t('file_too_large')); // 3. ĐÃ THAY THẾ
         continue;
       }
 
@@ -193,7 +205,7 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
         .insertContent({
           type: 'image',
           attrs: {
-            src: base64String, // Use the base64 string as the image source and show the image immediately
+            src: base64String, 
             alt: file.name,
             title: file.name,
             'data-filename': file.name,
@@ -201,7 +213,7 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
         })
         .run();
       
-      await onImageAdded(file); // put the image file into the form data so that it can be uploaded to the server later
+      await onImageAdded(file); 
     }
   }
 
@@ -222,6 +234,7 @@ export default function TiptapEditor({ content, onImageAdded, onContentChange }:
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
       <div className="flex flex-wrap gap-2 border-b border-slate-200 bg-slate-100 px-3 py-3">
+        {/* Các nút toolbar giữ nguyên... */}
         <button
           type="button"
           className={toolbarButtonClass}
