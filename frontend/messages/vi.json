@@ -660,6 +660,8 @@
     "ward": "Phường/Xã",
     "district": "Quận/Huyện",
     "city": "Tỉnh/Thành phố",
+    "selectProvince": "-- Chọn Tỉnh / Thành phố --",
+    "selectWard": "-- Chọn Phường / Xã --",
     "isDefault": "Đặt làm mặc định",
     "setDefault": "Đặt mặc định",
     "defaultBadge": "Mặc định",

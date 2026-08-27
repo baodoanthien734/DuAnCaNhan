@@ -660,6 +660,8 @@
     "ward": "Ward",
     "district": "District",
     "city": "City",
+    "selectProvince": "-- Select Province / City --",
+    "selectWard": "-- Select Ward / Commune --",
     "isDefault": "Set as default",
     "setDefault": "Set Default",
     "defaultBadge": "Default",
