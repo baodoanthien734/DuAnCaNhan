@@ -5,7 +5,6 @@ import { AcceptLanguageResolver, I18nModule, I18nJsonLoader } from 'nestjs-i18n'
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PrismaModule } from './prisma/prisma.module';
-import { MailModule } from './mail/mail.module';
 import { AuthModule } from './auth/auth.module';
 import { CategoriesModule } from './categories/categories.module';
 import { PostsModule } from './posts/posts.module';
@@ -17,6 +16,9 @@ import { UsersModule } from './users/users.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { AdminCustomersModule } from './admin-customers/admin-customers.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+
+//import tất cả các module của các bên thứ 3 (3rd party) ra
+import { IntegrationsModule } from './integrations/integrations.module';
 
 @Module({
   imports: [
@@ -41,7 +43,11 @@ import { DashboardModule } from './dashboard/dashboard.module';
       typesOutputPath: join(process.cwd(), 'src/generated/i18n.generated.ts'),
     }),
     PrismaModule,
-    MailModule,
+
+    // Các module của bên thứ 3 (3rd party)
+    IntegrationsModule,
+
+    // Các module của app
     AuthModule,
     UploadsModule,
     CategoriesModule,

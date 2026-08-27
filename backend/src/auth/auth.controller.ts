@@ -17,6 +17,7 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { Roles } from './decorators/roles.decorator';
 import { I18nService } from 'nestjs-i18n';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -73,5 +74,25 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async refreshTokens(@Body() body: { userId: number; refreshToken: string }) {
     return this.authService.refreshTokens(body.userId, body.refreshToken);
+  }
+
+  // --- API QUÊN MẬT KHẨU ---
+
+  @Post('forgot-password/send-otp')
+  @HttpCode(HttpStatus.OK)
+  async forgotPasswordSendOtp(@Body() dto: SendOtpDto) {
+    return this.authService.forgotPasswordSendOtp(dto);
+  }
+
+  @Post('forgot-password/verify-otp')
+  @HttpCode(HttpStatus.OK)
+  async forgotPasswordVerifyOtp(@Body() dto: VerifyOtpDto) {
+    return this.authService.forgotPasswordVerifyOtp(dto);
+  }
+
+  @Post('forgot-password/reset')
+  @HttpCode(HttpStatus.OK)
+  async resetPassword(@Body() dto: ResetPasswordDto) {
+    return this.authService.resetPassword(dto);
   }
 }

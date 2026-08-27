@@ -3,6 +3,8 @@ import { getTranslations } from 'next-intl/server';
 import { getPublicCategories, getPublicProducts } from '@/lib/public-api';
 // Import Component Carousel mới tạo
 import ProductCarousel from '@/components/ui/ProductCarousel';
+import AuthErrorHandler from '@/components/ui/AuthErrorHandler';
+import { Suspense } from 'react';
 
 export default async function Home() {
   const t = await getTranslations('public_pages');
@@ -39,6 +41,11 @@ export default async function Home() {
   return (
     <div style={{ color: '#111827', backgroundColor: '#fcfbf9', minHeight: '100vh', paddingBottom: '80px' }}>
       
+      {/* Component lắng nghe và hiển thị lỗi từ OAuth (nếu có) */}
+      <Suspense fallback={null}>
+        <AuthErrorHandler />
+      </Suspense>
+
       {/* 🛑 KHU VỰC HERO SECTION (GIỮ NGUYÊN) */}
       <section style={{ background: 'linear-gradient(135deg, #fff7ed 0%, #fef3c7 100%)', padding: '70px 20px 50px', textAlign: 'center' }}>
         <div style={{ maxWidth: '900px', margin: '0 auto' }}>

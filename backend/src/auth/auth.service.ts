@@ -17,11 +17,12 @@ import { JwtService } from '@nestjs/jwt';
 import { I18nService } from 'nestjs-i18n';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
-import { MailService } from '../mail/mail.service';
+import { MailService } from '../integrations/mail/mail.service';
 import { SendOtpDto } from './dto/send-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @Injectable()
 export class AuthService {
@@ -141,15 +142,17 @@ export class AuthService {
     };
   }
 
-  // 4. API Login
+  // 4. API Login (Truyền thống)
   async login(dto: LoginDto) {
     const { email, password } = dto;
 
+    // Lấy user kèm theo roles
     const user = await this.prisma.user.findUnique({
       where: { email },
       include: { roles: true },
     });
 
+    // Các bước kiểm tra bảo mật
     if (!user) {
       throw new UnauthorizedException(this.i18n.t('auth.error.invalid_credentials'));
     }
@@ -160,7 +163,7 @@ export class AuthService {
 
     const passwordHash = user.password;
     if (!passwordHash) {
-      throw new UnauthorizedException(this.i18n.t('auth.error.password_not_set'));
+      throw new UnauthorizedException(this.i18n.t('auth.error.password_not_set')); // Chặn user tạo từ Google nhưng lại cố login bằng pass
     }
 
     const isPasswordValid = await bcrypt.compare(password, passwordHash);
@@ -168,48 +171,8 @@ export class AuthService {
       throw new UnauthorizedException(this.i18n.t('auth.error.invalid_credentials'));
     }
 
-    const userRole = user.roles?.[0]?.name;
-    if (!userRole) {
-      throw new UnauthorizedException(this.i18n.t('auth.error.invalid_role'));
-    }
-
-    // TÍNH TOÁN THỜI GIAN REFRESH TOKEN DỰA TRÊN QUYỀN
-    const rolesArray = user.roles.map(r => r.name);
-    const isAdmin = rolesArray.includes('ADMIN');
-    // Admin 20 phút để test (sau này bạn đổi thành '1d' hoặc '12h'), User thường 7 ngày
-    const refreshTokenTTL = isAdmin ? '8m' : '10m';
-
-    // Tạo cặp AccessToken và RefreshToken
-    const payload = { sub: user.id, email: user.email, role: userRole };
-    
-    const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_ACCESS_SECRET || 'access_secret_key',
-      expiresIn: '5m', // Access Token luôn là 5 phút
-    });
-
-    const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret_key',
-      expiresIn: refreshTokenTTL, // <-- Đưa biến thời gian động vào đây
-    });
-
-    // Hash Refresh Token và lưu vào DB
-    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { hashedRefreshToken },
-    });
-
-    return {
-      message: this.i18n.t('auth.success.login_success'),
-      accessToken,  
-      refreshToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        roles: rolesArray,
-      },
-    };
+    // Gọi hàm cấp Token dùng chung!
+    return this.generateTokens(user);
   }
   // 5. API Refresh Token
   async refreshTokens(userId: number, refreshToken: string) {
@@ -282,5 +245,130 @@ export class AuthService {
     });
 
     return { message: this.i18n.t('auth.success.logout_success') };
+  }
+  // =======================================================
+  // HÀM DÙNG CHUNG: CẤP TOKEN (DÙNG CHO LOCAL & GOOGLE LOGIN)
+  // =======================================================
+  async generateTokens(user: any) {
+    // 1. Xác định quyền và thời gian sống của Refresh Token
+    const rolesArray = user.roles?.map((r: any) => r.name) || ['CUSTOMER'];
+    const isAdmin = rolesArray.includes('ADMIN');
+    const refreshTokenTTL = isAdmin ? '8m' : '10m'; 
+    const primaryRole = rolesArray[0] || 'CUSTOMER';
+
+    // 2. Tạo Payload và ký Token
+    const payload = { sub: user.id, email: user.email, role: primaryRole };
+    
+    const accessToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_ACCESS_SECRET || 'access_secret_key',
+      expiresIn: '5m', 
+    });
+
+    const refreshToken = await this.jwtService.signAsync(payload, {
+      secret: process.env.JWT_REFRESH_SECRET || 'refresh_secret_key',
+      expiresIn: refreshTokenTTL, 
+    });
+
+    // 3. Hash Refresh Token và lưu vào Database
+    const hashedRefreshToken = await bcrypt.hash(refreshToken, 10);
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { hashedRefreshToken },
+    });
+
+    // 4. Trả về format chuẩn cho Frontend
+    return {
+      message: this.i18n.t('auth.success.login_success'),
+      accessToken,  
+      refreshToken,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        roles: rolesArray,
+        image: user.image, // Quan trọng: Đã bổ sung image để FE hiển thị avatar Google
+      },
+    };
+  }
+  
+  // =======================================================
+  // LOGIC FORGOT PASSWORD (QUÊN MẬT KHẨU)
+  // =======================================================
+
+  // 1. Gửi OTP quên mật khẩu
+  async forgotPasswordSendOtp(dto: SendOtpDto) {
+    const { email } = dto;
+    
+    // NGƯỢC LẠI VỚI ĐĂNG KÝ: Phải có user mới cho gửi OTP
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    if (!existingUser) {
+      throw new BadRequestException(this.i18n.t('auth.error.email_not_found'));
+    }
+
+    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    await this.prisma.otp.upsert({
+      where: { email },
+      update: { code: otpCode, expiresAt, createdAt: new Date() },
+      create: { email, code: otpCode, expiresAt },
+    });
+
+    await this.mailService.sendForgotPasswordEmail(email, otpCode);
+
+    return {
+      message: this.i18n.t('auth.success.otp_sent_forgot'),
+      expiresAt: expiresAt.toISOString(),
+    };
+  }
+
+  // 2. Xác thực OTP quên mật khẩu
+  async forgotPasswordVerifyOtp(dto: VerifyOtpDto) {
+    // Tái sử dụng logic xác thực OTP chung
+    await this.verifyOtp(dto);
+    return { message: this.i18n.t('auth.success.otp_verified') };
+  }
+
+  // 3. Đổi mật khẩu mới
+  async resetPassword(dto: ResetPasswordDto) {
+    const { email, code, newPassword } = dto;
+
+    // 1. Check lại OTP để phòng hờ bypass bước 2
+    await this.verifyOtp({ email, code });
+
+    // 2. Lấy User
+    const existingUser = await this.prisma.user.findUnique({ where: { email } });
+    if (!existingUser) {
+      throw new BadRequestException(this.i18n.t('auth.error.email_not_found'));
+    }
+
+    // Kiểm tra mật khẩu mới có trùng với mật khẩu cũ không
+    if (existingUser.password) {
+      const isSamePassword = await bcrypt.compare(newPassword, existingUser.password);
+      if (isSamePassword) {
+        throw new BadRequestException(this.i18n.t('auth.error.password_must_be_different'));
+      }
+    }
+
+    // 3. Hash mật khẩu mới và lưu DB
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await this.prisma.user.update({
+      where: { id: existingUser.id },
+      data: { password: hashedPassword },
+    });
+
+    // 4. Lưu log
+    await this.prisma.auditLog.create({
+      data: {
+        action: 'PASSWORD_RESET',
+        userId: existingUser.id,
+        details: `Người dùng ${email} đã đặt lại mật khẩu mới.`,
+      },
+    });
+
+    // 5. Xóa OTP
+    await this.prisma.otp.delete({ where: { email } });
+
+    return { message: this.i18n.t('auth.success.password_reset_success') };
   }
 }
