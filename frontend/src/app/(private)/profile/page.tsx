@@ -10,8 +10,10 @@ import {
   getProfile,
   setDefaultAddress,
   updateProfile,
+  AddressPayload // Đảm bảo import kiểu dữ liệu này từ user-api
 } from '@/lib/user-api';
 import { resolveImageUrl } from '@/lib/utils';
+import AddressModal from '@/components/ui/AddressModal'; // <-- IMPORT MODAL DÙNG CHUNG
 
 type Profile = {
   id: number;
@@ -26,17 +28,6 @@ type Address = {
   phone: string;
   street: string;
   ward: string;
-  // Đã xóa district
-  city: string;
-  isDefault: boolean;
-};
-
-type AddressForm = {
-  recipientName: string;
-  phone: string;
-  street: string;
-  ward: string;
-  // Đã xóa district
   city: string;
   isDefault: boolean;
 };
@@ -45,16 +36,6 @@ type AlertState = {
   type: 'success' | 'error';
   text: string;
 } | null;
-
-const INITIAL_ADDRESS_FORM: AddressForm = {
-  recipientName: '',
-  phone: '',
-  street: '',
-  ward: '',
-  // Đã xóa district
-  city: '',
-  isDefault: false,
-};
 
 export default function ProfilePage() {
   const t = useTranslations('profile');
@@ -72,8 +53,6 @@ export default function ProfilePage() {
 
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [creatingAddress, setCreatingAddress] = useState(false);
-  const [addressForm, setAddressForm] = useState<AddressForm>(INITIAL_ADDRESS_FORM);
   const [pendingAddressId, setPendingAddressId] = useState<number | null>(null);
 
   const sortedAddresses = useMemo(
@@ -118,14 +97,12 @@ export default function ProfilePage() {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    // 1. Kiểm tra định dạng (Chỉ cho phép ảnh)
     if (!file.type.startsWith('image/')) {
       setAlert({ type: 'error', text: t('invalidFileType') });
-      event.target.value = ''; // Reset input để có thể chọn lại
+      event.target.value = ''; 
       return;
     }
 
-    // 2. Kiểm tra dung lượng (Tối đa 5MB)
     if (file.size > 5 * 1024 * 1024) {
       setAlert({ type: 'error', text: t('fileTooLarge') });
       event.target.value = ''; 
@@ -137,7 +114,7 @@ export default function ProfilePage() {
       setAvatarPreview(preview);
       setAvatarFile(file);
       setRemoveAvatar(false);
-      setAlert(null); // Xóa mọi cảnh báo cũ nếu upload hợp lệ
+      setAlert(null); 
     } catch {
       setAlert({ type: 'error', text: t('avatarUploadFailed') });
     }
@@ -183,16 +160,14 @@ export default function ProfilePage() {
     }
   };
 
-  const handleCreateAddress = async (e: FormEvent) => {
-    e.preventDefault();
-    setCreatingAddress(true);
+  // THAY ĐỔI: Hàm này giờ nhận thẳng data từ Modal truyền ra
+  const handleCreateAddress = async (newAddressData: AddressPayload) => {
     setAlert(null);
     try {
-      const res = await createAddress(addressForm);
+      const res = await createAddress(newAddressData);
       const nextAddresses = await getAddresses();
       setAddresses(Array.isArray(nextAddresses) ? nextAddresses : []);
-      setModalOpen(false);
-      setAddressForm(INITIAL_ADDRESS_FORM);
+      setModalOpen(false); // Đóng modal
       setAlert({ type: 'success', text: res?.message || t('addressCreated') });
       setActiveTab('addresses');
     } catch (error: any) {
@@ -200,8 +175,6 @@ export default function ProfilePage() {
         type: 'error',
         text: error?.response?.data?.message || 'Unable to create address.',
       });
-    } finally {
-      setCreatingAddress(false);
     }
   };
 
@@ -257,6 +230,14 @@ export default function ProfilePage() {
 
   return (
     <div style={{ fontFamily: 'system-ui, sans-serif', minHeight: '100vh', backgroundColor: '#f7f5f2', padding: '40px 20px', color: '#111827' }}>
+      
+      {/* 🚀 ĐEM COMPONENT DÙNG CHUNG VÀO ĐÂY */}
+      <AddressModal 
+        isOpen={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+        onSubmit={handleCreateAddress} 
+      />
+
       <div style={{ maxWidth: '960px', margin: '0 auto' }}>
 
         <div style={{ marginTop: '16px', marginBottom: '24px' }}>
@@ -466,10 +447,7 @@ export default function ProfilePage() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
               <h2 style={{ margin: 0, fontSize: '20px' }}>{t('addressBook')}</h2>
               <button
-                onClick={() => {
-                  setAddressForm(INITIAL_ADDRESS_FORM);
-                  setModalOpen(true);
-                }}
+                onClick={() => setModalOpen(true)} // Mở modal khi click
                 style={{
                   border: 'none',
                   backgroundColor: '#111827',
@@ -518,7 +496,6 @@ export default function ProfilePage() {
                     <span style={{ color: '#4b5563', fontSize: '14px' }}>{addr.phone}</span>
                   </div>
 
-                  {/* THAY ĐỔI: Phân tách rõ ràng từng trường địa chỉ */}
                   <div style={{ margin: '14px 0 0', color: '#374151', fontSize: '14px', lineHeight: 1.8 }}>
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <span style={{ fontWeight: 600, minWidth: '85px', color: '#6b7280' }}>{t('street')}:</span>
@@ -575,123 +552,6 @@ export default function ProfilePage() {
           </div>
         )}
       </div>
-
-      {modalOpen && (
-        <div
-          onClick={() => {
-            if (!creatingAddress) setModalOpen(false);
-          }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.45)',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center',
-            padding: '20px',
-            zIndex: 50,
-          }}
-        >
-          <form
-            onSubmit={handleCreateAddress}
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              width: '100%',
-              maxWidth: '560px',
-              backgroundColor: '#fff',
-              borderRadius: '16px',
-              padding: '20px',
-              boxShadow: '0 24px 50px rgba(15, 23, 42, 0.25)',
-            }}
-          >
-            <h3 style={{ marginTop: 0, marginBottom: '14px' }}>{t('addNewAddress')}</h3>
-
-            <div style={{ display: 'grid', gap: '10px' }}>
-              <input
-                required
-                value={addressForm.recipientName}
-                onChange={(e) => setAddressForm((prev) => ({ ...prev, recipientName: e.target.value }))}
-                placeholder={t('recipientName')}
-                style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
-              />
-              <input
-                required
-                value={addressForm.phone}
-                onChange={(e) => setAddressForm((prev) => ({ ...prev, phone: e.target.value }))}
-                placeholder={t('phone')}
-                style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
-              />
-              <input
-                required
-                value={addressForm.street}
-                onChange={(e) => setAddressForm((prev) => ({ ...prev, street: e.target.value }))}
-                placeholder={t('street')}
-                style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
-              />
-              {/* THAY ĐỔI: Xóa trường District, cập nhật lại grid cho 2 trường Ward và City */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <input
-                  required
-                  value={addressForm.ward}
-                  onChange={(e) => setAddressForm((prev) => ({ ...prev, ward: e.target.value }))}
-                  placeholder={t('ward')}
-                  style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
-                />
-                <input
-                  required
-                  value={addressForm.city}
-                  onChange={(e) => setAddressForm((prev) => ({ ...prev, city: e.target.value }))}
-                  placeholder={t('city')}
-                  style={{ width: '100%', padding: '10px', borderRadius: '10px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
-                />
-              </div>
-
-              <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', fontSize: '14px', color: '#374151' }}>
-                <input
-                  type="checkbox"
-                  checked={addressForm.isDefault}
-                  onChange={(e) => setAddressForm((prev) => ({ ...prev, isDefault: e.target.checked }))}
-                />
-                {t('isDefault')}
-              </label>
-            </div>
-
-            <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-              <button
-                type="button"
-                onClick={() => setModalOpen(false)}
-                disabled={creatingAddress}
-                style={{
-                  border: '1px solid #d1d5db',
-                  backgroundColor: '#fff',
-                  color: '#111827',
-                  borderRadius: '999px',
-                  padding: '8px 14px',
-                  cursor: creatingAddress ? 'not-allowed' : 'pointer',
-                }}
-              >
-                {t('cancel')}
-              </button>
-              <button
-                type="submit"
-                disabled={creatingAddress}
-                style={{
-                  border: 'none',
-                  backgroundColor: '#111827',
-                  color: '#fff',
-                  borderRadius: '999px',
-                  padding: '8px 14px',
-                  cursor: creatingAddress ? 'not-allowed' : 'pointer',
-                  opacity: creatingAddress ? 0.75 : 1,
-                  fontWeight: 600,
-                }}
-              >
-                {creatingAddress ? t('saving') : t('saveAddress')}
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   );
 }
