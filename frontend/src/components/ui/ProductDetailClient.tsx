@@ -202,9 +202,7 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       setSelectedVariant(null);
       setCustomValues([]);
       
-      // ==========================================
-      // BẮN SỰ KIỆN MỞ GIỎ HÀNG RA TOÀN CỤC
-      // ==========================================
+      // Bắn sự kiện để mở giỏ hàng và cập nhật giỏ hàng
       window.dispatchEvent(new CustomEvent('open-cart'));
       window.dispatchEvent(new CustomEvent('cart-updated'));
 
@@ -363,10 +361,21 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                       {customization.type === 'TEXT' ? (
                         <input
                           type="text"
-                          maxLength={customization.maxLength || 50}
-                          placeholder="..."
+                          // Use the custom placeholder if a maxLength is provided
+                          placeholder={
+                            customization.maxLength
+                              ? t('customization_placeholder', { max: customization.maxLength })
+                              : "..."
+                          }
                           value={customValues.find((v) => v.name === customization.name)?.value || ''}
-                          onChange={(event) => handleCustomChange(customization.name, event.target.value, Number(customization.extraPrice || 0))}
+                          onChange={(event) => {
+                            let val = event.target.value;
+                            // Silently truncate if the input exceeds maxLength
+                            if (customization.maxLength && val.length > customization.maxLength) {
+                              val = val.slice(0, customization.maxLength);
+                            }
+                            handleCustomChange(customization.name, val, Number(customization.extraPrice || 0));
+                          }}
                           className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-[0.85rem] text-slate-900 outline-none transition focus:border-slate-900 focus:ring-1 focus:ring-slate-900"
                         />
                       ) : null}

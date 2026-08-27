@@ -66,7 +66,8 @@
       "addToCart": "Thêm vào giỏ hàng",
       "back": "< Quay lại danh sách",
       "required": "Bắt buộc",
-      "from": "Từ"
+      "from": "Từ",
+      "customization_placeholder": "Nhập tối đa {max} chữ"
     },
     "category_page": {
       "back": "← Quay lại danh sách",
@@ -86,7 +87,9 @@
       "submitLoading": "Đang xử lý...",
       "divider": "Hoặc",
       "newUser": "Bạn chưa có tài khoản?",
-      "registerLink": "Đăng ký"
+      "registerLink": "Đăng ký",
+      "forgotPasswordLink": "Quên mật khẩu?",
+      "googleLogin": "Đăng nhập bằng Google"
     },
     "register": {
       "title": "Tạo tài khoản mới",
@@ -101,7 +104,11 @@
         "emailSent": "Mã xác nhận đã được gửi đến",
         "changeEmail": "Thay đổi email",
         "submit": "Xác nhận OTP",
-        "submitLoading": "Đang kiểm tra..."
+        "submitLoading": "Đang kiểm tra...",
+        "expireIn": "Mã hết hạn trong:",
+        "expired": "Mã OTP đã hết hạn.",
+        "resendOtp": "Gửi lại mã",
+        "resendOtpLoading": "Đang gửi..."
       },
       "step3": {
         "namePlaceholder": "Họ và tên",
@@ -113,6 +120,38 @@
         "haveAccount": "Đã có tài khoản?",
         "loginLink": "Đăng nhập"
       }
+    },
+    "forgot_password": {
+      "title": "Khôi phục mật khẩu",
+      "subtitle": "Nhập email của bạn để nhận mã OTP khôi phục",
+      "step1": {
+        "emailLabel": "Email",
+        "emailPlaceholder": "Nhập email của bạn...",
+        "submit": "Gửi mã OTP",
+        "submitLoading": "Đang gửi..."
+      },
+      "step2": {
+        "emailSent": "Mã OTP đã được gửi đến:",
+        "changeEmail": "Đổi email khác",
+        "submit": "Xác nhận OTP",
+        "submitLoading": "Đang kiểm tra...",
+        "expireIn": "Mã hết hạn trong:",
+        "expired": "Mã OTP đã hết hạn.",
+        "resendOtp": "Gửi lại mã",
+        "resendOtpLoading": "Đang gửi..."
+      },
+      "step3": {
+        "passwordLabel": "Mật khẩu mới",
+        "passwordPlaceholder": "Nhập mật khẩu mới (tối thiểu 8 ký tự)...",
+        "submit": "Đổi mật khẩu",
+        "submitLoading": "Đang cập nhật..."
+      },
+      "backToLogin": "Quay lại đăng nhập"
+    },
+    "oauth": {
+      "processing": "Đang xử lý đăng nhập...",
+      "missingInfo": "Không tìm thấy thông tin xác thực",
+      "failed": "Đăng nhập thất bại. Đang quay lại trang chủ..."
     }
   },
   "global_modal": {

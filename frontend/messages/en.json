@@ -66,7 +66,8 @@
       "addToCart": "Add to Cart",
       "back": "< Back to products",
       "required": "Required",
-      "from": "From"
+      "from": "From",
+      "customization_placeholder": "Enter up to {max} characters"
     },
     "category_page": {
       "back": "← Go back",
@@ -86,7 +87,9 @@
       "submitLoading": "Processing...",
       "divider": "Or",
       "newUser": "Don't have an account?",
-      "registerLink": "Register"
+      "registerLink": "Register",
+      "forgotPasswordLink": "Forgot password?",
+      "googleLogin": "Sign in with Google"
     },
     "register": {
       "title": "Create Account",
@@ -101,7 +104,11 @@
         "emailSent": "Verification code has been sent to",
         "changeEmail": "Change email",
         "submit": "Verify OTP",
-        "submitLoading": "Checking..."
+        "submitLoading": "Checking...",
+        "expireIn": "Expires in:",
+        "expired": "OTP has expired.",
+        "resendOtp": "Resend OTP",
+        "resendOtpLoading": "Sending..."
       },
       "step3": {
         "namePlaceholder": "Full Name",
@@ -113,6 +120,38 @@
         "haveAccount": "Already have an account?",
         "loginLink": "Sign In"
       }
+    },
+    "forgot_password": {
+      "title": "Reset Password",
+      "subtitle": "Enter your email to receive a recovery OTP",
+      "step1": {
+        "emailLabel": "Email",
+        "emailPlaceholder": "Enter your email...",
+        "submit": "Send OTP",
+        "submitLoading": "Sending..."
+      },
+      "step2": {
+        "emailSent": "OTP code has been sent to:",
+        "changeEmail": "Change email",
+        "submit": "Verify OTP",
+        "submitLoading": "Verifying...",
+        "expireIn": "Expires in:",
+        "expired": "OTP has expired.",
+        "resendOtp": "Resend OTP",
+        "resendOtpLoading": "Sending..."
+      },
+      "step3": {
+        "passwordLabel": "New Password",
+        "passwordPlaceholder": "Enter new password (min 8 chars)...",
+        "submit": "Reset Password",
+        "submitLoading": "Updating..."
+      },
+      "backToLogin": "Back to login"
+    },
+    "oauth": {
+      "processing": "Processing login...",
+      "missingInfo": "Authentication information missing",
+      "failed": "Login failed. Redirecting to home..."
     }
   },
   "global_modal": {

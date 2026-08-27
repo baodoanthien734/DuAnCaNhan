@@ -5,7 +5,7 @@ import { I18nService } from 'nestjs-i18n';
 import * as bcrypt from 'bcrypt';
 import { AuthService } from './auth.service';
 import { PrismaService } from '../prisma/prisma.service';
-import { MailService } from '../mail/mail.service';
+import { MailService } from '../integrations/mail/mail.service';
 
 describe('AuthService', () => {
   let service: AuthService;

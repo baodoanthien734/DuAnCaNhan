@@ -110,7 +110,16 @@ apiClient.interceptors.response.use(
 
       // 🔥 DANH SÁCH MIỄN TRỪ (BYPASS URLS) 🔥
       // Các API này nếu trả 401 thì ném lỗi thẳng ra Component/Form để hiển thị text (VD: Sai mật khẩu, OTP hết hạn)
-      const bypassUrls = ['/auth/login', '/auth/register', '/auth/send-otp', '/auth/verify-otp'];
+      const bypassUrls = [
+        '/auth/login',
+        '/auth/register',
+        '/auth/send-otp',
+        '/auth/verify-otp',
+        // Các API quên mật khẩu
+        '/auth/forgot-password/send-otp',
+        '/auth/forgot-password/verify-otp',
+        '/auth/forgot-password/reset',
+      ];
       const isAuthApi = bypassUrls.some(url => requestUrl.includes(url));
       
       if (isAuthApi) {
