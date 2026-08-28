@@ -363,11 +363,94 @@ export class PostsService {
     async findOneBySlug(slug: string) {
         const post = await this.prisma.post.findFirst({
             where: { slug, isPublished: true },
-            include: { author: { select: { id: true, name: true } } },
+            include: { 
+                author: { select: { id: true, name: true } },
+                // BỔ SUNG: Kéo thêm dữ liệu sản phẩm đã gắn
+                postProducts: {
+                    orderBy: { position: 'asc' }, // Sắp xếp theo đúng thứ tự admin đã kéo thả
+                    include: {
+                        product: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                basePrice: true,
+                                images: true,
+                                status: true, // Lấy status để kiểm tra
+                            }
+                        }
+                    }
+                }
+            },
         });
 
         if (!post) throw new NotFoundException(this.i18n.t('posts.error.post_not_found'));
 
+        // Lọc bỏ những sản phẩm đã bị ẩn/xóa (Chỉ giữ lại ACTIVE)
+        if (post.postProducts) {
+            post.postProducts = post.postProducts.filter(pp => pp.product.status === 'ACTIVE');
+        }
+
         return post;
+    }
+
+    // ==============================================================
+    // PRODUCT TAGGING (ĐÍNH KÈM SẢN PHẨM)
+    // ==============================================================
+
+    async getTaggedProducts(postId: number) {
+        const post = await this.prisma.post.findUnique({ where: { id: postId } });
+        if (!post) throw new NotFoundException(this.i18n.t('posts.error.post_not_found'));
+
+        const postProducts = await this.prisma.postProduct.findMany({
+            where: { postId },
+            orderBy: { position: 'asc' }, // Sắp xếp đúng theo vị trí kéo thả
+            include: {
+                product: {
+                    select: {
+                        id: true,
+                        name: true,
+                        basePrice: true,
+                        images: true,
+                        status: true,
+                    },
+                },
+            },
+        });
+
+        // Chỉ trả về mảng product thay vì mảng chứa các object bọc ngoài
+        return postProducts.map((pp) => pp.product);
+    }
+
+    async updateTaggedProducts(postId: number, productIds: number[]) {
+        const post = await this.prisma.post.findUnique({ where: { id: postId } });
+        if (!post) throw new NotFoundException(this.i18n.t('posts.error.post_not_found'));
+
+        try {
+            await this.prisma.$transaction(async (tx) => {
+                // 1. Xóa toàn bộ cấu hình cũ của bài viết này
+                await tx.postProduct.deleteMany({
+                    where: { postId },
+                });
+
+                // 2. Tạo lại cấu trúc mới dựa trên mảng gửi lên từ Modal (thứ tự Drag & Drop)
+                if (productIds && productIds.length > 0) {
+                    const createData = productIds.map((productId, index) => ({
+                        postId,
+                        productId,
+                        position: index, // Lưu thứ tự hiển thị
+                    }));
+                    await tx.postProduct.createMany({ data: createData });
+                }
+            });
+
+            return {
+                success: true,
+                message: this.i18n.t('posts.success.tagged_updated', { defaultValue: 'Cập nhật sản phẩm thành công' }),
+            };
+        } catch (error) {
+            this.logger.error(`Lỗi cập nhật đính kèm SP bài viết ${postId}`, error instanceof Error ? error.stack : undefined);
+            throw new BadRequestException(this.i18n.t('posts.error.tagged_update_failed', { defaultValue: 'Gắn sản phẩm thất bại' }));
+        }
     }
 }

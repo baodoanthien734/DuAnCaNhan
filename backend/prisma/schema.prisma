@@ -162,6 +162,7 @@ model Product {
   reviews        Review[]
   cartItems      CartItem[]
   customizations ProductCustomization[]
+  postProducts PostProduct[]
 }
 
 model ProductVariant {
@@ -368,4 +369,17 @@ model Post {
   updatedAt DateTime @updatedAt
 
   author User @relation(fields: [authorId], references: [id])
+  postProducts PostProduct[]
+}
+
+model PostProduct {
+  postId    Int
+  productId Int
+  position  Int      @default(0) // Thứ tự hiển thị trong bài viết
+  createdAt DateTime @default(now())
+
+  post    Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([postId, productId])
 }

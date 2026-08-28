@@ -516,7 +516,8 @@
         "loading": "Đang tải dữ liệu...",
         "empty": "Chưa có bài viết nào.",
         "noImage": "Không có ảnh",
-        "edit": "Sửa"
+        "edit": "Sửa",
+        "tagProducts": "Gắn sản phẩm"
       },
       "pagination": {
         "showCount": "Hiển thị {current} trên tổng {total} bài viết",
@@ -551,6 +552,21 @@
       "toastFetchError": "Không thể tải dữ liệu bài viết cũ. Vui lòng kiểm tra lại.",
       "toastInvalidFileType": "Chỉ cho phép tải lên định dạng ảnh (JPG, PNG, WEBP...)",
       "toastFileTooLarge": "Dung lượng ảnh không được vượt quá 5MB."
+    },
+    "tag_modal": {
+      "title": "Đính kèm sản phẩm",
+      "description": "Tìm kiếm và kéo thả để sắp xếp các sản phẩm sẽ hiển thị trong bài viết này.",
+      "searchPlaceholder": "Tìm tên sản phẩm...",
+      "noProductsFound": "Không tìm thấy sản phẩm nào.",
+      "taggedProductsTitle": "Sản phẩm sẽ hiển thị",
+      "itemsCount": "sản phẩm",
+      "emptyTagged": "Chưa có sản phẩm nào được chọn",
+      "add": "Thêm",
+      "added": "Đã thêm",
+      "remove": "Gỡ bỏ",
+      "cancel": "Hủy",
+      "save": "Lưu thay đổi",
+      "saving": "Đang lưu..."
     }
   },
   "cart": {
@@ -973,7 +989,8 @@
   "loading": "Đang tải câu chuyện...",
   "empty": "Chưa có bài viết nào được xuất bản.",
   "back": "< Quay lại danh sách",
-  "not_found": "Không tìm thấy bài viết hoặc bài viết đã bị xóa."
+  "not_found": "Không tìm thấy bài viết hoặc bài viết đã bị xóa.",
+  "featured_products": "Sản phẩm được nhắc đến trong bài"
   },
   "admin_dashboard": {
     "badge": "Bảng điều khiển",

@@ -516,7 +516,8 @@
         "loading": "Loading data...",
         "empty": "No posts available.",
         "noImage": "No img",
-        "edit": "Edit"
+        "edit": "Edit",
+        "tagProducts": "Tag Products"
       },
       "pagination": {
         "showCount": "Showing {current} of {total} posts",
@@ -551,6 +552,21 @@
       "toastFetchError": "Failed to load post data. Please check again.",
       "toastInvalidFileType": "Only image formats are allowed (JPG, PNG, WEBP...)",
       "toastFileTooLarge": "Image size must not exceed 5MB."
+    },
+    "tag_modal": {
+      "title": "Tag Products",
+      "description": "Search and drag-and-drop to arrange products that will appear in this post.",
+      "searchPlaceholder": "Search products...",
+      "noProductsFound": "No products found.",
+      "taggedProductsTitle": "Products to display",
+      "itemsCount": "items",
+      "emptyTagged": "No products selected yet",
+      "add": "Add",
+      "added": "Added",
+      "remove": "Remove",
+      "cancel": "Cancel",
+      "save": "Save Changes",
+      "saving": "Saving..."
     }
   },
   "cart": {
@@ -973,7 +989,8 @@
   "loading": "Loading stories...",
   "empty": "No articles have been published yet.",
   "back": "< Back to list",
-  "not_found": "Article not found or has been deleted."
+  "not_found": "Article not found or has been deleted.",
+  "featured_products": "Products featured in this post"
   },
   "admin_dashboard": {
     "badge": "Dashboard",

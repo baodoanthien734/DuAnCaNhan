@@ -26,3 +26,15 @@ export const updatePost = async (id: string | number, formData: FormData) => {
   });
   return response.data;
 };
+
+// Lấy danh sách sản phẩm đã được gắn vào bài viết
+export const getTaggedProducts = async (id: string | number) => {
+  const response = await apiClient.get(`/admin/posts/${id}/products`);
+  return response.data;
+};
+
+// Cập nhật mảng sản phẩm đính kèm (hỗ trợ kéo thả / thay đổi vị trí)
+export const updateTaggedProducts = async (id: string | number, productIds: number[]) => {
+  const response = await apiClient.patch(`/admin/posts/${id}/products`, { productIds });
+  return response.data;
+};

@@ -3,12 +3,14 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { listPosts } from "@/lib/posts-api"; 
 import { resolveImageUrl } from "@/lib/utils";
+import ProductTaggingModal from "@/components/ui/ProductTaggingModal"; 
 
 export default function AdminPostsPage() {
   const t = useTranslations("posts.list");
+  const locale = useLocale(); 
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -16,6 +18,9 @@ export default function AdminPostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [totalItems, setTotalItems] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [isTaggingModalOpen, setIsTaggingModalOpen] = useState(false);
+  const [selectedPostId, setSelectedPostId] = useState<number | null>(null);
 
   const currentQ = searchParams.get("q") || "";
   const currentStatus = searchParams.get("isPublished") || ""; 
@@ -186,20 +191,37 @@ export default function AdminPostsPage() {
                   <div className="flex flex-col">
                     <span className="text-xs font-medium text-gray-900">{post.author?.name || 'Admin'}</span>
                     <span className="text-[11px] text-gray-500">
-                      {new Date(post.createdAt).toLocaleDateString('vi-VN')}
+                      {new Date(post.createdAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN')}
                     </span>
                   </div>
                   
-                  <Link 
-                    href={`/admin/posts/${post.id}/edit`} 
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
-                    title={t("table.edit")}
-                  >
-                    {/* Bút chì Icon */}
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
-                    </svg>
-                  </Link>
+                  {/* CỤM NÚT THAO TÁC */}
+                  <div className="flex items-center gap-1">
+                    {/* NÚT GẮN SẢN PHẨM */}
+                    <button 
+                      onClick={() => {
+                        setSelectedPostId(post.id); 
+                        setIsTaggingModalOpen(true);
+                      }}
+                      className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-full transition-colors"
+                      title={t("table.tagProducts")}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                      </svg>
+                    </button>
+
+                    {/* NÚT EDIT */}
+                    <Link 
+                      href={`/admin/posts/${post.id}/edit`} 
+                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-colors"
+                      title={t("table.edit")}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                      </svg>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>
@@ -231,6 +253,15 @@ export default function AdminPostsPage() {
           </div>
         </div>
       )}
+
+      <ProductTaggingModal 
+        isOpen={isTaggingModalOpen} 
+        onClose={() => {
+          setIsTaggingModalOpen(false);
+          setSelectedPostId(null);
+        }} 
+        postId={selectedPostId} 
+      />
     </div>
   );
 }

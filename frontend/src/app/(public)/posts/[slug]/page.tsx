@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import { getTranslations, getLocale } from 'next-intl/server';
 import { getPublicPostBySlug } from '@/lib/public-posts-api';
 import { resolveImageUrl } from '@/lib/utils';
 import { notFound } from 'next/navigation';
@@ -12,8 +12,8 @@ interface PageProps {
 
 export default async function PostDetailPage({ params }: PageProps) {
   const t = await getTranslations('public_posts');
+  const locale = await getLocale(); // BỔ SUNG: Lấy locale để format tiền/ngày
   
-  // Await params cho chuẩn Next.js mới
   const resolvedParams = await params;
   const slug = resolvedParams.slug;
   
@@ -22,13 +22,20 @@ export default async function PostDetailPage({ params }: PageProps) {
   try {
     post = await getPublicPostBySlug(slug);
   } catch (error) {
-    // Nếu lỗi hoặc không tìm thấy bài viết -> Chuyển hướng ra trang 404
     notFound();
   }
 
   if (!post) {
     notFound();
   }
+
+  // Hàm format tiền tệ
+  const formatCurrency = (value: number) => {
+    if (locale === 'en') {
+      return `${new Intl.NumberFormat('en-US').format(value)} VND`;
+    }
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+  };
 
   return (
     <article className="bg-[#fcfbf9] min-h-screen pb-20">
@@ -49,7 +56,6 @@ export default async function PostDetailPage({ params }: PageProps) {
           {post.summary}
         </p>
         
-        {/* Tác giả & Ngày tháng */}
         <div className="flex items-center justify-center gap-4 text-sm text-slate-500 border-y border-slate-200 py-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold">
@@ -58,7 +64,9 @@ export default async function PostDetailPage({ params }: PageProps) {
             <span className="font-semibold text-slate-800">{post.author?.name || 'Unknown'}</span>
           </div>
           <span>•</span>
-          <time dateTime={post.createdAt}>{new Date(post.createdAt).toLocaleDateString('vi-VN', { year: 'numeric', month: 'long', day: 'numeric' })}</time>
+          <time dateTime={post.createdAt}>
+            {new Date(post.createdAt).toLocaleDateString(locale === 'en' ? 'en-US' : 'vi-VN', { year: 'numeric', month: 'long', day: 'numeric' })}
+          </time>
         </div>
       </header>
 
@@ -76,7 +84,7 @@ export default async function PostDetailPage({ params }: PageProps) {
       )}
 
       {/* Nội dung chính (HTML Content) */}
-      <div className="max-w-3xl mx-auto px-6">
+      <div className="max-w-3xl mx-auto px-6 mb-16">
         <div 
           className="prose prose-lg prose-slate max-w-none 
                      prose-headings:font-bold prose-headings:text-slate-900
@@ -89,6 +97,46 @@ export default async function PostDetailPage({ params }: PageProps) {
           }} 
         />
       </div>
+
+      {/* BỔ SUNG: Khu vực Sản phẩm được gắn */}
+      {post.postProducts && post.postProducts.length > 0 && (
+        <div className="max-w-3xl mx-auto px-6 pt-12 border-t-2 border-slate-200 border-dashed">
+          <h3 className="text-2xl font-bold text-slate-900 mb-8 text-center">
+            {t('featured_products')}
+          </h3>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {post.postProducts.map((item: any) => {
+              const product = item.product;
+              const mainImg = product.images?.[0] ? resolveImageUrl(product.images[0]) : null;
+              
+              return (
+                <Link 
+                  key={product.id} 
+                  href={`/products/${product.slug}`}
+                  className="group flex items-center p-3 bg-white border border-slate-200 rounded-2xl hover:border-amber-400 hover:shadow-md transition-all duration-300"
+                >
+                  <div className="w-20 h-20 shrink-0 bg-slate-50 rounded-xl overflow-hidden border border-slate-100 flex items-center justify-center">
+                    {mainImg ? (
+                      <img src={mainImg} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    ) : (
+                      <span className="text-2xl">📦</span>
+                    )}
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <h4 className="font-semibold text-slate-900 text-sm line-clamp-2 group-hover:text-amber-600 transition-colors">
+                      {product.name}
+                    </h4>
+                    <p className="mt-1 text-sm font-bold text-amber-600">
+                      {formatCurrency(Number(product.basePrice))}
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
     </article>
   );
