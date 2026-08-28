@@ -19,20 +19,40 @@ export default function AddressModal({ isOpen, onClose, onSubmit }: AddressModal
   const [selectedProvince, setSelectedProvince] = useState<{code: string, name: string} | null>(null);
   const [selectedWard, setSelectedWard] = useState<{code: string, name: string} | null>(null);
 
+  // CỜ QUẢN LÝ TRẠNG THÁI SẬP API
+  const [isFallbackMode, setIsFallbackMode] = useState(false);
+
   const [formData, setFormData] = useState({
     recipientName: '',
     phone: '',
     street: '',
+    manualProvince: '', // Dùng khi gõ tay (API sập)
+    manualWard: '',     // Dùng khi gõ tay (API sập)
     isDefault: false 
   });
 
   useEffect(() => {
     if (isOpen) {
-      getProvinces().then(setProvinces).catch(console.error);
-      setFormData({ recipientName: '', phone: '', street: '', isDefault: false });
+      // RESET TOÀN BỘ STATE KHI MỞ MODAL
+      setFormData({ recipientName: '', phone: '', street: '', manualProvince: '', manualWard: '', isDefault: false });
       setSelectedProvince(null);
       setSelectedWard(null);
       setWards([]);
+      setIsFallbackMode(false);
+
+      // GỌI API VÀ BẮT LỖI
+      getProvinces()
+        .then((data) => {
+          if (data && data.length > 0) {
+            setProvinces(data);
+          } else {
+            setIsFallbackMode(true); // Dữ liệu rỗng -> bật chế độ gõ tay
+          }
+        })
+        .catch((err) => {
+          console.error("API Tỉnh/Thành đang gặp sự cố, chuyển sang chế độ gõ tay:", err);
+          setIsFallbackMode(true); // API sập -> bật chế độ gõ tay
+        });
     }
   }, [isOpen]);
 
@@ -47,9 +67,14 @@ export default function AddressModal({ isOpen, onClose, onSubmit }: AddressModal
     if (code) {
       try {
         const wrds = await getWards(code);
-        setWards(wrds);
+        if (wrds && wrds.length > 0) {
+          setWards(wrds);
+        } else {
+           setIsFallbackMode(true); // Nếu API phường lỗi giữa chừng, cũng cho gõ tay
+        }
       } catch (err) {
         console.error("Lỗi tải Phường/Xã", err);
+        setIsFallbackMode(true);
       }
     }
   };
@@ -64,14 +89,27 @@ export default function AddressModal({ isOpen, onClose, onSubmit }: AddressModal
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedProvince || !selectedWard) return;
+    
+    let finalCity = '';
+    let finalWard = '';
+
+    // XỬ LÝ LẤY DỮ LIỆU TÙY THEO CHẾ ĐỘ
+    if (isFallbackMode) {
+      if (!formData.manualProvince || !formData.manualWard) return;
+      finalCity = formData.manualProvince;
+      finalWard = formData.manualWard;
+    } else {
+      if (!selectedProvince || !selectedWard) return;
+      finalCity = selectedProvince.name;
+      finalWard = selectedWard.name;
+    }
 
     const payload: AddressPayload = {
       recipientName: formData.recipientName,
       phone: formData.phone,
       street: formData.street,
-      ward: selectedWard.name,
-      city: selectedProvince.name, 
+      ward: finalWard,
+      city: finalCity, 
       isDefault: formData.isDefault
     };
 
@@ -118,23 +156,33 @@ export default function AddressModal({ isOpen, onClose, onSubmit }: AddressModal
               style={inputStyle} />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <select required style={inputStyle} value={selectedProvince?.code || ''} onChange={handleProvinceChange}>
-              {/* SỬA THÀNH DÙNG i18n */}
-              <option value="" disabled>{t('selectProvince')}</option>
-              {provinces.map((p, index) => (
-                <option key={`${p.province_code}-${index}`} value={p.province_code}>{p.name}</option>
-              ))}
-            </select>
+          {/* RENDER CÓ ĐIỀU KIỆN: NẾU SẬP API THÌ HIỆN INPUT, NẾU BÌNH THƯỜNG THÌ HIỆN SELECT */}
+          {isFallbackMode ? (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <input required placeholder={t('selectProvince') || "Nhập Tỉnh / Thành phố"} value={formData.manualProvince}
+                onChange={(e) => setFormData({...formData, manualProvince: e.target.value})}
+                style={inputStyle} />
+              <input required placeholder={t('selectWard') || "Nhập Phường / Xã"} value={formData.manualWard}
+                onChange={(e) => setFormData({...formData, manualWard: e.target.value})}
+                style={inputStyle} />
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <select required style={inputStyle} value={selectedProvince?.code || ''} onChange={handleProvinceChange}>
+                <option value="" disabled>{t('selectProvince')}</option>
+                {provinces.map((p, index) => (
+                  <option key={`${p.province_code}-${index}`} value={p.province_code}>{p.name}</option>
+                ))}
+              </select>
 
-            <select required style={inputStyle} value={selectedWard?.code || ''} onChange={handleWardChange} disabled={!selectedProvince}>
-              {/* SỬA THÀNH DÙNG i18n */}
-              <option value="" disabled>{t('selectWard')}</option>
-              {wards.map((w, index) => (
-                <option key={`${w.ward_code}-${index}`} value={w.ward_code}>{w.ward_name}</option>
-              ))}
-            </select>
-          </div>
+              <select required style={inputStyle} value={selectedWard?.code || ''} onChange={handleWardChange} disabled={!selectedProvince}>
+                <option value="" disabled>{t('selectWard')}</option>
+                {wards.map((w, index) => (
+                  <option key={`${w.ward_code}-${index}`} value={w.ward_code}>{w.ward_name}</option>
+                ))}
+              </select>
+            </div>
+          )}
 
           <input required placeholder={t('street')} value={formData.street}
             onChange={(e) => setFormData({...formData, street: e.target.value})}

@@ -3,7 +3,8 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom'; 
 import { useTranslations } from 'next-intl';
-import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { useModal } from '@/hooks/useModal';
 import Cookies from 'js-cookie';
 import { getCart, updateCartItem, removeCartItem } from '@/lib/cart-api';
 import { resolveImageUrl } from '@/lib/utils';
@@ -17,13 +18,22 @@ interface CartDrawerProps {
 
 export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChange }: CartDrawerProps) {
   const t = useTranslations('cart');
+  
+  const pathname = usePathname();
+  const router = useRouter();
+  const modal = useModal();
+
   const [mounted, setMounted] = useState(false);
   const [cart, setCart] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [isGuest, setIsGuest] = useState(false);
+  
+  const [hasChanged, setHasChanged] = useState(false); 
 
-  // Chờ cho component render trên client xong mới bật Portal
+  // Kiểm tra xem có đang ở trang checkout không
+  const isCheckoutPage = pathname === '/checkout';
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -45,6 +55,7 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChan
     if (isOpen) {
       const token = Cookies.get('accessToken');
       setIsGuest(!token);
+      setHasChanged(false); 
       fetchCartData();
       document.body.style.overflow = 'hidden'; 
     } else {
@@ -60,19 +71,14 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChan
     let newQty = currentQty + change;
     
     if (newQty < 1) return;
-
-    if (change > 0 && totalUsedQty >= maxStock) {
-      return;
-    }
-
-    if (change < 0 && currentQty > maxStock) {
-      newQty = maxStock;
-    } 
+    if (change > 0 && totalUsedQty >= maxStock) return;
+    if (change < 0 && currentQty > maxStock) newQty = maxStock;
 
     try {
       await updateCartItem(itemId, newQty);
       await fetchCartData(); 
       onCartChange?.();
+      setHasChanged(true); 
     } catch (err) {
       console.error(err);
     }
@@ -83,6 +89,7 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChan
       await removeCartItem(itemId);
       await fetchCartData(); 
       onCartChange?.();
+      setHasChanged(true); 
     } catch (err) {
       console.error(err);
     }
@@ -120,14 +127,37 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChan
     }
   };
 
+  const handleProceedToCheckout = async () => {
+    if (hasStockError) return;
+
+    if (isCheckoutPage) {
+      if (!hasChanged) {
+        onClose();
+        return;
+      }
+
+      onClose();
+      
+      setTimeout(async () => {
+        const confirmed = await modal.confirm(t('confirm_update_checkout'));
+        if (confirmed) {
+          window.dispatchEvent(new CustomEvent('cart-updated'));
+        }
+      }, 150);
+
+    } else {
+      onClose();
+      router.push('/checkout');
+    }
+  };
+
   return createPortal(
     <div style={{
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999999, // Tăng z-index lên đỉnh chóp
+      backgroundColor: 'rgba(0, 0, 0, 0.5)', zIndex: 999999, 
       display: 'flex', justifyContent: 'flex-end', transition: 'opacity 0.3s ease',
       overflow: 'hidden'
     }} onClick={onClose}>
-      {/* Thêm onClick={(e) => e.stopPropagation()} để bấm vào trong không bị tắt giỏ hàng */}
       <div 
         onClick={(e) => e.stopPropagation()} 
         style={{
@@ -226,21 +256,46 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChan
 
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', border: '1px solid #d1d5db', borderRadius: '6px', overflow: 'hidden' }}>
-                          <button onClick={() => handleUpdateQuantity(item.id, item.quantity, -1, stock, totalUsedQty)} style={{ padding: '2px 8px', background: '#f9fafb', border: 'none', cursor: 'pointer' }}>-</button>
                           
-                          <span style={{ padding: '0 10px', fontSize: '13px', fontWeight: '600', color: isOutOfStock ? '#dc2626' : 'inherit' }}>{item.quantity}</span>
+                          <button 
+                            onClick={() => handleUpdateQuantity(item.id, item.quantity, -1, stock, totalUsedQty)} 
+                            style={{ 
+                              padding: '2px 10px', 
+                              background: '#f3f4f6', 
+                              border: 'none', 
+                              cursor: 'pointer',
+                              color: '#111827', 
+                              fontWeight: 'bold' 
+                            }}
+                          >
+                            -
+                          </button>
+                          
+                          <span style={{ 
+                            padding: '0 12px', 
+                            fontSize: '13px', 
+                            fontWeight: '600', 
+                            color: isOutOfStock ? '#dc2626' : '#111827' 
+                          }}>
+                            {item.quantity}
+                          </span>
                           
                           <button 
                             onClick={() => handleUpdateQuantity(item.id, item.quantity, 1, stock, totalUsedQty)} 
                             disabled={totalUsedQty >= stock}
                             style={{ 
-                              padding: '2px 8px', background: '#f9fafb', border: 'none', 
+                              padding: '2px 10px', 
+                              background: '#f3f4f6', 
+                              border: 'none', 
                               cursor: totalUsedQty >= stock ? 'not-allowed' : 'pointer',
-                              opacity: totalUsedQty >= stock ? 0.3 : 1
+                              opacity: totalUsedQty >= stock ? 0.3 : 1,
+                              color: '#111827', 
+                              fontWeight: 'bold'
                             }}
                           >
                             +
                           </button>
+
                         </div>
                         <button onClick={() => handleRemove(item.id)} style={{ background: 'none', border: 'none', color: '#ef4444', fontSize: '12px', cursor: 'pointer', fontWeight: '500' }}>{t('remove_button')}</button>
                       </div>
@@ -274,13 +329,14 @@ export default function CartDrawer({ isOpen, onClose, onRequireLogin, onCartChan
                 {t('login_to_checkout')} →
               </button>
             ) : (
-              <Link 
-                href={hasStockError ? "#" : "/checkout"}
-                onClick={(e) => { if (hasStockError) { e.preventDefault(); } else { onClose(); } }}
-                style={{ display: 'block', width: '100%', padding: '14px', backgroundColor: '#111827', color: '#fff', textAlign: 'center', borderRadius: '999px', fontWeight: '600', textDecoration: 'none', cursor: hasStockError ? 'not-allowed' : 'pointer', opacity: hasStockError ? 0.5 : 1 }}
+              <button 
+                onClick={handleProceedToCheckout}
+                disabled={hasStockError}
+                style={{ display: 'block', width: '100%', padding: '14px', backgroundColor: '#111827', color: '#fff', textAlign: 'center', borderRadius: '999px', fontWeight: '600', border: 'none', cursor: hasStockError ? 'not-allowed' : 'pointer', opacity: hasStockError ? 0.5 : 1 }}
               >
-                {t('checkout_button')} →
-              </Link>
+                {/* 3. LOGIC HIỂN THỊ TEXT NÚT DỰA TRÊN TRẠNG THÁI */}
+                {isCheckoutPage && hasChanged ? t('update_cart') : `${t('checkout_button')} →`}
+              </button>
             )}
           </div>
         )}

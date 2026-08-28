@@ -48,8 +48,27 @@ export default function CheckoutPage() {
     }
   };
 
+  const fetchCartOnly = async () => {
+    try {
+      const cartData = await getCart();
+      setCart(cartData);
+    } catch (err) {
+      console.error('Lỗi cập nhật ngầm giỏ hàng:', err);
+    }
+  };
+
   useEffect(() => {
     fetchData();
+
+    const handleCartUpdate = () => {
+      fetchCartOnly();
+    };
+    
+    window.addEventListener('cart-updated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdate);
+    };
   }, []);
 
   const totalAmount = cart?.items?.reduce((sum: number, item: any) => {
@@ -86,6 +105,12 @@ export default function CheckoutPage() {
     if (addresses.length === 0 || !selectedAddressId) {
       setIsModalOpen(true);
       return;
+    }
+
+    // BỔ SUNG: Bật Modal xác nhận trước khi tiến hành đặt hàng
+    const confirmed = await modal.confirm(t('confirm_place_order'));
+    if (!confirmed) {
+      return; 
     }
 
     setSubmitting(true);
@@ -146,7 +171,6 @@ export default function CheckoutPage() {
           
           <div style={{ border: '1px solid #e5e7eb', borderRadius: '12px', padding: '16px' }}>
             
-            {/* Header của Shipping Address kèm nút Thêm địa chỉ mới */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h3 style={{ fontSize: '16px', fontWeight: '600', margin: 0 }}>{t('shipping_address')}</h3>
               <button 
@@ -172,7 +196,6 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* TRƯỜNG HỢP CÓ 1 ĐỊA CHỈ: ĐÃ XÓA district */}
             {addresses.length === 1 && (
               <div style={{ padding: '12px', backgroundColor: '#f9fafb', borderRadius: '8px', border: '1px solid #e5e7eb' }}>
                 <div style={{ fontWeight: '600', fontSize: '14px' }}>{addresses[0].recipientName} - {addresses[0].phone}</div>
@@ -182,7 +205,6 @@ export default function CheckoutPage() {
               </div>
             )}
 
-            {/* TRƯỜNG HỢP CÓ >= 2 ĐỊA CHỈ: ĐÃ XÓA district */}
             {addresses.length >= 2 && (
               <select 
                 value={selectedAddressId || ''}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { getAdminOrderById, updateOrderStatus, updateOrderPaymentStatus } from '@/lib/admin-orders-api';
@@ -11,6 +11,7 @@ export default function AdminOrderDetailPage() {
   const t = useTranslations('admin_orders');
   const modal = useModal();
   const params = useParams();
+  const router = useRouter();
   const orderId = Number(params.id);
 
   const [order, setOrder] = useState<any>(null);
@@ -85,7 +86,13 @@ export default function AdminOrderDetailPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
         <div>
-          <Link href="/admin/orders" className="text-sm text-gray-500 hover:text-blue-600 transition"> {t('detail.back')}</Link>
+          <button 
+            onClick={() => router.back()} 
+            className="text-sm text-gray-500 hover:text-blue-600 transition flex items-center bg-transparent border-none p-0 cursor-pointer"
+          >
+             {t('detail.back')}
+          </button>
+          
           <h1 className="text-2xl font-bold text-gray-900 mt-2">{t('detail.title')}: #{order.code}</h1>
         </div>
         

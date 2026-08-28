@@ -64,7 +64,7 @@
       "variants": "Phân loại / Biến thể",
       "customizations": "Tùy chọn cá nhân hóa",
       "addToCart": "Thêm vào giỏ hàng",
-      "back": "< Quay lại danh sách",
+      "back": "< Quay lại",
       "required": "Bắt buộc",
       "from": "Từ",
       "customization_placeholder": "Nhập tối đa {max} chữ"
@@ -426,6 +426,7 @@
       "statusArchived": "Lưu trữ (Archived)",
       "privateLabel": "Link riêng tư",
       "privateHint": "Chỉ những người có link mới xem được.",
+      "privateComingSoon": "Sắp ra mắt trong bản cập nhật tới",
       "imageTitle": "Hình ảnh sản phẩm",
       "imageAlt": "Ảnh sản phẩm {index}",
       "removeImageTitle": "Xóa ảnh",
@@ -580,7 +581,9 @@
     "out_of_stock": "Hết hàng",
     "stock_warning": "⚠️ Chỉ còn {stock} sản phẩm trong kho",
     "adjust_stock_warning": "Vui lòng điều chỉnh số lượng sản phẩm đang bị lỗi đỏ để tiếp tục.",
-    "in_cart": "trong giỏ"
+    "in_cart": "trong giỏ",
+    "confirm_update_checkout": "Bạn có muốn áp dụng những thay đổi trong giỏ hàng vào trang Thanh toán này không?",
+    "update_cart": "Cập nhật giỏ hàng"
   },
   "private_layout": {
     "back_home": "< Về trang chủ"
@@ -633,6 +636,7 @@
     "success_order": "Đặt hàng thành công!",
     "error_order": "Có lỗi xảy ra khi đặt hàng.",
     "add_new_address": "Thêm địa chỉ mới",
+    "confirm_place_order": "Bạn có chắc chắn muốn đặt đơn hàng này không?",
     "error": {
       "fetch_failed": "Không thể tải thông tin thanh toán.",
       "address_failed": "Lỗi khi thêm địa chỉ.",
@@ -696,7 +700,13 @@
       "total": "Tổng tiền",
       "status": "Trạng thái",
       "action": "Thao tác",
-      "detail_btn": "Chi tiết"
+      "detail_btn": "Chi tiết",
+      "payment": "Thanh toán"
+    },
+    "payment": {
+    "PAID": "Đã thanh toán",
+    "UNPAID": "Chưa thanh toán",
+    "REFUNDED": "Hoàn tiền"
     },
     "status": {
       "PENDING": "Chờ xác nhận",
@@ -869,6 +879,10 @@
       "filter_has_comment": "Chỉ hiện có bình luận",
       "search_product": "Tìm tên sản phẩm...",
       "no_results": "Không tìm thấy kết quả phù hợp.",
+      "stars": "Sao",
+      "star": "Sao",
+      "filter_payment": "Thanh toán",
+      "order_payment": "Thanh toán",
       "timeline": {
         "review_title": "Đánh giá sản phẩm",
         "review_badge": "Review",
@@ -877,6 +891,11 @@
         "log_title": "Nhật ký hệ thống",
         "log_badge": "Log"
       }
+    },
+    "payment": {
+        "PAID": "Đã thanh toán",
+        "UNPAID": "Chưa thanh toán",
+        "REFUNDED": "Hoàn tiền"
     }
   },
   "admin_reviews": {
@@ -979,14 +998,45 @@
       "customers": "Quản lý Khách hàng"
     },
     "charts": {
-      "revenue_7_days": "Biểu đồ doanh thu 7 ngày qua"
+      "revenue_title": "Biểu đồ doanh thu",
+      "revenue_7_days": "Doanh thu 7 ngày qua",
+      "7_days": "7 Ngày",
+      "28_days": "28 Ngày",
+      "order_growth_28_days": "Tốc độ tăng trưởng đơn hàng (28 ngày qua)",
+      "empty_data": "Chưa có dữ liệu.",
+      
+      "order_unit_single": "đơn",
+      "order_unit_plural": "đơn"
     },
     "sections": {
       "recent_orders": "Đơn hàng mới nhất",
-      "low_stock": "Cảnh báo sắp hết hàng"
+      "low_stock": "Cảnh báo sắp hết hàng",
+      "no_orders": "Chưa có đơn hàng nào.",
+      "stock_stable": "Kho hàng đang ổn định.",
+      "stock_remaining": "Còn {stock}"
     },
     "actions": {
       "view_all": "Xem tất cả"
+    },
+    "table": {
+      "order_id": "Mã ĐH",
+      "customer": "Khách hàng",
+      "total": "Tổng tiền",
+      "status": "Trạng thái",
+      "payment": "Thanh toán"
+    },
+    "status": {
+      "pending": "Chờ xử lý",
+      "processing": "Đang chuẩn bị",
+      "shipping": "Đang giao",
+      "delivered": "Hoàn thành",
+      "cancelled": "Đã hủy",
+      "unknown": "Không rõ"
+    },
+    "payment": {
+      "unpaid": "Chưa thanh toán",
+      "paid": "Đã thanh toán",
+      "refunded": "Hoàn tiền"
     }
   }
 }

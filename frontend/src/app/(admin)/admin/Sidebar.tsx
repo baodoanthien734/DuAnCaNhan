@@ -105,7 +105,7 @@ export default function Sidebar({ user, brand, title }: SidebarProps) {
         flexDirection: 'column',
         boxSizing: 'border-box',
         padding: '24px 14px',
-        overflow: 'hidden', 
+        overflow: showSettings ? 'visible' : 'hidden',
         transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
         color: '#ffffff',
       }}

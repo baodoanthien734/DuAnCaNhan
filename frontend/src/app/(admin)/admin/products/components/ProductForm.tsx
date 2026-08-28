@@ -750,11 +750,22 @@ export default function ProductForm({ initialData, onSubmitData, isLoading }: Pr
                 </div>
 
                 <div className="pt-4 border-t border-gray-100">
-                  <label className="flex items-center gap-3 cursor-pointer">
-                    <input type="checkbox" {...register("isPrivate")} className="rounded text-blue-600 focus:ring-blue-500 h-5 w-5" />
+                  {/* Thay đổi con trỏ chuột và giảm opacity để tạo cảm giác bị khóa */}
+                  <label className="flex items-center gap-3 cursor-not-allowed opacity-70">
+                    <input 
+                      type="checkbox" 
+                      {...register("isPrivate")} 
+                      disabled // KHÓA CHECKBOX
+                      className="rounded text-gray-400 bg-gray-100 border-gray-300 h-5 w-5 cursor-not-allowed" 
+                    />
                     <div>
                       <span className="block text-sm font-semibold text-gray-700">{t("form.privateLabel")}</span>
                       <span className="block text-xs text-gray-500">{t("form.privateHint")}</span>
+                      
+                      {/* BỔ SUNG: Badge thông báo sắp ra mắt */}
+                      <span className="inline-block mt-1.5 text-[10px] uppercase tracking-wide font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                        {t("form.privateComingSoon")}
+                      </span>
                     </div>
                   </label>
                 </div>

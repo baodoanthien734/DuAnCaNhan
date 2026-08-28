@@ -4,7 +4,7 @@ import axios from 'axios';
 const BASE_URL = 'https://34tinhthanh.com/api';
 
 // 1. Lấy danh sách 34 Tỉnh/Thành mới nhất
-export const getProvinces = async () => {
+export const getProvinces = async () => { 
   const res = await axios.get(`${BASE_URL}/provinces`);
   return res.data; // Trả về mảng [{ province_code, name }]
 };
