@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'; // <-- IMPORT THÊM ROUTER
 import { getAdminCustomers, toggleCustomerStatus } from '@/lib/admin-customers-api';
 import { useModal } from '@/hooks/useModal';
 
@@ -23,14 +24,20 @@ export default function AdminCustomersPage() {
   const modal = useModal();
   const locale = useLocale();
 
+  // --- DÙNG SEARCH PARAMS ĐỂ GIỮ STATE ---
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState<number | null>(null);
   const [customers, setCustomers] = useState<AdminCustomerRow[]>([]);
   const [total, setTotal] = useState(0);
   
-  const [query, setQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [page, setPage] = useState(1);
+  // --- KHỞI TẠO TỪ URL ---
+  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
 
   const totalPages = Math.max(1, Math.ceil(total / TAKE));
 
@@ -53,6 +60,37 @@ export default function AdminCustomersPage() {
       }),
     [locale],
   );
+
+  // --- ĐỒNG BỘ NGƯỢC TỪ URL VÀO STATE (KHI BẤM BACK) ---
+  useEffect(() => {
+    const urlQ = searchParams.get('q') || '';
+    const urlPage = Number(searchParams.get('page')) || 1;
+
+    let hasChanged = false;
+    if (query !== urlQ) {
+      setQuery(urlQ);
+      setSearchInput(urlQ);
+      hasChanged = true;
+    }
+    if (page !== urlPage) {
+      setPage(urlPage);
+      hasChanged = true;
+    }
+    
+    if(hasChanged) {
+        setLoading(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // --- ĐỒNG BỘ STATE LÊN URL KHI BỘ LỌC THAY ĐỔI ---
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (page > 1) params.set('page', page.toString());
+    
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [query, page, pathname, router]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -119,7 +157,6 @@ export default function AdminCustomersPage() {
 
   return (
     <div className="p-6">
-      {/* Header */}
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">{t('list_title')}</h1>
@@ -127,7 +164,6 @@ export default function AdminCustomersPage() {
         </div>
       </div>
 
-      {/* Toolbar (Đã bỏ nút Search, dùng Auto-search) */}
       <div className="flex gap-3 items-center mb-6">
         <input
           placeholder={t('search_placeholder')}
@@ -137,7 +173,6 @@ export default function AdminCustomersPage() {
         />
       </div>
 
-      {/* Table Dữ liệu */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left border-collapse">
@@ -173,7 +208,6 @@ export default function AdminCustomersPage() {
                     <tr key={customer.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition">
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          {/* Avatar tự động tạo từ chữ cái đầu */}
                           <div className="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 font-bold flex items-center justify-center border border-blue-100">
                             {initial}
                           </div>
@@ -187,7 +221,6 @@ export default function AdminCustomersPage() {
                       <td className="px-5 py-4 font-bold text-amber-700">{currencyFormatter.format(customer.totalSpent || 0)}</td>
                       <td className="px-5 py-4 text-gray-600 font-medium">{customer.orderCount}</td>
                       <td className="px-5 py-4">
-                        {/* Đồng bộ màu nhãn Active/Inactive với CategoryList */}
                         {customer.isActive ? (
                           <span className="px-2.5 py-1 bg-[#dcfce3] text-[#166534] rounded-full text-xs font-semibold">
                             {t('status.active')}
@@ -200,7 +233,6 @@ export default function AdminCustomersPage() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex items-center justify-end gap-3">
-                          {/* Chỉnh lại nút View Detail dạng text đơn giản */}
                           <Link
                             href={`/admin/customers/${customer.id}`}
                             className="text-blue-600 font-medium hover:text-blue-800 transition text-sm"
@@ -228,7 +260,6 @@ export default function AdminCustomersPage() {
         </div>
       </div>
 
-      {/* Phân trang (Pagination) - Đã dời sang góc phải giống CategoryList */}
       {!loading && totalPages > 1 && (
         <div className="flex justify-end items-center gap-2 mt-6 pb-6">
           <button

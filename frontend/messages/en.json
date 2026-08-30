@@ -64,7 +64,7 @@
       "variants": "Variants",
       "customizations": "Customizations",
       "addToCart": "Add to Cart",
-      "back": "< Back to products",
+      "back": "< Back",
       "required": "Required",
       "from": "From",
       "customization_placeholder": "Enter up to {max} characters"
@@ -426,6 +426,7 @@
       "statusArchived": "Archived",
       "privateLabel": "Private link",
       "privateHint": "Only those with the link can view it.",
+      "privateComingSoon": "Coming soon in the next update",
       "imageTitle": "Product images",
       "imageAlt": "Product image {index}",
       "removeImageTitle": "Remove image",
@@ -580,7 +581,9 @@
     "out_of_stock": "Out of stock",
     "stock_warning": "⚠️ Only {stock} of this product is in stock",
     "adjust_stock_warning": "Please adjust the quantity of the highlighted items to continue.",
-    "in_cart": "in cart"
+    "in_cart": "in cart",
+    "confirm_update_checkout": "Do you want to apply these cart changes to the current Checkout page?",
+    "update_cart": "Update Cart"
   },
   "private_layout": {
     "back_home": "< Back to Home"
@@ -633,6 +636,7 @@
     "success_order": "Order placed successfully!",
     "error_order": "An error occurred while placing the order.",
     "add_new_address": "Add New Address",
+    "confirm_place_order": "Are you sure you want to place this order?",
     "error": {
     "fetch_failed": "Unable to load checkout information.",
     "address_failed": "Error adding address.",
@@ -696,7 +700,13 @@
     "total": "Total Amount",
     "status": "Status",
     "action": "Action",
-    "detail_btn": "Details"
+    "detail_btn": "Details",
+    "payment": "Payment"
+    },
+    "payment": {
+    "PAID": "Paid",
+    "UNPAID": "Unpaid",
+    "REFUNDED": "Refunded"
     },
     "status": {
     "PENDING": "Pending confirmation",
@@ -869,6 +879,10 @@
       "filter_has_comment": "Show only with comments",
       "search_product": "Search product name...",
       "no_results": "No matching results found.",
+      "stars": "Stars",
+      "star": "Star",
+      "filter_payment": "Payment",
+      "order_payment": "Payment",
       "timeline": {
         "review_title": "Product Review",
         "review_badge": "Review",
@@ -877,6 +891,11 @@
         "log_title": "System Log",
         "log_badge": "Log"
       }
+    },
+    "payment": {
+        "PAID": "Paid",
+        "UNPAID": "Unpaid",
+        "REFUNDED": "Refunded"
     }
   },
   "admin_reviews": {
@@ -979,14 +998,45 @@
     "customers": "Customer Management"
     },
     "charts": {
-      "revenue_7_days": "7-day revenue chart"
+      "revenue_title": "Revenue Chart",
+      "revenue_7_days": "Revenue (Last 7 Days)",
+      "7_days": "7 Days",
+      "28_days": "28 Days",
+      "order_growth_28_days": "Order Growth Rate (Last 28 Days)",
+      "empty_data": "No data available.",
+      
+      "order_unit_single": "order",
+      "order_unit_plural": "orders"
     },
     "sections": {
       "recent_orders": "Recent orders",
-      "low_stock": "Low stock alerts"
+      "low_stock": "Low stock alerts",
+      "no_orders": "No recent orders.",
+      "stock_stable": "Inventory is stable.",
+      "stock_remaining": "{stock} left"
     },
     "actions": {
       "view_all": "View all"
+    },
+    "table": {
+      "order_id": "Order ID",
+      "customer": "Customer",
+      "total": "Total",
+      "status": "Status",
+      "payment": "Payment"
+    },
+    "status": {
+      "pending": "Pending",
+      "processing": "Processing",
+      "shipping": "Shipping",
+      "delivered": "Delivered",
+      "cancelled": "Cancelled",
+      "unknown": "Unknown"
+    },
+    "payment": {
+      "unpaid": "Unpaid",
+      "paid": "Paid",
+      "refunded": "Refunded"
     }
   }
 }

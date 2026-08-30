@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation'; 
 import { useTranslations, useLocale } from 'next-intl';
 import { addToCart } from '@/lib/cart-api';
 import { resolveImageUrl } from '@/lib/utils';
@@ -47,6 +47,8 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
   const t = useTranslations('public_pages.product_detail');
   const tCart = useTranslations('cart');
   const locale = useLocale(); 
+  
+  const router = useRouter(); 
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -202,7 +204,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
       setSelectedVariant(null);
       setCustomValues([]);
       
-      // Bắn sự kiện để mở giỏ hàng và cập nhật giỏ hàng
       window.dispatchEvent(new CustomEvent('open-cart'));
       window.dispatchEvent(new CustomEvent('cart-updated'));
 
@@ -215,9 +216,12 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
 
   return (
     <div className="font-sans text-[0.85rem] mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 lg:py-12 bg-slate-50/30">
-      <Link href="/products" className="mb-8 inline-flex items-center gap-2 text-xs font-medium text-slate-500 transition hover:text-slate-900">
-        {t('back')}
-      </Link>
+      <button 
+        onClick={() => router.back()} 
+        className="mb-8 inline-flex items-center gap-2 text-xs font-medium text-slate-500 transition hover:text-slate-900 bg-transparent border-none p-0 cursor-pointer"
+      >
+        <span></span> {t('back')}
+      </button>
 
       <div className="grid grid-cols-1 gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16">
         
@@ -361,7 +365,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                       {customization.type === 'TEXT' ? (
                         <input
                           type="text"
-                          // Use the custom placeholder if a maxLength is provided
                           placeholder={
                             customization.maxLength
                               ? t('customization_placeholder', { max: customization.maxLength })
@@ -370,7 +373,6 @@ export default function ProductDetailClient({ product }: ProductDetailClientProp
                           value={customValues.find((v) => v.name === customization.name)?.value || ''}
                           onChange={(event) => {
                             let val = event.target.value;
-                            // Silently truncate if the input exceeds maxLength
                             if (customization.maxLength && val.length > customization.maxLength) {
                               val = val.slice(0, customization.maxLength);
                             }

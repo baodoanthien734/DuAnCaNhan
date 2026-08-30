@@ -3,6 +3,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useTranslations, useLocale } from 'next-intl';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation'; 
 import { getAdminOrders } from '@/lib/admin-orders-api';
 
 const TAKE = 12;
@@ -11,15 +12,20 @@ export default function AdminOrdersPage() {
   const t = useTranslations('admin_orders'); 
   const locale = useLocale();
   
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [orders, setOrders] = useState<any[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const [query, setQuery] = useState('');
-  const [searchInput, setSearchInput] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
-  const [page, setPage] = useState(1);
+  // Khởi tạo state từ URL
+  const [query, setQuery] = useState(searchParams.get('q') || '');
+  const [searchInput, setSearchInput] = useState(searchParams.get('q') || '');
+  const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || '');
+  const [dateFilter, setDateFilter] = useState(searchParams.get('date') || '');
+  const [page, setPage] = useState(Number(searchParams.get('page')) || 1);
 
   const totalPages = Math.max(1, Math.ceil(total / TAKE));
 
@@ -44,6 +50,51 @@ export default function AdminOrdersPage() {
       }),
     [locale],
   );
+
+  // ĐỒNG BỘ NGƯỢC TỪ URL VÀO STATE (KHI BẤM BACK)
+  useEffect(() => {
+    const urlQ = searchParams.get('q') || '';
+    const urlStatus = searchParams.get('status') || '';
+    const urlDate = searchParams.get('date') || '';
+    const urlPage = Number(searchParams.get('page')) || 1;
+
+    let hasChanged = false;
+
+    if (query !== urlQ) {
+      setQuery(urlQ);
+      setSearchInput(urlQ);
+      hasChanged = true;
+    }
+    if (statusFilter !== urlStatus) {
+      setStatusFilter(urlStatus);
+      hasChanged = true;
+    }
+    if (dateFilter !== urlDate) {
+      setDateFilter(urlDate);
+      hasChanged = true;
+    }
+    if (page !== urlPage) {
+      setPage(urlPage);
+      hasChanged = true;
+    }
+    
+    // Khuyến khích reload nhẹ data nếu user force back mà tham số có đổi
+    if(hasChanged) {
+        setLoading(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  // ĐỒNG BỘ STATE LÊN URL KHI BỘ LỌC THAY ĐỔI
+  useEffect(() => {
+    const params = new URLSearchParams();
+    if (query) params.set('q', query);
+    if (statusFilter) params.set('status', statusFilter);
+    if (dateFilter) params.set('date', dateFilter);
+    if (page > 1) params.set('page', page.toString());
+    
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [query, statusFilter, dateFilter, page, pathname, router]);
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
@@ -75,7 +126,6 @@ export default function AdminOrdersPage() {
       }
     };
     fetchOrders();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, query, statusFilter, dateFilter]);
 
   const handleFilterChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
@@ -83,7 +133,6 @@ export default function AdminOrdersPage() {
     setPage(1);
   };
 
-  // Hàm render màu Badge Trạng thái
   const getStatusBadge = (status: string) => {
     const statusStyles: Record<string, string> = {
       PENDING: 'bg-yellow-100 text-yellow-800',
@@ -95,9 +144,12 @@ export default function AdminOrdersPage() {
     return statusStyles[status] || 'bg-gray-100 text-gray-700';
   };
 
+  const getPaymentBadge = (status: string) => {
+    return 'bg-gray-200 text-gray-700'; 
+  };
+
   return (
     <div className="p-6 w-full max-w-7xl mx-auto">
-      {/* Tiêu đề trang */}
       <div className="flex flex-col md:flex-row md:items-center justify-between mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-800">{t('list_title')}</h1>
@@ -108,9 +160,7 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Toolbar Lọc & Tìm kiếm */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 mb-6 flex flex-wrap gap-4 items-center">
-        {/* Tìm kiếm */}
         <div className="flex-1 min-w-[200px]">
           <input
             type="text"
@@ -121,7 +171,6 @@ export default function AdminOrdersPage() {
           />
         </div>
 
-        {/* Lọc Trạng thái */}
         <div className="w-44">
           <select
             value={statusFilter}
@@ -137,7 +186,6 @@ export default function AdminOrdersPage() {
           </select>
         </div>
 
-        {/* Lọc Ngày tháng */}
         <div className="w-40">
           <select
             value={dateFilter}
@@ -153,7 +201,6 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Bảng Dữ liệu */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm text-left border-collapse">
@@ -163,6 +210,7 @@ export default function AdminOrdersPage() {
                 <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.customer')}</th>
                 <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.order_date')}</th>
                 <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.total')}</th>
+                <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.payment')}</th>
                 <th className="px-5 py-4 text-gray-700 font-semibold">{t('table.status')}</th>
                 <th className="px-5 py-4 text-gray-700 font-semibold text-right">{t('table.action')}</th>
               </tr>
@@ -170,13 +218,13 @@ export default function AdminOrdersPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={7} className="px-5 py-10 text-center text-gray-500">
                     {t('loading_list')}
                   </td>
                 </tr>
               ) : orders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-5 py-10 text-center text-gray-500">
+                  <td colSpan={7} className="px-5 py-10 text-center text-gray-500">
                     {t('empty_list')}
                   </td>
                 </tr>
@@ -198,12 +246,20 @@ export default function AdminOrdersPage() {
                     <td className="px-5 py-4 font-bold text-amber-700">
                       {currencyFormatter.format(Number(order.totalAmount || 0))}
                     </td>
+                    
+                    <td className="px-5 py-4">
+                      <span className={`px-2.5 py-1 rounded-full text-xs font-semibold inline-block ${getPaymentBadge(order.paymentStatus)}`}>
+                        {t(`payment.${order.paymentStatus}`) || order.paymentStatus}
+                      </span>
+                    </td>
+
                     <td className="px-5 py-4">
                       <span className={`px-2.5 py-1 rounded-full text-xs font-semibold inline-block ${getStatusBadge(order.status)}`}>
                         {t(`status.${order.status}`)}
                       </span>
                     </td>
                     <td className="px-5 py-4 text-right">
+                      {/* LƯU Ý TRÊN NÚT LINK: Next.js sẽ tự động điều hướng đi */}
                       <Link 
                         href={`/admin/orders/${order.id}`}
                         className="inline-block px-4 py-2 text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition"
@@ -219,7 +275,6 @@ export default function AdminOrdersPage() {
         </div>
       </div>
 
-      {/* Phân trang (Pagination) */}
       {!loading && totalPages > 1 && (
         <div className="flex justify-end items-center gap-2 mt-8 pb-6">
           <button

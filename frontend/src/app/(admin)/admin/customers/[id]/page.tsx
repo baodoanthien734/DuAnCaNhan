@@ -1,8 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation'; 
 import { useLocale, useTranslations } from 'next-intl';
 import { getAdminCustomerById, toggleCustomerStatus } from '@/lib/admin-customers-api';
 import { useModal } from '@/hooks/useModal';
@@ -23,6 +22,7 @@ type Order = {
   code: string;
   totalAmount: number | string;
   status: 'PENDING' | 'PROCESSING' | 'SHIPPING' | 'DELIVERED' | 'CANCELLED';
+  paymentStatus: 'UNPAID' | 'PAID' | 'REFUNDED'; // <-- BỔ SUNG TRƯỜNG NÀY
   createdAt: string;
 };
 
@@ -64,12 +64,11 @@ type CustomerDetail = {
   accounts: Account[];
 };
 
-// Hàm hỗ trợ: Chuẩn hóa chuỗi tiếng Việt (xóa dấu, chuyển chữ thường)
 const normalizeString = (str: string) => {
   if (!str) return '';
   return str
-    .normalize('NFD') // Tách dấu ra khỏi ký tự
-    .replace(/[\u0300-\u036f]/g, '') // Xóa các dấu
+    .normalize('NFD') 
+    .replace(/[\u0300-\u036f]/g, '') 
     .replace(/đ/g, 'd')
     .replace(/Đ/g, 'D')
     .toLowerCase()
@@ -81,6 +80,7 @@ export default function AdminCustomerDetailPage() {
   const modal = useModal();
   const locale = useLocale();
   const params = useParams();
+  const router = useRouter(); 
   const id = Number(params.id);
 
   const [loading, setLoading] = useState(true);
@@ -89,6 +89,7 @@ export default function AdminCustomerDetailPage() {
 
   // --- STATES BỘ LỌC ĐƠN HÀNG ---
   const [orderStatus, setOrderStatus] = useState<string>('ALL');
+  const [orderPayment, setOrderPayment] = useState<string>('ALL'); // <-- BỘ LỌC THANH TOÁN
   const [orderSort, setOrderSort] = useState<string>('NEWEST');
   const [orderTime, setOrderTime] = useState<string>('ALL');
 
@@ -196,7 +197,6 @@ export default function AdminCustomerDetailPage() {
     return Array.from(methods);
   }, [customer, t]);
 
-  // --- LOGIC LỌC ĐƠN HÀNG ---
   const filteredOrders = useMemo(() => {
     if (!customer) return [];
     let result = [...customer.orders];
@@ -204,6 +204,11 @@ export default function AdminCustomerDetailPage() {
 
     if (orderStatus !== 'ALL') {
       result = result.filter(o => o.status === orderStatus);
+    }
+    
+    // --- LỌC THEO TRẠNG THÁI THANH TOÁN ---
+    if (orderPayment !== 'ALL') {
+      result = result.filter(o => o.paymentStatus === orderPayment);
     }
 
     if (orderTime !== 'ALL') {
@@ -229,9 +234,8 @@ export default function AdminCustomerDetailPage() {
     }
 
     return result;
-  }, [customer, orderStatus, orderSort, orderTime]);
+  }, [customer, orderStatus, orderPayment, orderSort, orderTime]);
 
-  // --- LOGIC LỌC ĐÁNH GIÁ THÔNG MINH ---
   const filteredReviews = useMemo(() => {
     if (!customer) return [];
     let result = [...customer.reviews];
@@ -255,14 +259,34 @@ export default function AdminCustomerDetailPage() {
     return result;
   }, [customer, reviewRating, reviewHasComment, reviewSearch]);
 
+  // Hàm render màu Badge Trạng thái Đơn hàng
+  const getStatusBadge = (status: string) => {
+    const statusStyles: Record<string, string> = {
+      PENDING: 'bg-yellow-100 text-yellow-800',
+      PROCESSING: 'bg-blue-100 text-blue-800',
+      SHIPPING: 'bg-purple-100 text-purple-800',
+      DELIVERED: 'bg-emerald-100 text-emerald-700',
+      CANCELLED: 'bg-red-100 text-red-700'
+    };
+    return statusStyles[status] || 'bg-gray-100 text-gray-700';
+  };
+
+  // Hàm render màu Badge Thanh toán 
+  const getPaymentBadge = (status: string) => {
+    return 'bg-gray-200 text-gray-700'; 
+  };
+
   if (loading) return <div className="w-full max-w-7xl mx-auto p-6 text-sm text-gray-500">{t('detail.loading')}</div>;
 
   if (!customer) {
     return (
       <div className="w-full max-w-7xl mx-auto p-6">
-        <Link href="/admin/customers" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition">
-          <span></span> {t('detail.back')}
-        </Link>
+        <button 
+          onClick={() => router.back()} 
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition bg-transparent border-none p-0 cursor-pointer"
+        >
+          <span>←</span> {t('detail.back')}
+        </button>
         <div className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm">
           {t('detail.not_found')}
         </div>
@@ -276,9 +300,12 @@ export default function AdminCustomerDetailPage() {
     <div className="w-full max-w-7xl mx-auto p-6 space-y-6">
       
       <div className="flex items-center justify-between">
-        <Link href="/admin/customers" className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition">
-          <span></span> {t('detail.back')}
-        </Link>
+        <button 
+          onClick={() => router.back()} 
+          className="inline-flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-gray-800 transition bg-transparent border-none p-0 cursor-pointer"
+        >
+          <span>←</span> {t('detail.back')}
+        </button>
       </div>
 
       {/* Profile Card */}
@@ -403,7 +430,7 @@ export default function AdminCustomerDetailPage() {
           )}
         </div>
 
-        {/* Lịch sử đơn hàng (Kèm bộ lọc) */}
+        {/* Lịch sử đơn hàng */}
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-3 mb-4">
             <h2 className="text-lg font-bold text-gray-800">
@@ -412,6 +439,7 @@ export default function AdminCustomerDetailPage() {
             
             {customer.orders.length > 0 && (
               <div className="flex flex-wrap gap-2 text-sm">
+                
                 <select 
                   value={orderStatus} 
                   onChange={(e) => setOrderStatus(e.target.value)}
@@ -423,6 +451,18 @@ export default function AdminCustomerDetailPage() {
                   <option value="SHIPPING">{t('order_status.SHIPPING')}</option>
                   <option value="DELIVERED">{t('order_status.DELIVERED')}</option>
                   <option value="CANCELLED">{t('order_status.CANCELLED')}</option>
+                </select>
+
+                {/* SELECT LỌC TRẠNG THÁI THANH TOÁN */}
+                <select 
+                  value={orderPayment} 
+                  onChange={(e) => setOrderPayment(e.target.value)}
+                  className="border border-gray-200 rounded-lg px-3 py-1.5 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="ALL">{t('detail.filter_payment')}: {t('detail.filter_all')}</option>
+                  <option value="PAID">{t('payment.PAID')}</option>
+                  <option value="UNPAID">{t('payment.UNPAID')}</option>
+                  <option value="REFUNDED">{t('payment.REFUNDED')}</option>
                 </select>
 
                 <select 
@@ -462,6 +502,7 @@ export default function AdminCustomerDetailPage() {
                     <th className="text-left px-4 py-3 font-semibold">{t('detail.order_code')}</th>
                     <th className="text-left px-4 py-3 font-semibold">{t('detail.order_date')}</th>
                     <th className="text-left px-4 py-3 font-semibold">{t('detail.order_total')}</th>
+                    <th className="text-left px-4 py-3 font-semibold">{t('detail.order_payment')}</th>
                     <th className="text-left px-4 py-3 font-semibold">{t('detail.order_status')}</th>
                   </tr>
                 </thead>
@@ -471,7 +512,20 @@ export default function AdminCustomerDetailPage() {
                       <td className="px-4 py-3.5 font-semibold text-gray-800">#{order.code}</td>
                       <td className="px-4 py-3.5 text-gray-500">{dateFormatter.format(new Date(order.createdAt))}</td>
                       <td className="px-4 py-3.5 text-amber-700 font-bold">{currencyFormatter.format(Number(order.totalAmount || 0))}</td>
-                      <td className="px-4 py-3.5 text-gray-700 font-medium">{t(`order_status.${order.status}`)}</td>
+                      
+                      {/* Cột Payment đã được xám hóa */}
+                      <td className="px-4 py-3.5">
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold inline-block ${getPaymentBadge(order.paymentStatus)}`}>
+                          {t(`payment.${order.paymentStatus}`)}
+                        </span>
+                      </td>
+                      
+                      {/* Cột Status đã được khoác áo mới */}
+                      <td className="px-4 py-3.5">
+                        <span className={`px-2.5 py-1 rounded-full text-[11px] font-semibold inline-block ${getStatusBadge(order.status)}`}>
+                          {t(`order_status.${order.status}`)}
+                        </span>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -480,7 +534,7 @@ export default function AdminCustomerDetailPage() {
           )}
         </div>
 
-        {/* Đánh giá sản phẩm (Kèm bộ lọc thông minh) */}
+        {/* Đánh giá sản phẩm */}
         <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-gray-100 pb-3 mb-4">
             <h2 className="text-lg font-bold text-gray-800">
@@ -503,11 +557,11 @@ export default function AdminCustomerDetailPage() {
                   className="border border-gray-200 rounded-lg px-3 py-1.5 bg-gray-50 outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="ALL">{t('detail.filter_rating')}: {t('detail.filter_all')}</option>
-                  <option value="5">5 Sao</option>
-                  <option value="4">4 Sao</option>
-                  <option value="3">3 Sao</option>
-                  <option value="2">2 Sao</option>
-                  <option value="1">1 Sao</option>
+                  <option value="5">5 {t('detail.stars')}</option>
+                  <option value="4">4 {t('detail.stars')}</option>
+                  <option value="3">3 {t('detail.stars')}</option>
+                  <option value="2">2 {t('detail.stars')}</option>
+                  <option value="1">1 {t('detail.star')}</option>
                 </select>
 
                 <label className="flex items-center gap-1.5 cursor-pointer text-gray-600 font-medium">
