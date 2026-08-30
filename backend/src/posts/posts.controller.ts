@@ -110,4 +110,21 @@ export class PostsController {
     ) {
         return this.postsService.update(Number(id), dto, files);
     }
+
+    // ==============================================================
+    // PRODUCT TAGGING ROUTES
+    // ==============================================================
+
+    @Get(':id/products')
+    async getTaggedProducts(@Param('id') id: string) {
+        return this.postsService.getTaggedProducts(Number(id));
+    }
+
+    @Patch(':id/products')
+    async updateTaggedProducts(
+        @Param('id') id: string,
+        @Body('productIds') productIds: number[],
+    ) {
+        return this.postsService.updateTaggedProducts(Number(id), productIds || []);
+    }
 }

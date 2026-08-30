@@ -21,6 +21,15 @@ export interface PublicPost {
     id: number;
     name: string;
   };
+  postProducts?: {
+    product: {
+      id: number;
+      name: string;
+      slug: string;
+      basePrice: number;
+      images: string[];
+    }
+  }[];
 }
 
 export async function getPublicPosts(params?: { q?: string; skip?: number; take?: number }) {
